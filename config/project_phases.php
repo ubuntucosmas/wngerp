@@ -41,15 +41,6 @@ return [
         'offsetEnd' => 15,
         'default_tasks' => [
             [
-                'name' => 'Material & Cost Listing',
-                'description' => 'Estimate material needs and costs.',
-                'deliverables' => [
-                    'List all required materials.',
-                    'Rough cost estimation.',
-                    'Finalize and approve materials list internally.',
-                ],
-            ],
-            [
                 'name' => 'Initial Design Creation',
                 'description' => 'Create and share initial design concepts.',
                 'deliverables' => [
@@ -65,6 +56,15 @@ return [
                     'Incorporate revisions from feedback.',
                     'Client provides sign-off.',
                     'Document final designs in ERP.',
+                ],
+            ],
+            [
+                'name' => 'Material & Cost Listing',
+                'description' => 'Estimate material needs and costs.',
+                'deliverables' => [
+                    'List all required materials.',
+                    'Rough cost estimation.',
+                    'Finalize and approve materials list internally.',
                 ],
             ],
         ],

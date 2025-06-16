@@ -89,7 +89,7 @@ return [
                 'deliverables' => [
                     'Follow up within 45 minutes (or as needed).',
                     'Confirm client approval.',
-                    'Mark status as “Budget Approved”.',
+                    'Mark status as “Quote Approved”.',
                 ],
             ],
         ],
@@ -104,14 +104,13 @@ return [
                 'description' => 'Ensure necessary stock is available.',
                 'deliverables' => [
                     'Store manager checks available stock.',
-                    'Flag low or missing stock items.',
                 ],
             ],
             [
                 'name' => 'Procurement Process',
                 'description' => 'Raise and track procurement of materials.',
                 'deliverables' => [
-                    'Raise purchase request in ERP.',
+                    'Raise purchase request.',
                     'Approve via Procurement Officer.',
                     'Track supplier delivery status.',
                 ],
@@ -121,7 +120,6 @@ return [
                 'description' => 'Prepare materials for use.',
                 'deliverables' => [
                     'Receive and verify materials.',
-                    'Update stock in ERP.',
                     'Notify production team.',
                 ],
             ],
@@ -137,8 +135,8 @@ return [
                 'name' => 'Execute Production',
                 'description' => 'Fabricate/brand as per approved design.',
                 'deliverables' => [
-                    'Start tasks in ERP (Gantt/Kanban).',
                     'Log time and material usage.',
+                    //'-> call deliverables
                 ],
             ],
             [
@@ -155,7 +153,7 @@ return [
                 'description' => 'Prepare items for delivery.',
                 'deliverables' => [
                     'Package final items.',
-                    'Update delivery docket in ERP.',
+                    'Update delivery docket.',
                     'Handover to logistics.',
                 ],
             ],
@@ -185,30 +183,7 @@ return [
             ],
         ],
     ],
-    [
-        'title' => 'Set Down & Return',
-        'offsetStart' => 36,
-        'offsetEnd' => 40,
-        'default_tasks' => [
-            [
-                'name' => 'Dismantling',
-                'description' => 'Safely uninstall and collect materials.',
-                'deliverables' => [
-                    'Uninstall props/equipment.',
-                    'Account for all items.',
-                ],
-            ],
-            [
-                'name' => 'Returns & Storage',
-                'description' => 'Return items to workshop and update records.',
-                'deliverables' => [
-                    'Transport items back.',
-                    'Inspect for damage.',
-                    'Update ERP with return condition.',
-                ],
-            ],
-        ],
-    ],
+
     [
         'title' => 'Client Handover & Feedback',
         'offsetStart' => 41,
@@ -232,6 +207,31 @@ return [
             ],
         ],
     ],
+
+    [
+        'title' => 'Set Down & Return',
+        'offsetStart' => 36,
+        'offsetEnd' => 40,
+        'default_tasks' => [
+            [
+                'name' => 'Dismantling',
+                'description' => 'Safely uninstall and collect materials.',
+                'deliverables' => [
+                    'Uninstall props/equipment.',
+                    'Account for all items.',
+                ],
+            ],
+            [
+                'name' => 'Returns & Storage',
+                'description' => 'Return items to workshop and update records.',
+                'deliverables' => [
+                    'Transport items back.',
+                    'Inspect for damage.',
+                    'Update return condition.',
+                ],
+            ],
+        ],
+    ],
     [
         'title' => 'Archival & Reporting',
         'offsetStart' => 44,
@@ -241,7 +241,7 @@ return [
                 'name' => 'Close Project',
                 'description' => 'Mark project complete and archive.',
                 'deliverables' => [
-                    'Update ERP to mark as complete.',
+                    'Mark Project as complete.',
                     'Archive all related documentation.',
                 ],
             ],
@@ -251,7 +251,6 @@ return [
                 'deliverables' => [
                     'Create cost, time, and material usage reports.',
                     'Send summary to management.',
-                    'Schedule review in monthly reporting cycle.',
                 ],
             ],
         ],

@@ -287,10 +287,7 @@
                     </div>
                 @endif
             </div>
-
-            <div class="container mt-4">
                 @yield('content')
-            </div>
         </div>
     </div>
     <script>

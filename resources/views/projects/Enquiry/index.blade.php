@@ -233,14 +233,14 @@
     }
 </style>
 
-<div class="container mt-4">
+<div class="px-3 mx-10 mt-2 w-100">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1>Enquiries</h1>
         <button type="button" class="btn btn-xs btn-outline-info" data-bs-toggle="modal" data-bs-target="#createEnquiryModal">
             New Enquiry
         </button>
     </div>
-
+<hr class="mb-4">
     <!-- Create Enquiry Modal -->
     <div class="modal fade" id="createEnquiryModal" tabindex="-1" aria-labelledby="createEnquiryModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">

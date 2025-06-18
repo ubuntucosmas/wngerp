@@ -167,7 +167,7 @@
     }
 </style>
 
-<div class="container mt-4">
+<div class="px-3 mx-10 mt-2 w-100">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Clients</h2>
@@ -175,7 +175,7 @@
             <i class="bi bi-person-plus"></i> New Client
         </button>
     </div>
-
+    <hr class="mb-4">
     <div class="search-box">
         <div class="input-group">
             <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>

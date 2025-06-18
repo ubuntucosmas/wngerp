@@ -121,7 +121,7 @@
     }
 </style>
 
-<div class="container mt-4">
+<div class="px-3 mx-10 mt-2 w-100">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div class="d-flex align-items-center">
             <h2 class="mb-0 fw-bold me-4" style="letter-spacing:0.01em;">

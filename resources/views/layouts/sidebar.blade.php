@@ -82,6 +82,12 @@
                     <span class="nav-text">Dashboard</span>
                 </a>
             </li>
+            <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="Manage Enquiries">
+                <a class="nav-link d-flex align-items-center {{ request()->routeIs('enquiries.index') ? 'active bg-cyan text-white' : 'text-dark' }}" href="{{ route('enquiries.index') }}">
+                    <i class="bi bi-chat-dots me-2"></i>
+                    <span class="nav-text">Enquiries</span>
+                </a>
+            </li>
             <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="View All Projects">
                 <a class="nav-link d-flex align-items-center {{ request()->routeIs('projects.index') ? 'active bg-cyan text-white' : 'text-dark' }}" href="{{ route('projects.index') }}">
                     <i class="bi bi-kanban me-2"></i>

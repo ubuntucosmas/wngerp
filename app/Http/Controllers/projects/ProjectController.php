@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Project;
 use App\Models\Phase;
 use App\Models\Client;
+use App\Models\Enquiry;
 use App\Models\Task;
 use App\Models\Deliverable;
 use Carbon\Carbon;
@@ -66,12 +67,13 @@ class ProjectController extends Controller
 
         // Fetch all clients — likely for filter or project creation UI
         $clients = Client::all();
+        $enquiryprojects = Enquiry::all();
 
         // Add view type for the template
         $viewType = 'assigned';
 
         // Return the index Blade view with the queried data
-        return view('projects.index', compact('projects', 'users', 'clients', 'viewType'));
+        return view('projects.index', compact('projects', 'enquiryprojects', 'users', 'clients', 'viewType'));
     }
 
     /**
@@ -103,11 +105,12 @@ class ProjectController extends Controller
         // Fetch all users with the 'po' role
         $users = User::where('role', 'po')->get(); 
         $clients = Client::all();
+        $enquiryprojects = Enquiry::all();
         
         // Set view type to all
         $viewType = 'all';
 
-        return view('projects.index', compact('projects', 'users', 'clients', 'viewType'));
+        return view('projects.index', compact('projects', 'enquiryprojects', 'users', 'clients', 'viewType'));
     }
 
 

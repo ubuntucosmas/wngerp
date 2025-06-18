@@ -119,9 +119,9 @@ class QuoteController extends Controller
             'items.*.unit_price' => 'required|numeric|min:0',
         ]);
 
-        if ($quote->project_id !== $project->id) {
-            abort(404, 'Quote does not belong to the given project.');
-        }
+        // if ($quote->project_id !== $project->id) {
+        //     abort(404, 'Quote does not belong to the given project.');
+        // }
 
         $quote->update([
             'customer_name' => $data['customer_name'],

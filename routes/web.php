@@ -9,7 +9,7 @@ use App\Http\Controllers\{
     projects\PhaseController, projects\ClientController, projects\DeliverableController,
     projects\ProjectController, Auth\AuthenticatedSessionController,
     projects\BookingOrderController, projects\ProjectFileController, projects\EnquiryLogController, projects\SiteSurveyController,
-    FileUploadController, QuoteController
+    FileUploadController, QuoteController, EnquiryController
 };
 
 Route::get('/', fn () => view('auth.login'));
@@ -85,6 +85,16 @@ Route::middleware(['auth', 'role:pm|po'])->group(function () {
     Route::delete('/projects/{id}', [ProjectController::class, 'destroy'])->name('projects.destroy');
     Route::get('/projects/active', [ProjectController::class, 'active'])->name('projects.active');
 
+
+    // Enquiries Routes
+    Route::get('/projects/enquiry', [EnquiryController::class, 'index'])->name('enquiries.index');
+    Route::post('/projects/enquiry', [EnquiryController::class, 'store'])->name('enquiries.store');
+    Route::get('/projects/enquiry/create', [EnquiryController::class, 'create'])->name('enquiries.create');
+    Route::get('/projects/enquiry/{enquiry}', [EnquiryController::class, 'show'])->name('enquiries.show');
+    Route::get('/projects/enquiry/{enquiry}/edit', [EnquiryController::class, 'edit'])->name('enquiries.edit');
+    Route::put('/projects/enquiry/{enquiry}', [EnquiryController::class, 'update'])->name('enquiries.update');
+    Route::delete('/projects/enquiry/{enquiry}', [EnquiryController::class, 'destroy'])->name('enquiries.destroy');
+
     // Phases & Tasks
     Route::post('/phases', [PhaseController::class, 'store'])->name('phases.store');
     Route::get('/phases/{id}/edit', [PhaseController::class, 'edit'])->name('phases.edit');
@@ -131,10 +141,10 @@ Route::middleware(['auth', 'role:pm|po'])->group(function () {
         Route::get('booking-order-print', [BookingOrderController::class, 'printBookingOrder'])->name('projects.booking-order.print');
 
         // Show inquiry log for a specific project 
+        Route::get('enquiry-log/{enquiryLog}/edit', [EnquiryLogController::class, 'edit'])->name('projects.enquiry-log.edit');
         Route::get('enquiry-log', [EnquiryLogController::class, 'show'])->name('projects.enquiry-log.show');
         Route::get('enquiry-log/create', [EnquiryLogController::class, 'create'])->name('projects.enquiry-log.create');
         Route::post('enquiry-log', [EnquiryLogController::class, 'store'])->name('projects.enquiry-log.store');
-        Route::get('enquiry-log/{enquiryLog}/edit', [EnquiryLogController::class, 'edit'])->name('projects.enquiry-log.edit');
         Route::put('enquiry-log/{enquiryLog}', [EnquiryLogController::class, 'update'])->name('projects.enquiry-log.update');
         Route::delete('enquiry-log/{enquiryLog}', [EnquiryLogController::class, 'destroy'])->name('projects.enquiry-log.destroy');
         Route::get('enquiry-log/download', [EnquiryLogController::class, 'downloadEnquiryLog'])->name('projects.enquiry-log.download');
@@ -143,7 +153,7 @@ Route::middleware(['auth', 'role:pm|po'])->group(function () {
 
         // Quotation Routes
         Route::get('quotation', [FileUploadController::class, 'showQuotation'])->name('projects.files.quotation');
-        Route::post('/projects/files/quotation/upload', [FileUploadController::class, 'uploadQuotation'])->name('projects.files.quotation.upload');
+        Route::post('projects/files/quotation/upload', [FileUploadController::class, 'uploadQuotation'])->name('projects.files.quotation.upload');
 
         // Quotes Routes
         Route::prefix('quotes')->name('quotes.')->group(function () {

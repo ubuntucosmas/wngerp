@@ -10,13 +10,18 @@
                 </div>
 
                 <div class="modal-body">
-                    <input type="text" name="name" class="form-control futuristic-input mb-2" placeholder="Project Name" required>
+                    <select name="name" class="form-select futuristic-input mb-2" required onchange="updateClientName(this)">
+                        <option value="" disabled selected>Select Project</option>
+                        @foreach ($enquiryprojects as $enquiryproject) 
+                            <option value="{{ $enquiryproject->project_name }}" data-name="{{ $enquiryproject->project_name }}">{{ $enquiryproject->project_name }}</option>
+                        @endforeach
+                    </select>
 
                     <input type="hidden" name="client_name" class="form-control" readonly>
 
                     <select name="client_id" class="form-select futuristic-input mb-2" required onchange="updateClientName(this)">
                         <option value="" disabled selected>Select Client</option>
-                        @foreach ($clients as $client)
+                        @foreach ($clients as $client) 
                             <option value="{{ $client->ClientID }}" data-name="{{ $client->FullName }}">{{ $client->FullName }}</option>
                         @endforeach
                     </select>

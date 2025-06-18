@@ -1,125 +1,123 @@
 @extends('layouts.master')
 
-@section('title', 'Projects')
-@section('navbar-title', 'Projects Dashboard')
+@section('title', 'Projects Overview')
+@section('navbar-title', 'Projects Information')
 
 @section('content')
 <style>
-    body {
-        background: linear-gradient(120deg, #f8fafc 0%, #e0e7ef 100%);
-    }
-    .table {
-        font-size: 0.95rem;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 4px 24px rgba(44,62,80,0.07);
-        background: #fff;
-    }
-    .table thead th {
-        background: linear-gradient(90deg, #0C2D48 60%, #145DA0 100%) !important;
-        color: #fff;
+    h2 {
+        font-size: 1.5rem;
         font-weight: 600;
-        letter-spacing: 0.02em;
-        border: none;
-    }
-    .table tbody tr {
-        transition: background 0.2s;
-    }
-    .table tbody tr:hover {
-        background: #f1f6fb;
-    }
-    .list-group-item {
-        border: none;
-        border-top: 1px solid #e6e6e6;
-        background: #f9fbfd;
-        border-radius: 8px;
-        margin-bottom: 4px;
-        box-shadow: 0 1px 4px rgba(44,62,80,0.03);
-    }
-    .btn, .btn-sm, .btn-xs {
-        border-radius: 6px;
-        transition: all 0.18s cubic-bezier(.4,0,.2,1);
-        box-shadow: 0 2px 6px rgba(44,62,80,0.07);
-    }
-    .btn-primary, .btn-outline-primary {
-        background: linear-gradient(90deg, #145DA0 60%, #0C2D48 100%);
-        border: none;
-        color: #fff;
-    }
-    .btn-outline-primary:hover, .btn-primary:hover {
-        background: linear-gradient(90deg, #0C2D48 60%, #145DA0 100%);
-        color: #fff;
-        transform: translateY(-2px) scale(1.03);
-        box-shadow: 0 4px 12px rgba(20,93,160,0.13);
-    }
-    .btn-outline-secondary {
-        border: 1px solid #bfc9d1;
         color: #145DA0;
-        background: #f5f8fb;
+        margin-bottom: 1.5rem;
     }
-    .btn-outline-secondary:hover {
-        background: #e3eaf3;
-        color: #0C2D48;
-        border-color: #145DA0;
-    }
-    .btn-xs {
-        font-size: 0.72rem;
-        padding: 0.21rem 0.6rem;
-    }
-    .form-control, .form-select {
-        border-radius: 6px;
-        border: 1px solid #bfc9d1;
-        background: #f8fafc;
-        transition: border 0.2s;
-    }
-    .form-control:focus, .form-select:focus {
-        border-color: #145DA0;
-        box-shadow: 0 0 0 2px #b5d3f3;
-    }
-    .progress {
-        border-radius: 8px;
-        height: 1.1rem;
-        background: #e6eaf1;
-        box-shadow: 0 1px 2px rgba(44,62,80,0.05);
-    }
-    .progress-bar {
-        transition: width 0.7s cubic-bezier(.4,0,.2,1);
-        font-weight: 600;
-        font-size: 0.85rem;
-        letter-spacing: 0.01em;
-        background: linear-gradient(90deg, #21e6c1 0%, #278ea5 100%);
-        color: #0C2D48;
-    }
-    .progress-bar-danger {
-        background: linear-gradient(90deg, #ff6b6b 0%, #ffb88c 100%);
-    }
-    .progress-bar-warning {
-        background: linear-gradient(90deg, #ffd166 0%, #f6c453 100%);
-        color: #7c4700;
-    }
-    .progress-bar-success {
-        background: linear-gradient(90deg, #21e6c1 0%, #278ea5 100%);
-        color: #0C2D48;
-    }
-    .badge-status {
-        font-size: 0.8em;
-        border-radius: 4px;
-        padding: 0.3em 0.7em;
-        font-weight: 500;
-        letter-spacing: 0.01em;
-    }
-    .text-truncate {
+
+    .table {
+        font-size: 0.875rem;
+        border-radius: 12px;
         overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        max-width: 150px;
-        display: inline-block;
-        vertical-align: bottom;
+        background-color: white;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     }
-    @media (max-width: 768px) {
-        .table-responsive { font-size: 0.92rem; }
-        .table th, .table td { padding: 0.5rem 0.2rem; }
-        .text-truncate { max-width: 90px; }
+
+    .table th {
+        white-space: nowrap;
+        position: relative;
+        background-color: #0C2D48 !important;
+        color: white;
+        font-weight: 500;
+        padding: 0.75rem 1rem;
+    }
+
+    .table td {
+        padding: 0.75rem 1rem;
+        vertical-align: middle;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    .table-striped > tbody > tr:nth-of-type(odd) > * {
+        --bs-table-accent-bg: rgba(0, 0, 0, 0.02);
+        color: var(--bs-table-striped-color);
+    }
+
+    .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        border-radius: 4px;
+    }
+
+    .btn-outline-secondary {
+        color: #6c757d;
+        border-color: #dee2e6;
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: #f8f9fa;
+        border-color: #dee2e6;
+    }
+
+    .btn-outline-info {
+        color: #0dcaf0;
+        border-color: #0dcaf0;
+    }
+
+    .btn-outline-info:hover {
+        background-color: #0dcaf0;
+        color: white;
+    }
+
+    .progress {
+        height: 15px;
+        border-radius: 4px;
+        background-color: #f8f9fa;
+    }
+
+    .progress-bar {
+        border-radius: 4px;
+        font-size: 0.7rem;
+        line-height: 15px;
+    }
+
+    .text-primary {
+        color: #0d6efd !important;
+    }
+
+    .text-info {
+        color: #0dcaf0 !important;
+    }
+
+    .pagination {
+        margin-bottom: 0;
+    }
+
+    .pagination .page-link {
+        color: #0C2D48;
+        border-color: #dee2e6;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #0C2D48;
+        border-color: #0C2D48;
+    }
+
+    .badge {
+        font-weight: 500;
+        padding: 0.35em 0.65em;
+        font-size: 0.75em;
+    }
+
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .card:hover {
+        transform: translateY(-3px);
     }
 </style>
 
@@ -201,18 +199,26 @@
                     @php
                         $progress = $project->progress;
                         $barColor = $progress < 40 ? 'danger' : ($progress < 70 ? 'warning' : 'success');
+                        $barColors = [
+                            'danger' => '#dc3545',  // Red for danger
+                            'warning' => '#ffc107', // Yellow for warning
+                            'success' => '#198754'  // Green for success
+                        ];
+                        $bgColor = $barColors[$barColor];
                     @endphp
 
                     <td>
-                        <div class="progress position-relative" style="height: 15px; border-radius: 5px; background-color:rgb(255, 255, 255);">
-                            <div class="progress-bar bg-{{ $barColor }} progress-bar-striped progress-bar-animated" 
+                        <div class="progress position-relative" style="height: 15px; border-radius: 5px; background-color: #f8f9fa;">
+                            <div class="progress-bar" 
                                 role="progressbar" 
-                                style="width: {{ $progress }}%; border-radius: 4px;"
+                                style="width: {{ $progress }}%; 
+                                       border-radius: 4px;
+                                       background-color: {{ $bgColor }};"
                                 aria-valuenow="{{ $progress }}" 
                                 aria-valuemin="0" 
                                 aria-valuemax="100">
                             </div>
-                            <span class="position-absolute w-100 text-center fw-bold" style="color: #000;">
+                            <span class="position-absolute w-100 text-center fw-bold" style="color: #000; font-size: 0.7rem; line-height: 15px;">
                                 {{ $progress }}%
                             </span>
                         </div>
@@ -313,11 +319,3 @@
         });
     </script>
 @endsection
-
-
-
-
-
-
-
-

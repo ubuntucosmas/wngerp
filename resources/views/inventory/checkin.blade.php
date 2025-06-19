@@ -88,7 +88,7 @@
     <!-- Check In Modal -->
     <div class="modal fade" id="checkInModal" tabindex="-1" aria-labelledby="checkInModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <form action="{{ route('inventory.checkin') }}" method="POST">
+            <form action="{{ route('inventory.checkin.store') }}" method="POST">
                 @csrf
                 <div class="modal-content">
                     <div class="modal-header">

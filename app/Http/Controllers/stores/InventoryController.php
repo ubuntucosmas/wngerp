@@ -250,7 +250,6 @@ class InventoryController extends Controller
     //  Handle the Check-In Submission
     public function checkIn(Request $request)
     {
-        //dd($request->id);
         $request->validate([
             'id' => 'required|exists:inventory,id',
             'quantity_in' => 'required|integer|min:1',
@@ -280,7 +279,7 @@ class InventoryController extends Controller
         ]);
 
 
-        return redirect()->route('inventory.checkin')->with('success', 'Stock successfully checked in.');
+        return redirect()->route('inventory.checkin.show')->with('success', 'Stock successfully checked in.');
     }
 
     

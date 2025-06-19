@@ -41,7 +41,7 @@
                 </a>
             </li>
             <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="Check-in">
-                <a class="nav-link d-flex align-items-center {{ request()->routeIs('inventory.checkin') ? 'active bg-cyan text-white' : 'text-dark' }}" href="{{ route('inventory.checkin') }}">
+                <a class="nav-link d-flex align-items-center {{ request()->routeIs('inventory.checkin.show') ? 'active bg-cyan text-white' : 'text-dark' }}" href="{{ route('inventory.checkin.show') }}">
                     <i class="bi bi-arrow-down-square me-2"></i>
                     <span class="nav-text">Check-in</span>
                 </a>
@@ -150,7 +150,7 @@
                 </a>
             </li>
             <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="Check-in">
-                <a class="nav-link d-flex align-items-center {{ request()->routeIs('inventory.checkin') ? 'active bg-cyan text-white' : 'text-dark' }}" href="{{ route('inventory.checkin') }}">
+                <a class="nav-link d-flex align-items-center {{ request()->routeIs('inventory.checkin.show') ? 'active bg-cyan text-white' : 'text-dark' }}" href="{{ route('inventory.checkin.show') }}">
                     <i class="bi bi-arrow-down-square me-2"></i>
                     <span class="nav-text">Check-in</span>
                 </a>

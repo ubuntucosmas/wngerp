@@ -39,8 +39,8 @@ Route::middleware(['auth', 'role:store|storeadmin|procurement|super-admin'])->pr
     Route::get('/index', [InventoryController::class, 'index'])->name('index');
 
     // Checkin
-    Route::get('/checkin', [InventoryController::class, 'showCheckIn'])->name('checkin');
-    Route::post('/checkin', [InventoryController::class, 'checkIn'])->name('checkin');
+    Route::get('/checkin/show', [InventoryController::class, 'showCheckIn'])->name('checkin.show');
+    Route::post('/checkin/store', [InventoryController::class, 'checkIn'])->name('checkin.store');
 
     // New Stock
     Route::get('/new-stock', [InventoryController::class, 'newstock'])->name('newstock');

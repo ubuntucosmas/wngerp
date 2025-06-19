@@ -107,17 +107,48 @@
             padding-top: 3mm;
             border-top: 1px solid #e0e0e0;
         }
+        .logo img {
+            text-align: center;
+            margin-bottom: 10px;
+            height: 60px;
+        }
 
+        h1 {
+            font-size: 16px;
+            text-align: center;
+            margin: 0;
+            color: #145da0;
+          }
+
+          p {
+            font-size: 10px;
+            text-align: center;
+            margin: 0;
+            color: #6E6F71;
+          }
+
+          hr {
+            border: none;
+            border-top: 1px solid #b1d4e0;
+            margin: 10px 0;
+          }
+
+          .company-header {
+            text-align: center;
+            margin-bottom: 8px;
+          }
     </style>
 </head>
 <body>
-
-    <div class="excel-header">WOODNORKGREEN</div>
-    <div class="sub-header">
-        Karen Village Art Centre, Ngong Rd Nairobi<br>
-        www.woodnorkgreen.co.ke | admin@woodnorkgreen.co.ke | +254780 397798
+    <div class="company-header">
+        <div class="logo">
+            <img src="{{ public_path('images/wng-logo.png') }}" alt="Company Logo">
+        </div>
+        <h1>WOODNORKGREEN</h1>
+        <p>Karen Village Art Centre, Ngong Rd Nairobi</p>
+        <p>www.woodnorkgreen.co.ke | admin@woodnorkgreen.co.ke | +254780 397798</p>
     </div>
-
+    <hr>    
     <div class="section-title">Client & Project Information</div>
     <table class="excel-style-table">
         <tr>

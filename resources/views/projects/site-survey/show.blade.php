@@ -32,7 +32,10 @@
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Site Survey - {{ $project->name }}</h5>
+                    <div class="d-flex gap-2">
+                        <h5 class="mb-0">Site Survey - {{ $project->name }}</h5>
+                        <h5 class="mb-0 text-primary">#{{ $siteSurvey->project->project_id }}</h5>
+                    </div>
                     <div class="d-flex gap-2">
                         <a href="{{ route('projects.site-survey.edit', [$project, $siteSurvey]) }}" class="btn btn-sm btn-primary">
                             <i class="fas fa-edit"></i> Edit
@@ -98,7 +101,7 @@
                             <h6>Attendees</h6>
                             <div class="d-flex flex-wrap gap-2">
                                 @foreach($siteSurvey->attendees as $attendee)
-                                    <span class="badge badge-primary">{{ $attendee }}</span>
+                                    <span class="badge-primary">{{ $attendee }}</span>
                                 @endforeach
                             </div>
                         </div>

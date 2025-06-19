@@ -181,7 +181,7 @@
                     <th>Client</th>
                     <th>Venue</th>
                     <th>Start</th>
-                    <th>End</th>
+                    <th>Due Date</th>
                     <th>Officer</th>
                     <th>Progress</th>
                     <th class="text-end">Actions</th>

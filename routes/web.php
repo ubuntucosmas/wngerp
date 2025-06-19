@@ -166,6 +166,8 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
             Route::get('/{quote}/edit', [QuoteController::class, 'edit'])->name('edit');
             Route::put('/{quote}', [QuoteController::class, 'update'])->name('update');
             Route::delete('/{quote}', [QuoteController::class, 'destroy'])->name('destroy');
+            Route::get('/{quote}/download', [QuoteController::class, 'downloadQuote'])->name('download');
+            Route::get('/{quote}/print', [QuoteController::class, 'printQuote'])->name('print');
         });
 
 

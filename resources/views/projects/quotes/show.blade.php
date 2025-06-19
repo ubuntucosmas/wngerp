@@ -19,10 +19,9 @@
             <a href="{{ route('quotes.edit', ['project' => $project->id, 'quote' => $quote->id]) }}" class="btn btn-sm btn-primary d-flex align-items-center gap-1 shadow-sm">
                 <i class="bi bi-pencil-fill fs-6"></i> Edit
             </a>
-            <button onclick="window.print()" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1 shadow-sm">
-                <i class="bi bi-printer-fill fs-6"></i> Print
-            </button>
-        </div>
+            <a href="{{ route('quotes.download', [$project->id, $quote->id]) }}" class="btn btn-outline-danger btn-sm">Download</a>
+            <a href="{{ route('quotes.print', [$project->id, $quote->id]) }}" class="btn btn-outline-primary btn-sm" target="_blank">Print</a>  
+        </div>  
     </div>
 
     <div class="card shadow-sm mb-4 border-0 rounded-3">
@@ -120,17 +119,16 @@
                     <a href="{{ route('quotes.edit', ['project' => $project->id, 'quote' => $quote->id]) }}" class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1 shadow-sm">
                         <i class="fas fa-edit fs-6"></i> Edit
                     </a>
-                    <button onclick="window.print()" class="btn btn-outline-success btn-sm d-flex align-items-center gap-1 shadow-sm">
-                    <i class="fas fa-print fs-6"></i> Print
-                </button>
-                <form action="{{ route('quotes.destroy', ['project' => $project->id, 'quote' => $quote->id]) }}" method="POST" 
-                    class="d-inline" onsubmit="return confirm('Are you sure you want to delete this quote?')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1 shadow-sm">
-                        <i class="fas fa-trash fs-6"></i> Delete
-                    </button>
-                </form>
+                    <a href="{{ route('quotes.print', [$project->id, $quote->id]) }}" class="btn btn-outline-primary btn-sm" target="_blank">Print</a> 
+                    <form action="{{ route('quotes.destroy', ['project' => $project->id, 'quote' => $quote->id]) }}" method="POST" 
+                        class="d-inline" onsubmit="return confirm('Are you sure you want to delete this quote?')">
+                        @csrf
+                        @method('DELETE')
+                            <button type="submit" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1 shadow-sm">
+                            <i class="fas fa-trash fs-6"></i> Delete
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

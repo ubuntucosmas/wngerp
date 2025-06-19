@@ -7,6 +7,7 @@ use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class QuoteController extends Controller
 {
@@ -189,5 +190,30 @@ class QuoteController extends Controller
             Log::error('Error deleting quote: ' . $e->getMessage());
             return back()->with('error', 'Failed to delete quote. Please try again.');
         }
+    }
+
+
+
+    public function downloadQuote(Project $project)
+    {
+        $quote = $project->quotes()->latest()->first();
+
+        if (!$quote) {
+            abort(404, 'No quote found for this project.');
+        }
+        $pdf = Pdf::loadView('projects.templates.quote', compact('project', 'quote'));
+        return $pdf->download('quote-' . $project->id . '.pdf');
+    }
+    
+    public function printQuote(Project $project)
+    {
+        $quote = $project->quotes()->latest()->first();
+
+        if (!$quote) {
+            abort(404, 'No quote found for this project.');
+        }
+
+        $pdf = Pdf::loadView('projects.templates.quote', compact('project', 'quote'));
+        return $pdf->stream('quote-' . $project->id . '.pdf');
     }
 }

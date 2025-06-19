@@ -20,7 +20,7 @@ class ProjectFileController extends Controller
             ['name' => 'Enquiry', 'route' => route('projects.enquiry-log.show', $project), 'template' => 'enquiry-log-template'],
             ['name' => 'Site Survey', 'route' => route('projects.site-survey.create', $project), 'template' => 'site-survey'],
             ['name' => 'Design Assets', 'route' => route('projects.files.mockups', $project), 'template' => 'mockups'],
-            ['name' => 'Approved Quotation', 'route' => route('quotes.index', $project), 'template' => 'quotes'],
+            ['name' => 'Quotation', 'route' => route('quotes.index', $project), 'template' => 'quotes'],
             ['name' => 'Booking Order', 'route' => route('projects.booking-order.index', $project), 'template' => 'booking-order-template'],
             ['name' => 'Close-Out Report', 'route' => route('projects.booking-order.index', $project), 'template' => 'booking-order-template'],
             
@@ -56,8 +56,8 @@ class ProjectFileController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'file_url' => 'required|url|max:1000',
-            'file_type' => 'required|string|max:100',
-            'file_size' => 'required|string|max:50',
+            // 'file_type' => 'nullable|string|max:100',
+            // 'file_size' => 'nullable|string|max:50',
             'description' => 'nullable|string',
         ]);
 
@@ -71,8 +71,8 @@ class ProjectFileController extends Controller
             'name' => $validated['name'],
             'file_name' => $filename,
             'file_url' => $validated['file_url'],
-            'file_type' => $validated['file_type'],
-            'file_size' => $validated['file_size'],
+            // 'file_type' => $validated['file_type'],
+            // 'file_size' => $validated['file_size'],
             'description' => $validated['description'] ?? null,
         ]);
 
@@ -89,8 +89,8 @@ class ProjectFileController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'file_url' => 'required|url|max:1000',
-            'file_type' => 'required|string|max:100',
-            'file_size' => 'required|string|max:50',
+            // 'file_type' => 'nullable|string|max:100',
+            // 'file_size' => 'nullable|string|max:50',
             'description' => 'nullable|string',
         ]);
 
@@ -107,8 +107,8 @@ class ProjectFileController extends Controller
             'name' => $validated['name'],
             'file_name' => $filename,
             'file_url' => $validated['file_url'],
-            'file_type' => $validated['file_type'],
-            'file_size' => $validated['file_size'],
+            // 'file_type' => $validated['file_type'],
+            // 'file_size' => $validated['file_size'],
             'description' => $validated['description'] ?? null,
         ]);
 

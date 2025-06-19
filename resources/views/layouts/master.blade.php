@@ -208,7 +208,7 @@
                         <form action="{{ route('admin.setDepartment') }}" method="POST" class="mb-3 px-2">
                             @csrf
                             <div class="form-group">
-                                <label for="active_department" class="form-label small text-dark fw-bold">Departments</label>
+                                <label for="active_department" class="form-label lead text-dark fw-bold">SELECT DEPARTMENT TO ACCESS</label>
                                 <select name="active_department" id="active_department" class="form-select form-select-sm" onchange="this.form.submit()">
                                     <option value="">-- Select Department --</option>
                                     <option value="stores" {{ session('active_department') === 'stores' ? 'selected' : '' }}>Stores</option>

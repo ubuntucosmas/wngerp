@@ -26,8 +26,8 @@
                         <thead>
                             <tr>
                                 <th>Name</th>
-                                <th>File Type</th>
-                                <th>Size</th>
+                                <!-- <th>File Type</th>
+                                <th>Size</th> -->
                                 <th>Uploaded By</th>
                                 <th>Date</th>
                                 <th>Actions</th>
@@ -43,8 +43,8 @@
                                         <p class="text-muted small mb-0">{{ Str::limit($asset->description, 50) }}</p>
                                     @endif
                                 </td>
-                                <td>{{ strtoupper(pathinfo($asset->file_name, PATHINFO_EXTENSION)) }}</td>
-                                <td>{{ $asset->file_size }}</td>
+                                <!-- <td>{{ strtoupper(pathinfo($asset->file_name, PATHINFO_EXTENSION)) }}</td>
+                                <td>{{ $asset->file_size }}</td> -->
                                 <td>{{ $asset->user->name }}</td>
                                 <td>{{ $asset->created_at->format('M d, Y') }}</td>
                                 <td>
@@ -55,7 +55,7 @@
                                         <a href="{{ $asset->file_url }}&export=download" class="btn btn-outline-secondary" title="Download">
                                             <i class="bi bi-download"></i>
                                         </a>
-                                        <button type="button" class="btn btn-outline-warning edit-asset" 
+                                        <!-- <button type="button" class="btn btn-outline-warning edit-asset" 
                                                 data-bs-toggle="modal" 
                                                 data-bs-target="#editAssetModal"
                                                 data-id="{{ $asset->id }}"
@@ -65,7 +65,7 @@
                                                 data-file-size="{{ $asset->file_size }}"
                                                 data-description="{{ $asset->description }}">
                                             <i class="bi bi-pencil"></i>
-                                        </button>
+                                        </button> -->
                                         <form action="{{ route('projects.files.design-assets.destroy', ['project' => $project->id, 'design_asset' => $asset->id]) }}" method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
@@ -125,7 +125,7 @@
                         <div class="form-text">Paste the shareable link from Google Drive</div>
                     </div>
 
-                    <div class="row">
+                    <!-- <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="file_type" class="form-label">File Type <span class="text-danger">*</span></label>
@@ -151,7 +151,7 @@
                                     <input type="number" class="form-control @error('file_size') is-invalid @enderror" 
                                            id="file_size" name="file_size" 
                                            value="{{ old('file_size') }}" 
-                                           step="0.1" min="0" required>
+                                           step="0.1" min="0">
                                     <span class="input-group-text">MB</span>
                                     @error('file_size')
                                         <div class="invalid-feedback">{{ $message }}</div>
@@ -159,7 +159,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
 
                     <div class="mb-3">
                         <label for="description" class="form-label">Description</label>

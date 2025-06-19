@@ -10,7 +10,7 @@ class NewStock extends Model
     use HasFactory;
 
     // Specify the associated table name if it's different from Laravel's naming convention
-    protected $table = 'NewStock';
+    protected $table = 'newstock';
 
     // Define which attributes can be mass-assigned
     protected $fillable = [

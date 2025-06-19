@@ -114,7 +114,7 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
 
     Route::resource('clients', ClientController::class);
 
-    Route::prefix('projects/{project}')->middleware(['role:pm|po'])->group(function () {
+    Route::prefix('projects/{project}')->middleware(['role:pm|po|super-admin'])->group(function () {
         // Site Survey Routes
         Route::get('site-survey', [SiteSurveyController::class, 'create'])->name('projects.site-survey.create');
         Route::post('site-survey', [SiteSurveyController::class, 'store'])->name('projects.site-survey.store');

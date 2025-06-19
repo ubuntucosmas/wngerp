@@ -132,13 +132,14 @@
                 @endif
             </h2>
         </div>
-        @role('pm')
-            @if(auth()->user()->level >= 4)
+        @hasanyrole('pm|super-admin') {{-- or replace super-admin with your actual top-level role --}}
+            @if(auth()->user()->hasRole('super-admin') || auth()->user()->level >= 4)
                 <button class="btn btn-primary btn-sm shadow-sm d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#newProjectModal">
                     <i class="bi bi-plus-circle"></i> <span>New Project</span>
                 </button>
             @endif
-        @endrole
+        @endhasanyrole
+
     </div>
     <hr class="mb-4">
 
@@ -155,7 +156,7 @@
     </div>
 
     <!-- Project Toggle Buttons Column -->
-    @role('po')
+    @hasanyrole('po|super-admin') {{-- or replace super-admin with your actual top-level role --}}
     <div class="d-flex align-items-center gap-2" role="group">
         <a href="{{ route('projects.index') }}" 
            class="btn {{ (!isset($viewType) || $viewType === 'assigned') ? 'btn-primary' : 'btn-outline-primary' }} d-flex align-items-center gap-1">
@@ -169,7 +170,7 @@
             <span>All Projects</span>
         </a>
     </div>
-    @endrole
+    @endhasanyrole
 </div>
     <div class="table-responsive">
         <table class="table table-hover table-borderless align-middle">
@@ -228,8 +229,8 @@
                         @if($project->status === 'closed')
                             <span class="bg-danger mb-1" title="This project is finalized and read-only">Project Closed</span>
                         @else
-                            @role('pm')
-                                @if(auth()->user()->level >= 4)
+                            @hasanyrole('pm|super-admin') {{-- or replace super-admin with your actual top-level role --}}
+                                @if(auth()->user()->hasRole('super-admin') || auth()->user()->level >= 4)
                                     <button class="btn btn-sm btn-outline-secondary mb-1" data-bs-toggle="modal" data-bs-target="#assignOfficerModal{{ $project->id }}">
                                         Assign Officer
                                     </button>
@@ -244,7 +245,7 @@
                                         </form>
                                     @endif
                                 @endif
-                            @endrole
+                            @endhasanyrole
 
                             <div class="btn-group" role="group">
                                 <a href="{{ route('projects.files.index', $project->id) }}" class="btn btn-sm btn-info">

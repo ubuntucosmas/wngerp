@@ -54,7 +54,8 @@
         background: var(--card-background);
         border: 1px solid var(--card-border-color);
         border-radius: 12px;
-        padding: 2rem;
+        padding: 3px;
+        margin-bottom: 1rem;
         text-align: center;
         transition: border-color 0.3s ease;
         /* Removed box-shadow for a flatter, more minimal look */
@@ -122,12 +123,29 @@
 </style>
 
 <div class="container mt-1 mb-1">
-        <div class="project-header text-center">
-        <h2>{{ $project->name }}</h2>
-        <p class="lead">Project Files & Documents</p>
+<div class="project-header d-flex justify-content-between align-items-center flex-wrap gap-2 px-3 py-2 rounded shadow-sm" style="background: #0c2d48; color: #b1d4e0;">
+    <div class="text-start flex-fill">
+        <small class="text-white">Project Name</small>
+        <h5 class="mb-1">{{ $project->name }}</h5>
     </div>
+    
+    <div class="text-center flex-fill">
+        <small class="text-white">Project ID</small>    
+        <h6 class="mb-1">{{ $project->project_id }}</h6>
+    </div>
+
+    <div class="text-center flex-fill">
+        <small class="text-white">Access & Manage</small>   
+        <p class="mb-1 fw-semibold">Project Files & Documents</p>
+    </div>
+
+    <div class="text-end flex-fill">
+        <small class="text-white">Client</small>
+        <h5 class="mb-1">{{ $project->client_name }}</h5>
+    </div>
+</div>
     <hr>
-        <div class="row mt-1">
+    <div class="row mt-1">
         @if (empty($fileTypes))
             <div class="col-12">
                 <div class="alert-minimal" role="alert">
@@ -143,9 +161,9 @@
                             <i class="bi {{ $fileType['name'] == 'Booking Order' ? 'bi-receipt-cutoff' : 'bi-file-earmark-zip' }}"></i>
                         </div>
                         <h3 class="file-card-title">{{ $fileType['name'] }}</h3>
-                        <p class="file-card-description">
+                        <!-- <p class="file-card-description">
                             Access and manage the {{ strtolower($fileType['name']) }} for this project.
-                        </p>
+                        </p> -->
                         <a href="{{ $fileType['route'] }}" class="btn btn-minimal">
                             <span>Manage</span>
                             <i class="bi bi-arrow-right ms-2"></i>

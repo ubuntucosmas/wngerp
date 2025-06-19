@@ -5,99 +5,129 @@
 @push('styles')
 <style>
     :root {
-        --header-height: 60px;
-        --sidebar-width: 250px;
+        --bg-glass: rgba(255, 255, 255, 0.06);
+        --frost-border: rgba(255, 255, 255, 0.12);
+        --text-light: #b1d4e0;
+        --text-bright: #ffffff;
+        --primary-deep: #145da0;
+        --primary-dark: #0c2d48;
     }
-    
-    .sticky-header {
-        position: sticky;
-        top: 0;
-        z-index: 1020;
-        background: white;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        padding: 0.5rem 0;
-        margin: -0.5rem -1.5rem 1rem;
-        padding: 0.5rem 1.5rem;
+
+    body {
+        background: linear-gradient(to right, #0c2d48, #145da0);
+        color: var(--text-light);
     }
-    
-    .compact-card {
-        border: 1px solid #e9ecef;
-        border-radius: 0.5rem;
-        transition: all 0.2s;
-    }
-    
-    .compact-card:hover {
-        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05);
-    }
-    
-    .compact-field {
-        margin-bottom: 0.5rem;
-    }
-    
-    .compact-field-label {
-        font-size: 0.75rem;
-        color: #6c757d;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 0.25rem;
-    }
-    
-    .compact-field-value {
-        font-size: 0.9375rem;
-        font-weight: 500;
-        line-height: 1.3;
-    }
-    
-    .compact-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1rem;
-    }
-    
-    .compact-grid-item {
-        background: white;
-        padding: 0.75rem;
-        border-radius: 0.5rem;
-        border: 1px solid #e9ecef;
-    }
-    
-    @media (max-width: 768px) {
-        .compact-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-    
+
     .content-wrapper {
-        max-width: 1600px;
-        margin: 0 auto;
-        padding: 0 1rem;
+        max-width: 1400px;
+        margin: auto;
+        padding: 2rem 1rem;
     }
-    
+
+    .glass-card {
+        background: var(--bg-glass);
+        border: 1px solid var(--frost-border);
+        backdrop-filter: blur(16px);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        color: var(--text-light);
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+        transition: 0.3s ease;
+    }
+
+    .glass-card:hover {
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .glass-title {
+        color: var(--text-bright);
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .badge-glow {
+        background: linear-gradient(to right, #2e8bc0, #145da0);
+        border: none;
+        color: white;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        padding: 0.4rem 0.8rem;
+        font-weight: 600;
+    }
+
     .breadcrumb {
-        padding: 0.5rem 0;
-        margin: 0;
         background: transparent;
-        font-size: 0.8125rem;
+        font-size: 0.85rem;
+        color: var(--text-light);
     }
-    
+
     .breadcrumb-item + .breadcrumb-item::before {
         content: "›";
-        font-weight: bold;
+        color: var(--text-light);
+        padding: 0 0.4rem;
     }
-    
-    .page-actions {
+
+    .breadcrumb-item a {
+        color: var(--text-bright);
+        text-decoration: none;
+    }
+
+    .breadcrumb-item.active {
+        color: #b1d4e0;
+    }
+
+    .section-divider {
+        border-bottom: 1px solid var(--frost-border);
+        margin: 1.5rem 0;
+    }
+
+    .icon-title {
         display: flex;
+        align-items: center;
         gap: 0.5rem;
+        color: #ffffff;
+        margin-bottom: 1rem;
     }
-    
-    .status-badge {
-        font-size: 0.75rem;
-        font-weight: 600;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
+
+    .icon-title i {
+        font-size: 1.2rem;
+        color: #2e8bc0;
+    }
+
+    .compact-field-value {
+        font-weight: 500;
+        font-size: 0.95rem;
+        color: #e3f2fd;
+    }
+
+    .btn-outline-primary, .btn-outline-secondary {
+        border-radius: 30px;
+        padding: 0.4rem 1.2rem;
+        font-size: 0.8rem;
+    }
+
+    .card-body ul {
+        padding-left: 1rem;
+        margin: 0;
+    }
+
+    .card-body ul li {
+        margin-bottom: 0.5rem;
+        font-size: 0.95rem;
+    }
+
+    .text-muted {
+        color: #b0bec5 !important;
+    }
+
+    .sticky-header {
+        background: #0c2d48;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 </style>
 @endpush
+
 
 @section('content')
 <div class="content-wrapper px-3 py-2">
@@ -136,6 +166,10 @@
                 <h5 class="mb-0 d-flex align-items-center">
                     <i class="bi bi-info-circle text-primary me-2"></i>
                     Enquiry Details
+                </h5>
+                <h5 class="mb-0 d-flex align-items-center">
+                    <i class="bi bi-info-circle text-primary me-2"></i>
+                    Project ID: {{ $project->project_id }}
                 </h5>
                 <span class="status-badge">
                     Status:{{ $enquiryLog->status }}

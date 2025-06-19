@@ -19,10 +19,11 @@ class ProjectFileController extends Controller
         $fileTypes = [
             ['name' => 'Enquiry', 'route' => route('projects.enquiry-log.show', $project), 'template' => 'enquiry-log-template'],
             ['name' => 'Site Survey', 'route' => route('projects.site-survey.create', $project), 'template' => 'site-survey'],
+            ['name' => 'Design Assets', 'route' => route('projects.files.mockups', $project), 'template' => 'mockups'],
             ['name' => 'Approved Quotation', 'route' => route('quotes.index', $project), 'template' => 'quotes'],
             ['name' => 'Booking Order', 'route' => route('projects.booking-order.index', $project), 'template' => 'booking-order-template'],
             ['name' => 'Close-Out Report', 'route' => route('projects.booking-order.index', $project), 'template' => 'booking-order-template'],
-            ['name' => 'Design Assets', 'route' => route('projects.files.mockups', $project), 'template' => 'mockups'],
+            
         ];
         
         // Check if site survey exists for this project

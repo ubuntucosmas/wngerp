@@ -217,4 +217,25 @@ class AdminController extends Controller
         $logs = Log::latest()->paginate(20); // Paginate logs
         return view('admin.logs', compact('logs'));
     }
+
+
+    public function setDepartment(Request $request)
+    {
+        $request->validate([
+            'active_department' => 'required|in:stores,projects,procurement,HR,IT',
+        ]);
+    
+        $department = $request->active_department;
+        session(['active_department' => $department]);
+    
+        // Define where to redirect based on department
+        $redirectRoutes = [
+            'stores'      => route('inventory.dashboard'),
+            'projects'    => route('projects.overview'),
+        ];
+    
+        return redirect($redirectRoutes[$department] ?? route('admin.dashboard'))
+            ->with('success', ucfirst($department).' dashboard loaded.');
+    }
+    
 }

@@ -78,7 +78,7 @@
         color: white;
     }
 </style>
-<div class="container-fluid py-3 bg-light min-vh-100">
+<div class="px-3 mx-10 mt-2 w-100">
     <div class="row justify-content-center">
         <div class="col-12 col-xl-10">
             <div class="card shadow-sm border-0 rounded-3 overflow-hidden mb-3">
@@ -188,28 +188,9 @@
                             </div>
                         </div>
                         <div class="pagination-container">
-                            <nav>
-                                <ul class="pagination justify-content-center">
-                                    <li class="page-item {{ $logs->onFirstPage() ? 'disabled' : '' }}">
-                                        <a class="page-link" href="{{ $logs->previousPageUrl() }}" aria-label="Previous">
-                                            <span>&laquo; Previous</span>
-                                        </a>
-                                    </li>
+                        {{ $logs->withQueryString()->links('pagination::bootstrap-5') }}
+                    </div>
 
-                                    @for ($i = 1; $i <= $logs->lastPage(); $i++)
-                                        <li class="page-item {{ $logs->currentPage() == $i ? 'active' : '' }}">
-                                            <a class="page-link" href="{{ $logs->url($i) }}">{{ $i }}</a>
-                                        </li>
-                                    @endfor
-
-                                    <li class="page-item {{ !$logs->hasMorePages() ? 'disabled' : '' }}">
-                                        <a class="page-link" href="{{ $logs->nextPageUrl() }}" aria-label="Next">
-                                            <span>Next &raquo;</span>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </nav>
-                        </div>
                     </div>
                 </div>
             </div>

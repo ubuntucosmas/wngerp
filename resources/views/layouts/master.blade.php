@@ -204,6 +204,22 @@
                     <!-- Navbar Brand -->
                     <span class="navbar-brand">@yield('navbar-title')</span>
 
+                    @if(Auth::check() && Auth::user()->hasRole('super-admin'))
+                        <form action="{{ route('admin.setDepartment') }}" method="POST" class="mb-3 px-2">
+                            @csrf
+                            <div class="form-group">
+                                <label for="active_department" class="form-label small text-dark fw-bold">Departments</label>
+                                <select name="active_department" id="active_department" class="form-select form-select-sm" onchange="this.form.submit()">
+                                    <option value="">-- Select Department --</option>
+                                    <option value="stores" {{ session('active_department') === 'stores' ? 'selected' : '' }}>Stores</option>
+                                    <option value="projects" {{ session('active_department') === 'projects' ? 'selected' : '' }}>Projects</option>
+                                    <!-- <option value="procurement" {{ session('active_department') === 'procurement' ? 'selected' : '' }}>Procurement</option>
+                                    <option value="HR" {{ session('active_department') === 'HR' ? 'selected' : '' }}>HR</option>
+                                    <option value="IT" {{ session('active_department') === 'IT' ? 'selected' : '' }}>IT</option> -->
+                                </select>
+                            </div>
+                        </form>
+                    @endif
                     <!-- Right-Side Icons -->
                     <ul class="navbar-nav ms-auto">
                                <!-- Displayin the name of the logged in user -->

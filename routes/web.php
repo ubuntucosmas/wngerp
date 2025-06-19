@@ -21,6 +21,8 @@ Route::get('/admin/dashboard', fn () => view('admin.dashboard'))
 // Admin Routes
 Route::middleware(['auth', 'role:admin|super-admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
+    Route::post('/set-department', [AdminController::class, 'setDepartment'])->name('setDepartment');
+
     
     Route::get('/users', [AdminController::class, 'showUsers'])->name('users');
     Route::get('/manage-users', [AdminController::class, 'manageUsers'])->name('manage-users');
@@ -32,7 +34,7 @@ Route::middleware(['auth', 'role:admin|super-admin'])->prefix('admin')->name('ad
 });
 
 // Inventory Routes
-Route::middleware(['auth', 'role:store|storeadmin|procurement'])->prefix('inventory')->name('inventory.')->group(function () {
+Route::middleware(['auth', 'role:store|storeadmin|procurement|super-admin'])->prefix('inventory')->name('inventory.')->group(function () {
     Route::get('/dashboard', [InventoryController::class, 'dashboard'])->name('dashboard');
     Route::get('/index', [InventoryController::class, 'index'])->name('index');
 
@@ -75,7 +77,7 @@ Route::middleware(['auth', 'role:store|storeadmin|procurement'])->prefix('invent
 });
 
 // Project Manager / Project Officer Routes
-Route::middleware(['auth', 'role:pm|po'])->group(function () {
+Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
     Route::get('/projects/overview', [ProjectController::class, 'overview'])->name('projects.overview');
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
     Route::get('/projects/all', [ProjectController::class, 'allProjects'])->name('projects.all');

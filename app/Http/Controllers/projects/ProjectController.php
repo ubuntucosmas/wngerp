@@ -118,7 +118,7 @@ class ProjectController extends Controller
     public function store(Request $request)
 {
     // Only PMs can create projects
-    if (!auth()->user()->hasRole('pm')) {
+    if (!auth()->user()->hasRole('pm'|'super-admin')) {
         abort(403, 'Unauthorized');
     }
 

@@ -20,6 +20,7 @@ class ProjectFileController extends Controller
             ['name' => 'Enquiry', 'route' => route('projects.enquiry-log.show', $project), 'template' => 'enquiry-log-template'],
             ['name' => 'Site Survey', 'route' => route('projects.site-survey.create', $project), 'template' => 'site-survey'],
             ['name' => 'Design Assets', 'route' => route('projects.files.mockups', $project), 'template' => 'mockups'],
+            ['name' => 'Budget', 'route' => route('budget.index', $project), 'template' => 'budget'],
             ['name' => 'Quotation', 'route' => route('quotes.index', $project), 'template' => 'quotes'],
             ['name' => 'Booking Order', 'route' => route('projects.booking-order.index', $project), 'template' => 'booking-order-template'],
             ['name' => 'Close-Out Report', 'route' => route('projects.booking-order.index', $project), 'template' => 'booking-order-template'],

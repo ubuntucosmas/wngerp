@@ -239,7 +239,7 @@
                                         <form action="{{ route('projects.destroy', $project->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this project?');">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger mb-1">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger mb-1 delete-project">
                                                 Delete
                                             </button>
                                         </form>
@@ -251,9 +251,9 @@
                                 <a href="{{ route('projects.files.index', $project->id) }}" class="btn btn-sm btn-info">
                                     Project Files
                                 </a>
-                                <button class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" data-bs-target="#phasesCollapse{{ $project->id }}">
+                                <!-- <button class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" data-bs-target="#phasesCollapse{{ $project->id }}">
                                     Phases
-                                </button>
+                                </button> -->
                             </div>
                         @endif
                     </td>
@@ -302,6 +302,9 @@
                 {{ $projects->links('pagination::bootstrap-5') }}
             </div>
     </div>
+    @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @endpush
 </div>
 
     <script>
@@ -315,6 +318,28 @@
                 rows.forEach(row => {
                     const text = row.textContent.toLowerCase();
                     row.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+            });
+        });
+
+                // Delete confirmation
+                document.querySelectorAll('.delete-project').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const form = this.closest('form');
+                
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
                 });
             });
         });

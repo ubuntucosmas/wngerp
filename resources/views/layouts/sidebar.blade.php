@@ -79,7 +79,7 @@
         @endif
 
         <!-- Projects Sidebar Links -->
-        @if(Auth::check() && $currentDepartment === 'projects' && (Auth::user()->hasAnyRole(['pm', 'po']) || Auth::user()->hasRole('super-admin')))
+        @if(Auth::check() && $currentDepartment === 'projects' && (Auth::user()->hasAnyRole([]) || Auth::user()->hasRole('super-admin')))
             <!-- Projects menu items here -->
             <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="View All Projects">
                 <a class="nav-link d-flex align-items-center {{ request()->routeIs('projects.overview') ? 'active bg-cyan text-white' : 'text-dark' }}" href="{{ route('projects.overview') }}">
@@ -99,12 +99,12 @@
                     <span class="nav-text">Projects</span>
                 </a>
             </li>
-            <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="Active Projects">
+            <!-- <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="Active Projects">
                 <a class="nav-link d-flex align-items-center {{ request()->routeIs('projects.active') ? 'active bg-cyan text-white' : 'text-dark' }}" href="{{ route('projects.index', ['filter' => 'active']) }}">
                     <i class="bi bi-activity me-2"></i>
                     <span class="nav-text">Active Projects</span>
                 </a>
-            </li>
+            </li> -->
             <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="Clients">
                 <a class="nav-link d-flex align-items-center {{ request()->routeIs('clients.index') ? 'active bg-cyan text-white' : 'text-dark' }}"
                     href="{{ route('clients.index') }}">

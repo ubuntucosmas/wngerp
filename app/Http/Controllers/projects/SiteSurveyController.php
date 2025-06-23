@@ -5,7 +5,9 @@ namespace App\Http\Controllers\projects;
 use App\Http\Controllers\Controller;
 use App\Models\Project;
 use App\Models\SiteSurvey;
-use Illuminate\Http\Request;  
+use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
+use Illuminate\Support\Str;
 
 class SiteSurveyController extends Controller
 {
@@ -95,8 +97,19 @@ class SiteSurveyController extends Controller
 
     public function edit(Project $project, SiteSurvey $siteSurvey)
     {
-        $project->load('teamMembers');
-        return view('projects.site-survey.edit', compact('project', 'siteSurvey'));
+        // Eager load the project manager and project officer relationships
+        $project->load(['projectManager', 'projectOfficer']);
+        
+        // Get team members (project manager and project officer)
+        $teamMembers = collect([$project->projectManager, $project->projectOfficer])
+            ->filter()
+            ->unique('id');
+            
+        return view('projects.site-survey.edit', [
+            'project' => $project,
+            'siteSurvey' => $siteSurvey,
+            'teamMembers' => $teamMembers
+        ]);
     }
 
     public function update(Request $request, Project $project, SiteSurvey $siteSurvey)
@@ -119,5 +132,36 @@ class SiteSurveyController extends Controller
         $siteSurvey->delete();
         return redirect()->route('projects.site-survey.show', [$project, $siteSurvey])
             ->with('success', 'Site survey deleted successfully!');
+    }
+
+
+    public function downloadSiteSurvey(Project $project)
+    {
+        $siteSurvey = SiteSurvey::where('project_id', $project->id)->firstOrFail();
+
+        $data = [
+            'project' => $project,
+            'siteSurvey' => $siteSurvey,
+        ];
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('projects.templates.site-survey', $data);
+
+        $filename = 'site-survey-' . Str::slug($project->name) . '.pdf';
+        return $pdf->download($filename);
+    }
+
+    public function printSiteSurvey(Project $project)
+    {
+        $siteSurvey = SiteSurvey::where('project_id', $project->id)->firstOrFail();
+
+        $data = [
+            'project' => $project,
+            'siteSurvey' => $siteSurvey,
+        ];
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('projects.templates.site-survey', $data);
+
+        $filename = 'site-survey-' . Str::slug($project->name) . '.pdf';
+        return $pdf->stream($filename);
     }
 }

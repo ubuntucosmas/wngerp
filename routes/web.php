@@ -9,7 +9,7 @@ use App\Http\Controllers\{
     projects\PhaseController, projects\ClientController, projects\DeliverableController,
     projects\ProjectController, Auth\AuthenticatedSessionController,
     projects\BookingOrderController, projects\ProjectFileController, projects\EnquiryLogController, projects\SiteSurveyController,
-    FileUploadController, QuoteController, EnquiryController
+    FileUploadController, QuoteController, EnquiryController, projects\ProjectBudgetController
 };
 
 Route::get('/', fn () => view('auth.login'));
@@ -118,6 +118,12 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
         // Site Survey Routes
         Route::get('site-survey', [SiteSurveyController::class, 'create'])->name('projects.site-survey.create');
         Route::post('site-survey', [SiteSurveyController::class, 'store'])->name('projects.site-survey.store');
+        
+        // Print and Download routes must come before the {siteSurvey} parameter routes
+        Route::get('site-survey/print', [SiteSurveyController::class, 'printSiteSurvey'])->name('projects.site-survey.print');
+        Route::get('site-survey/download', [SiteSurveyController::class, 'downloadSiteSurvey'])->name('projects.site-survey.download');
+        
+        // Parameterized routes come last
         Route::get('site-survey/{siteSurvey}', [SiteSurveyController::class, 'show'])->name('projects.site-survey.show');
         Route::get('site-survey/{siteSurvey}/edit', [SiteSurveyController::class, 'edit'])->name('projects.site-survey.edit');
         Route::put('site-survey/{siteSurvey}', [SiteSurveyController::class, 'update'])->name('projects.site-survey.update');
@@ -169,6 +175,18 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
             Route::get('/{quote}/download', [QuoteController::class, 'downloadQuote'])->name('download');
             Route::get('/{quote}/print', [QuoteController::class, 'printQuote'])->name('print');
         });
+
+        Route::get('budgets', [ProjectBudgetController::class, 'index'])->name('budget.index');
+        Route::get('budgets/create', [ProjectBudgetController::class, 'create'])->name('budget.create');
+        Route::post('budgets', [ProjectBudgetController::class, 'store'])->name('budget.store');
+        Route::get('budgets/{budget}', [ProjectBudgetController::class, 'show'])->name('budget.show');
+        
+     
+        Route::get('budgets/{budget}/edit', [ProjectBudgetController::class, 'edit'])->name('budget.edit');
+        Route::put('budgets/{budget}', [ProjectBudgetController::class, 'update'])->name('budget.update');
+        Route::delete('budgets/{budget}', [ProjectBudgetController::class, 'destroy'])->name('budget.destroy');
+        
+
 
 
     });

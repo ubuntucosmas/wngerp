@@ -61,7 +61,7 @@
                                             <form action="{{ route('quotes.destroy', ['project' => $project->id, 'quote' => $quote->id]) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this quote?')">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger delete-quote" title="Delete">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </form>
@@ -89,4 +89,35 @@
         </div>
     </div>
 </div>
+
+    @push('scripts')
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @endpush
 @endsection
+
+<script>
+        // Delete confirmation
+        document.addEventListener('DOMContentLoaded', function() {
+        // Delete confirmation
+        document.querySelectorAll('.delete-quote').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const form = this.closest('form');
+                
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "You won't be able to revert this!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, delete it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>

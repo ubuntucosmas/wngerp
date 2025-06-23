@@ -135,8 +135,8 @@
     </div>
 
     <div class="text-center flex-fill">
-        <small class="text-white">Access & Manage</small>   
-        <p class="mb-1 fw-semibold">Project Files & Documents</p>
+        <small class="text-white">Location</small>   
+        <p class="mb-1 fw-semibold">{{ $project->venue }}</p>
     </div>
 
     <div class="text-end flex-fill">

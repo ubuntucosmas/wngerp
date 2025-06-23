@@ -7,6 +7,12 @@
         --light-bg: #f8fafc;
         --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         --transition: all 0.3s ease;
+        --form-section-spacing: 2.5rem;
+    }
+    
+    /* Smooth scrolling for form sections */
+    html {
+        scroll-behavior: smooth;
     }
 
     .card {
@@ -65,6 +71,68 @@
         font-size: 0.95rem;
         transition: var(--transition);
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        background-color: #fff;
+    }
+    
+    /* Improved input group styling */
+    .input-group-text {
+        background-color: #f8f9fa;
+        border-color: #e2e8f0;
+        color: var(--secondary-color);
+    }
+    
+    /* Better spacing for form sections */
+    .card {
+        margin-bottom: var(--form-section-spacing);
+    }
+    
+    /* Required field indicator */
+    .required-field::after {
+        content: '*';
+        color: #dc3545;
+        margin-left: 4px;
+    }
+    
+    /* Form section headers */
+    .card-header h5 {
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+    
+    /* Help text styling */
+    .form-text {
+        color: #6c757d;
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+    }
+    
+    /* Improved buttons */
+    .btn {
+        font-weight: 500;
+        padding: 0.6rem 1.5rem;
+        border-radius: 6px;
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .btn-submit {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        min-width: 150px;
+    }
+    
+    .btn-submit:hover {
+        background-color: #0a9cbf;
+        border-color: #0a9cbf;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(11, 173, 211, 0.3);
+    }
+    
+    /* Form progress indicator */
+    .form-progress {
+        position: sticky;
+        top: 1rem;
+        z-index: 1000;
+        margin-bottom: 2rem;
     }
 
     .form-control:focus, .form-select:focus, .select2-container--default.select2-container--focus .select2-selection--multiple {
@@ -187,15 +255,19 @@
         <div class="row">
             <div class="col-md-4">
                 <div class="form-group mb-4">
-                    <label for="site_visit_date" class="form-label required-field">Site Visit Date</label>
+                    <label for="site_visit_date" class="form-label required-field">
+                        <i class="far fa-calendar-alt me-2"></i>Site Visit Date
+                    </label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
-                        <input type="date" 
+                        <input type="text" 
                                class="form-control datepicker @error('site_visit_date') is-invalid @enderror" 
                                id="site_visit_date" 
                                name="site_visit_date" 
                                placeholder="Select visit date"
+                               data-date-format="Y-m-d"
                                value="{{ $siteSurvey->exists && $siteSurvey->site_visit_date ? $siteSurvey->site_visit_date->format('Y-m-d') : old('site_visit_date', '') }}" 
+                               readonly
                                required>
                     </div>
                     @error('site_visit_date')
@@ -268,36 +340,207 @@
                     @enderror
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-12 col-md-6">
                 <div class="form-group mb-4">
-                    <label for="attendees" class="form-label">Attendees</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-users"></i></span>
-                        <select class="form-control select2 @error('attendees') is-invalid @enderror" 
-                                id="attendees" 
-                                name="attendees[]" 
-                                multiple="multiple"
-                                data-placeholder="Select attendees">
-                                @if($project->teamMembers && $project->teamMembers->count())
-                                    @foreach($project->teamMembers as $member)
-                                        <option value="{{ $member->id }}" 
-                                            {{ in_array($member->id, (array)old('attendees', $siteSurvey->exists ? $siteSurvey->attendees : [])) ? 'selected' : '' }}>
-                                            {{ $member->name }} ({{ $member->email }})
-                                        </option>
-                                    @endforeach
-                                @else
-                                    <option disabled>No team members found</option>
-                                @endif
-                        </select>
+                    <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-users me-1 text-primary"></i> Attendees</span>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="addAttendeeBtn">
+                            <i class="fas fa-plus me-1"></i> Add Attendee
+                        </button>
+                    </label>
+                    
+                    <div id="attendeesContainer" class="mb-3">
+                        @php
+                            $attendees = old('attendees', $siteSurvey->exists ? (is_array($siteSurvey->attendees) ? $siteSurvey->attendees : [$siteSurvey->attendees]) : ['']);
+                        @endphp
+                        
+                        @foreach($attendees as $index => $attendee)
+                            <div class="input-group mb-2 attendee-row">
+                                <span class="input-group-text">
+                                    <i class="fas fa-user"></i>
+                                </span>
+                                <input type="text" 
+                                       class="form-control" 
+                                       name="attendees[]" 
+                                       value="{{ $attendee }}" 
+                                       placeholder="Attendee name">
+                                <button type="button" class="btn btn-outline-danger remove-attendee" {{ $loop->first && count($attendees) === 1 ? 'disabled' : '' }}>
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        @endforeach
                     </div>
-                    <small class="form-text text-muted">Type and press Enter to add multiple attendees</small>
+                    
                     @error('attendees')
-                        <div class="invalid-feedback d-block">
-                            <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
+                        <div class="invalid-feedback d-flex align-items-center">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            <span>{{ $message }}</span>
                         </div>
                     @enderror
                 </div>
             </div>
+
+            @push('scripts')
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Add attendee
+                document.getElementById('addAttendeeBtn').addEventListener('click', function() {
+                    const container = document.getElementById('attendeesContainer');
+                    const newRow = document.createElement('div');
+                    newRow.className = 'input-group mb-2 attendee-row';
+                    newRow.innerHTML = `
+                        <span class="input-group-text">
+                            <i class="fas fa-user"></i>
+                        </span>
+                        <input type="text" 
+                               class="form-control" 
+                               name="attendees[]" 
+                               placeholder="Attendee name">
+                        <button type="button" class="btn btn-outline-danger remove-attendee">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    container.appendChild(newRow);
+                    
+                    // Enable all remove buttons if there's more than one row
+                    updateRemoveButtons();
+                });
+                
+                // Remove attendee
+                document.addEventListener('click', function(e) {
+                    if (e.target.closest('.remove-attendee')) {
+                        const row = e.target.closest('.attendee-row');
+                        if (row && document.querySelectorAll('.attendee-row').length > 1) {
+                            row.remove();
+                            updateRemoveButtons();
+                        }
+                    }
+                });
+                
+                function updateRemoveButtons() {
+                    const removeButtons = document.querySelectorAll('.remove-attendee');
+                    const hasSingleRow = document.querySelectorAll('.attendee-row').length === 1;
+                    removeButtons.forEach(btn => {
+                        btn.disabled = hasSingleRow;
+                    });
+                }
+                // Search functionality
+                $('#attendeeSearch').on('input', function() {
+                    const searchTerm = $(this).val().toLowerCase();
+                    $('.list-group-item').each(function() {
+                        const text = $(this).text().toLowerCase();
+                        $(this).toggle(text.includes(searchTerm));
+                    });
+                });
+
+                // Save selected attendees
+                $('#saveAttendees').on('click', function() {
+                    const selectedIds = [];
+                    const selectedNames = [];
+                    
+                    $('.attendee-checkbox:checked').each(function() {
+                        const id = $(this).val();
+                        const name = $(this).closest('.list-group-item').find('.form-check-label .fw-medium').text();
+                        selectedIds.push(id);
+                        selectedNames.push(name);
+                    });
+
+                    // Update hidden input
+                    $('#attendeesInput').val(selectedIds.join(','));
+                    
+                    // Update display
+                    const attendeesContainer = $('#selectedAttendees');
+                    if (selectedNames.length > 0) {
+                        let badges = '';
+                        $('.attendee-checkbox:checked').each(function() {
+                            const id = $(this).val();
+                            const name = $(this).closest('.list-group-item').find('.form-check-label .fw-medium').text();
+                            badges += `
+                                <span class="badge bg-primary bg-opacity-10 text-primary p-2 d-flex align-items-center">
+                                    <i class="fas fa-user me-1"></i>
+                                    ${name}
+                                    <button type="button" class="btn-close btn-close-attendee ms-2" data-user-id="${id}" style="font-size: 0.5rem;"></button>
+                                </span>`;
+                        });
+                        attendeesContainer.html(`
+                            <div class="d-flex flex-wrap gap-2 mb-2">${badges}</div>
+                            <input type="hidden" name="attendees[]" id="attendeesInput" value="${selectedIds.join(',')}">
+                        `);
+                    } else {
+                        attendeesContainer.html(`
+                            <p class="text-muted mb-0">No attendees selected</p>
+                            <input type="hidden" name="attendees[]" id="attendeesInput" value="">
+                        `);
+                    }
+                    
+                    // Rebind remove button events
+                    bindRemoveAttendeeEvents();
+                    
+                    // Close offcanvas
+                    const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById('selectAttendeesOffcanvas'));
+                    offcanvas.hide();
+                });
+
+                // Function to bind remove attendee events
+                function bindRemoveAttendeeEvents() {
+                    $('.btn-close-attendee').on('click', function() {
+                        const userId = $(this).data('user-id');
+                        const $checkbox = $(`#attendee-${userId}`);
+                        
+                        if ($checkbox.length) {
+                            $checkbox.prop('checked', false);
+                        }
+                        
+                        // Trigger save to update the display
+                        $('#saveAttendees').click();
+                    });
+                }
+
+                // Initial binding
+                bindRemoveAttendeeEvents();
+            });
+            </script>
+            <style>
+                .offcanvas {
+                    width: 400px;
+                    max-width: 100%;
+                }
+                .list-group-item {
+                    border-left: none;
+                    border-right: none;
+                    padding: 1rem 1.25rem;
+                }
+                .list-group-item:first-child {
+                    border-top: none;
+                }
+                .list-group-item:last-child {
+                    border-bottom: none;
+                }
+                .form-check-input:checked {
+                    background-color: #0d6efd;
+                    border-color: #0d6efd;
+                }
+                .form-check-input[type="checkbox"] {
+                    width: 1.25em;
+                    height: 1.25em;
+                    margin-top: 0.15em;
+                }
+                .form-switch .form-check-input {
+                    width: 2.5em;
+                    margin-left: 0.5em;
+                }
+                .btn-close-attendee {
+                    opacity: 0.5;
+                }
+                .btn-close-attendee:hover {
+                    opacity: 1;
+                }
+                .offcanvas-body {
+                    padding: 0;
+                }
+            </style>
+            @endpush
+
         </div>
     </div>
 </div>
@@ -374,7 +617,7 @@
 </div>
 
 <!-- Project Overview -->
-<div class="card">
+<div class="card shadow-sm" id="project-overview">
     <div class="card-header">
         <h5><i class="fas fa-project-diagram me-2"></i>Project Overview</h5>
     </div>
@@ -420,7 +663,7 @@
 </div>
 
 <!-- Site Assessment -->
-<div class="card">
+<div class="card shadow-sm" id="site-assessment">
     <div class="card-header">
         <h5><i class="fas fa-clipboard-check me-2"></i>Site Assessment</h5>
     </div>
@@ -686,7 +929,7 @@
 </div>
 
 <!-- Client Requirements -->
-<div class="card">
+<div class="card shadow-sm" id="client-requirements">
     <div class="card-header">
         <h5><i class="fas fa-clipboard-list me-2"></i>Client Requirements</h5>
     </div>
@@ -809,12 +1052,14 @@
                     </label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="far fa-calendar"></i></span>
-                        <input type="date" 
+                        <input type="text" 
                                class="form-control datepicker @error('proposed_start_date') is-invalid @enderror" 
                                id="proposed_start_date" 
                                name="proposed_start_date" 
                                placeholder="Select start date"
-                               value="{{ getFormValue('proposed_start_date', $siteSurvey) }}">
+                               data-date-format="Y-m-d"
+                               value="{{ getFormValue('proposed_start_date', $siteSurvey) }}"
+                               readonly>
                     </div>
                     @error('proposed_start_date')
                         <div class="invalid-feedback d-block">
@@ -830,12 +1075,14 @@
                     </label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="far fa-calendar"></i></span>
-                        <input type="date" 
+                        <input type="text" 
                                class="form-control datepicker @error('proposed_end_date') is-invalid @enderror" 
                                id="proposed_end_date" 
                                name="proposed_end_date" 
                                placeholder="Select end date"
-                               value="{{ getFormValue('proposed_end_date', $siteSurvey) }}">
+                               data-date-format="Y-m-d"
+                               value="{{ getFormValue('proposed_end_date', $siteSurvey) }}"
+                               readonly>
                     </div>
                     @error('proposed_end_date')
                         <div class="invalid-feedback d-block">
@@ -864,37 +1111,13 @@
                 </div>
             @enderror
         </div>
-        
-        <div class="timeline-visualization mt-4 p-3 bg-light rounded">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="mb-0"><i class="fas fa-chart-gantt me-2"></i>Project Timeline</h6>
-                <button type="button" class="btn btn-sm btn-outline-secondary" id="updateTimelinePreview">
-                    <i class="fas fa-sync-alt me-1"></i>Update Preview
-                </button>
-            </div>
-            <div class="progress" style="height: 30px;">
-                <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated" 
-                     role="progressbar" 
-                     id="timelineProgress" 
-                     style="width: 0%" 
-                     aria-valuenow="0" 
-                     aria-valuemin="0" 
-                     aria-valuemax="100">
-                    <span id="timelineText">Select dates to see timeline</span>
-                </div>
-            </div>
-            <div class="d-flex justify-content-between mt-2 text-muted small">
-                <span id="startDateText">-</span>
-                <span id="endDateText">-</span>
-            </div>
-        </div>
     </div>
 </div>
 
 <!-- Health and Safety -->
-<div class="card mb-4">
+<div class="card shadow-sm" id="health-safety">
     <div class="card-header">
-        <h5 class="mb-0">Health and Safety</h5>
+        <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Health and Safety</h5>
     </div>
     <div class="card-body">
         <div class="form-group">
@@ -951,9 +1174,9 @@
 </div>
 
 <!-- Additional Information -->
-<div class="card mb-4">
+<div class="card shadow-sm" id="additional-info">
     <div class="card-header">
-        <h5 class="mb-0">Additional Information</h5>
+        <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Additional Information</h5>
     </div>
     <div class="card-body">
         <div class="form-group mb-4">
@@ -1076,28 +1299,101 @@
             @enderror
         </div>
         
-        <div class="form-group">
-            <label for="action_items">Action Items</label>
-            <select class="form-control select2 @error('action_items') is-invalid @enderror" 
-                    id="action_items" name="action_items[]" multiple>
-                @foreach(old('action_items', $siteSurvey->action_items ?? []) as $item)
-                    <option value="{{ $item }}" selected>{{ $item }}</option>
+        <div class="form-group mb-4">
+            <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-tasks me-1 text-primary"></i> Action Items</span>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="addActionItemBtn">
+                    <i class="fas fa-plus me-1"></i> Add Action Item
+                </button>
+            </label>
+            
+            <div id="actionItemsContainer" class="mb-3">
+                @php
+                    $actionItems = old('action_items', $siteSurvey->exists ? (is_array($siteSurvey->action_items) ? $siteSurvey->action_items : [$siteSurvey->action_items]) : ['']);
+                @endphp
+                
+                @foreach($actionItems as $index => $item)
+                    <div class="input-group mb-2 action-item-row">
+                        <span class="input-group-text">
+                            <i class="fas fa-tasks"></i>
+                        </span>
+                        <input type="text" 
+                               class="form-control" 
+                               name="action_items[]" 
+                               value="{{ $item }}" 
+                               placeholder="Enter action item">
+                        <button type="button" class="btn btn-outline-danger remove-action-item" {{ $loop->first && count($actionItems) === 1 ? 'disabled' : '' }}>
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                 @endforeach
-            </select>
-            <small class="form-text text-muted">Type and press Enter to add multiple action items</small>
+            </div>
+            
             @error('action_items')
-                <span class="invalid-feedback" role="alert">
-                    <strong>{{ $message }}</strong>
-                </span>
+                <div class="invalid-feedback d-block">
+                    <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
+                </div>
             @enderror
         </div>
+        
+        @push('scripts')
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add action item
+            document.getElementById('addActionItemBtn').addEventListener('click', function() {
+                const container = document.getElementById('actionItemsContainer');
+                const newRow = document.createElement('div');
+                newRow.className = 'input-group mb-2 action-item-row';
+                newRow.innerHTML = `
+                    <span class="input-group-text">
+                        <i class="fas fa-tasks"></i>
+                    </span>
+                    <input type="text" 
+                           class="form-control" 
+                           name="action_items[]" 
+                           placeholder="Enter action item">
+                    <button type="button" class="btn btn-outline-danger remove-action-item">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                container.appendChild(newRow);
+                
+                // Enable all remove buttons when adding a new row
+                const removeButtons = document.querySelectorAll('.remove-action-item');
+                removeButtons.forEach(btn => btn.disabled = false);
+                
+                // Focus the new input
+                newRow.querySelector('input').focus();
+            });
+            
+            // Remove action item
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.remove-action-item')) {
+                    const row = e.target.closest('.action-item-row');
+                    const container = document.getElementById('actionItemsContainer');
+                    const rows = container.querySelectorAll('.action-item-row');
+                    
+                    if (rows.length > 1) {
+                        row.remove();
+                        
+                        // If only one row left, disable its remove button
+                        if (rows.length === 2) {
+                            const remainingButton = container.querySelector('.remove-action-item');
+                            if (remainingButton) remainingButton.disabled = true;
+                        }
+                    }
+                }
+            });
+        });
+        </script>
+        @endpush
     </div>
 </div>
 
 <!-- Signatures -->
-<div class="card mb-4">
+<div class="card shadow-sm" id="signatures">
     <div class="card-header">
-        <h5 class="mb-0">Signatures</h5>
+        <h5 class="mb-0"><i class="fas fa-signature me-2"></i>Signatures</h5>
     </div>
     <div class="card-body">
         <div class="row">
@@ -1120,40 +1416,6 @@
                         </span>
                     @enderror
                 </div>
-                
-                <div class="form-group">
-                    <label for="prepared_date">Date <span class="text-danger">*</span></label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
-                        <input type="date" 
-                               class="form-control datepicker @error('prepared_date') is-invalid @enderror" 
-                               id="prepared_date" 
-                               name="prepared_date" 
-                               value="{{ getFormValue('prepared_date', $siteSurvey, now()->format('Y-m-d')) }}" 
-                               required>
-                    </div>
-                    @error('prepared_date')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                    @enderror
-                </div>
-                
-                <div class="form-group">
-                    <label for="prepared_signature">Signature</label>
-                    <input type="file" class="form-control-file @error('prepared_signature') is-invalid @enderror" 
-                           id="prepared_signature" name="prepared_signature" accept="image/*">
-                    @error('prepared_signature')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                    @enderror
-                    @if(isset($siteSurvey) && $siteSurvey->prepared_signature)
-                        <div class="mt-2">
-                            <img src="{{ asset('storage/' . $siteSurvey->prepared_signature) }}" alt="Signature" style="max-width: 200px;">
-                        </div>
-                    @endif
-                </div>
             </div>
             
             <div class="col-md-6">
@@ -1162,40 +1424,12 @@
                     <label for="client_approval_name">Name</label>
                     <input type="text" class="form-control @error('client_approval_name') is-invalid @enderror" 
                            id="client_approval_name" name="client_approval_name" 
-                           value="{{ old('client_approval_name', $siteSurvey->client_approval_name ?? '') }}">
+                           value="{{ getFormValue('client_approval_name', $siteSurvey, auth()->user()->name) }}">
                     @error('client_approval_name')
                         <span class="invalid-feedback" role="alert">
                             <strong>{{ $message }}</strong>
                         </span>
                     @enderror
-                </div>
-                
-                <div class="form-group">
-                    <label for="client_approval_date">Date</label>
-                    <input type="text" class="form-control datepicker @error('client_approval_date') is-invalid @enderror" 
-                           id="client_approval_date" name="client_approval_date" 
-                           value="{{ old('client_approval_date', $siteSurvey->client_approval_date ?? '') }}">
-                    @error('client_approval_date')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                    @enderror
-                </div>
-                
-                <div class="form-group">
-                    <label for="client_signature">Signature</label>
-                    <input type="file" class="form-control-file @error('client_signature') is-invalid @enderror" 
-                           id="client_signature" name="client_signature" accept="image/*">
-                    @error('client_signature')
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $message }}</strong>
-                        </span>
-                    @enderror
-                    @if(isset($siteSurvey) && $siteSurvey->client_signature)
-                        <div class="mt-2">
-                            <img src="{{ asset('storage/' . $siteSurvey->client_signature) }}" alt="Client Signature" style="max-width: 200px;">
-                        </div>
-                    @endif
                 </div>
             </div>
         </div>

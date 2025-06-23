@@ -47,6 +47,12 @@
                                 <i class="fas fa-trash"></i> Delete
                             </button>
                         </form>
+                        <a href="{{ route('projects.site-survey.print', ['project' => $project]) }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                            <i class="fas fa-print"></i> Print
+                        </a>
+                        <a href="{{ route('projects.site-survey.download', ['project' => $project]) }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-download"></i> Download PDF
+                        </a>
                         <a href="{{ route('projects.files.index', $project) }}" class="btn btn-sm btn-secondary">
                             <i class="fas fa-arrow-left"></i> Back to Project Files
                         </a>
@@ -54,55 +60,315 @@
                 </div>
 
                 <div class="card-body">
+                    <!-- Basic Information Section -->
                     <div class="row mb-4">
-                        <div class="col-md-6">
-                            <h6>Basic Information</h6>
-                            <table class="table table-sm table-bordered">
-                                <tr>
-                                    <th style="width: 40%;">Site Visit Date</th>
-                                    <td>{{ \Carbon\Carbon::parse($siteSurvey->site_visit_date)->format('M d, Y') }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Project Manager</th>
-                                    <td>{{ $siteSurvey->project_manager }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Client Name</th>
-                                    <td>{{ $siteSurvey->client_name }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Location</th>
-                                    <td>{{ $siteSurvey->location }}</td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="col-md-6">
-                            <h6>Contact Information</h6>
-                            <table class="table table-sm table-bordered">
-                                <tr>
-                                    <th style="width: 40%;">Contact Person</th>
-                                    <td>{{ $siteSurvey->client_contact_person }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Phone</th>
-                                    <td>{{ $siteSurvey->client_phone }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Email</th>
-                                    <td>{{ $siteSurvey->client_email ?? 'N/A' }}</td>
-                                </tr>
-                            </table>
+                        <div class="col-12">
+                            <h4 class="section-title">
+                                <i class="fas fa-info-circle me-2"></i> Basic Information
+                            </h4>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <table class="table table-sm table-borderless mb-0">
+                                                <tr>
+                                                    <th style="width: 40%;">Site Visit Date</th>
+                                                    <td>{{ \Carbon\Carbon::parse($siteSurvey->site_visit_date)->format('M d, Y') }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Project Manager</th>
+                                                    <td>{{ $siteSurvey->project_manager }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Client Name</th>
+                                                    <td>{{ $siteSurvey->client_name }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Location</th>
+                                                    <td>{{ $siteSurvey->location }}</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <table class="table table-sm table-borderless mb-0">
+                                                <tr>
+                                                    <th style="width: 40%;">Contact Person</th>
+                                                    <td>{{ $siteSurvey->client_contact_person }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Phone</th>
+                                                    <td>{{ $siteSurvey->client_phone }}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>Email</th>
+                                                    <td>{{ $siteSurvey->client_email ?? 'N/A' }}</td>
+                                                </tr>
+                                                @if($siteSurvey->project_description)
+                                                <tr>
+                                                    <th>Project Description</th>
+                                                    <td>{{ $siteSurvey->project_description }}</td>
+                                                </tr>
+                                                @endif
+                                                @if($siteSurvey->objectives)
+                                                <tr>
+                                                    <th>Objectives</th>
+                                                    <td>{{ $siteSurvey->objectives }}</td>
+                                                </tr>
+                                                @endif
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
+                    <!-- Site Assessment Section -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h4 class="section-title">
+                                <i class="fas fa-clipboard-check me-2"></i> Site Assessment
+                            </h4>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            @if($siteSurvey->current_condition)
+                                            <div class="mb-3">
+                                                <h6>Current Condition</h6>
+                                                <p class="mb-0">{{ $siteSurvey->current_condition }}</p>
+                                            </div>
+                                            @endif
+                                            
+                                            @if($siteSurvey->existing_branding)
+                                            <div class="mb-3">
+                                                <h6>Existing Branding</h6>
+                                                <p class="mb-0">{{ $siteSurvey->existing_branding }}</p>
+                                            </div>
+                                            @endif
+                                            
+                                            @if($siteSurvey->access_logistics)
+                                            <div class="mb-3">
+                                                <h6>Access & Logistics</h6>
+                                                <p class="mb-0">{{ $siteSurvey->access_logistics }}</p>
+                                            </div>
+                                            @endif
+                                            
+                                            @if($siteSurvey->parking_availability)
+                                            <div class="mb-3">
+                                                <h6>Parking Availability</h6>
+                                                <p class="mb-0">{{ $siteSurvey->parking_availability }}</p>
+                                            </div>
+                                            @endif
+                                        </div>
+                                        <div class="col-md-6">
+                                            @if($siteSurvey->size_accessibility)
+                                            <div class="mb-3">
+                                                <h6>Size & Accessibility</h6>
+                                                <p class="mb-0">{{ $siteSurvey->size_accessibility }}</p>
+                                            </div>
+                                            @endif
+                                            
+                                            @if($siteSurvey->lifts || $siteSurvey->door_sizes || $siteSurvey->loading_areas)
+                                            <div class="mb-3">
+                                                <h6>Site Details</h6>
+                                                <ul class="mb-0">
+                                                    @if($siteSurvey->lifts)
+                                                    <li><strong>Lifts:</strong> {{ $siteSurvey->lifts }}</li>
+                                                    @endif
+                                                    @if($siteSurvey->door_sizes)
+                                                    <li><strong>Door Sizes:</strong> {{ $siteSurvey->door_sizes }}</li>
+                                                    @endif
+                                                    @if($siteSurvey->loading_areas)
+                                                    <li><strong>Loading Areas:</strong> {{ $siteSurvey->loading_areas }}</li>
+                                                    @endif
+                                                </ul>
+                                            </div>
+                                            @endif
+                                            
+                                            @if($siteSurvey->site_measurements || $siteSurvey->room_size)
+                                            <div class="mb-3">
+                                                <h6>Measurements</h6>
+                                                @if($siteSurvey->site_measurements)
+                                                <p class="mb-1"><strong>Site Measurements:</strong> {{ $siteSurvey->site_measurements }}</p>
+                                                @endif
+                                                @if($siteSurvey->room_size)
+                                                <p class="mb-0"><strong>Room Size:</strong> {{ $siteSurvey->room_size }}</p>
+                                                @endif
+                                            </div>
+                                            @endif
+                                            
+                                            @if($siteSurvey->constraints || $siteSurvey->electrical_outlets || $siteSurvey->food_refreshment)
+                                            <div class="mb-3">
+                                                <h6>Additional Information</h6>
+                                                <ul class="mb-0">
+                                                    @if($siteSurvey->constraints)
+                                                    <li><strong>Constraints:</strong> {{ $siteSurvey->constraints }}</li>
+                                                    @endif
+                                                    @if($siteSurvey->electrical_outlets)
+                                                    <li><strong>Electrical Outlets:</strong> {{ $siteSurvey->electrical_outlets }}</li>
+                                                    @endif
+                                                    @if($siteSurvey->food_refreshment)
+                                                    <li><strong>Food & Refreshment:</strong> {{ $siteSurvey->food_refreshment }}</li>
+                                                    @endif
+                                                </ul>
+                                            </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Client Requirements Section -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h4 class="section-title">
+                                <i class="fas fa-clipboard-list me-2"></i> Client Requirements
+                            </h4>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            @if($siteSurvey->branding_preferences)
+                                            <div class="mb-3">
+                                                <h6>Branding Preferences</h6>
+                                                <p class="mb-0">{{ $siteSurvey->branding_preferences }}</p>
+                                            </div>
+                                            @endif
+                                            
+                                            @if($siteSurvey->material_preferred)
+                                            <div class="mb-3">
+                                                <h6>Preferred Materials</h6>
+                                                <p class="mb-0">{{ $siteSurvey->material_preferred }}</p>
+                                            </div>
+                                            @endif
+                                        </div>
+                                        <div class="col-md-6">
+                                            @if($siteSurvey->color_scheme)
+                                            <div class="mb-3">
+                                                <h6>Color Scheme</h6>
+                                                <p class="mb-0">{{ $siteSurvey->color_scheme }}</p>
+                                            </div>
+                                            @endif
+                                            
+                                            @if($siteSurvey->brand_guidelines || $siteSurvey->special_instructions)
+                                            <div class="mb-3">
+                                                @if($siteSurvey->brand_guidelines)
+                                                <h6>Brand Guidelines</h6>
+                                                <p class="mb-2">{{ $siteSurvey->brand_guidelines }}</p>
+                                                @endif
+                                                
+                                                @if($siteSurvey->special_instructions)
+                                                <h6>Special Instructions</h6>
+                                                <p class="mb-0">{{ $siteSurvey->special_instructions }}</p>
+                                                @endif
+                                            </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Project Timeline Section -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h4 class="section-title">
+                                <i class="far fa-calendar-alt me-2"></i> Project Timeline
+                            </h4>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <table class="table table-sm table-borderless mb-0">
+                                                @if($siteSurvey->project_start_date)
+                                                <tr>
+                                                    <th style="width: 40%;">Start Date</th>
+                                                    <td>{{ \Carbon\Carbon::parse($siteSurvey->project_start_date)->format('M d, Y') }}</td>
+                                                </tr>
+                                                @endif
+                                                @if($siteSurvey->project_deadline)
+                                                <tr>
+                                                    <th>Deadline</th>
+                                                    <td>{{ \Carbon\Carbon::parse($siteSurvey->project_deadline)->format('M d, Y') }}</td>
+                                                </tr>
+                                                @endif
+                                            </table>
+                                        </div>
+                                        @if($siteSurvey->milestones)
+                                        <div class="col-md-6">
+                                            <h6>Milestones</h6>
+                                            <p class="mb-0">{{ $siteSurvey->milestones }}</p>
+                                        </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Health and Safety Section -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h4 class="section-title">
+                                <i class="fas fa-shield-alt me-2"></i> Health and Safety
+                            </h4>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row">
+                                        @if($siteSurvey->safety_conditions)
+                                        <div class="col-md-6">
+                                            <h6>Safety Conditions</h6>
+                                            <p class="mb-0">{{ $siteSurvey->safety_conditions }}</p>
+                                        </div>
+                                        @endif
+                                        @if($siteSurvey->potential_hazards)
+                                        <div class="col-md-6">
+                                            <h6>Potential Hazards</h6>
+                                            <p class="mb-0">{{ $siteSurvey->potential_hazards }}</p>
+                                        </div>
+                                        @endif
+                                        @if($siteSurvey->safety_required)
+                                        <div class="col-12 mt-3">
+                                            <h6>Safety Equipment Required</h6>
+                                            <p class="mb-0">{{ $siteSurvey->safety_required }}</p>
+                                        </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Attendees Section -->
                     @if($siteSurvey->attendees && count($siteSurvey->attendees) > 0)
                     <div class="row mb-4">
                         <div class="col-12">
-                            <h6>Attendees</h6>
-                            <div class="d-flex flex-wrap gap-2">
-                                @foreach($siteSurvey->attendees as $attendee)
-                                    <span class="badge-primary">{{ $attendee }}</span>
-                                @endforeach
+                            <h4 class="section-title">
+                                <i class="fas fa-users me-2"></i> Attendees
+                            </h4>
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div class="d-flex flex-wrap gap-2">
+                                                @foreach($siteSurvey->attendees as $attendee)
+                                                
+                                                <ul>
+                                                <li>    
+                                                <i class="fas fa-user me-1"></i>
+                                                    {{ $attendee }}
+                                                </li>
+                                                </ul>
+                                                </span>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

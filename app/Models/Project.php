@@ -47,6 +47,11 @@ class Project extends Model
     {
         return $this->hasOne(EnquiryLog::class);
     }
+    public function materials()
+    {
+        return $this->hasMany(Material::class);
+    }
+
 
     public function client()
     {

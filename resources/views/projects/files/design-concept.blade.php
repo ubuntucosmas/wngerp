@@ -51,30 +51,6 @@
             </a>
         </div>
 
-        <!-- Materials List Card 
-        <div class="col-lg-6 col-md-6 mb-4">
-            <a href="{{ route('projects.files.materials', $project) }}" class="text-decoration-none">
-                <div class="file-card h-100">
-                    <div class="d-flex align-items-start">
-                        <div class="file-card-icon me-3">
-                            <i class="bi bi-clipboard2-check"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <h3 class="file-card-title">Materials</h3>
-                            <p class="file-card-description">
-                                View and manage the list of materials required for the project
-                            </p>
-                            <div class="d-flex justify-content-between align-items-center mt-2">
-                                <span class="badge bg-light text-dark">Materials</span>
-                                <small class="text-muted">{{ $materials->count() }} {{ Str::plural('item', $materials->count()) }}</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </a>
-        </div>
-    </div> -->
-
     <style>
         .file-card {
             background: #fff;

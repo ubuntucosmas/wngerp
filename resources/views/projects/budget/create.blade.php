@@ -2,12 +2,33 @@
 @section('title', 'Create Project Budget')
 
 @section('content')
-<form action="{{ route('budget.store', $project) }}" method="POST">
-    @csrf
-    <div class="container">
-        <h4 class="mb-4">Project Budget Form</h4>
+<div class="container-fluid p-0">
+    <div class="mb-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Create Budget</li>
+            </ol>
+        </nav>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1 class="h3 m-0">Create Project Budget</h1>
+            <div>
+                <a href="{{ route('projects.files.index', $project) }}" class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-arrow-left"></i> Back to Project Files
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Save Budget
+                </button>
+            </div>
+        </div>
+    </div>
 
-        {{-- Project & Client --}}
+    <div class="card">
+        <div class="card-body">
+            <form action="{{ route('budget.store', $project) }}" method="POST">
+                @csrf
+                <div class="container">
+                    {{-- Project & Client --}}
         <div class="row mb-3">
             <div class="col-md-6">
                 <label for="project_name">Project Name</label>
@@ -149,13 +170,29 @@
             <input type="text" name="approved_departments" class="form-control" placeholder="Production, Finance">
         </div>
 
-        {{-- Submit --}}
-        <div class="text-end">
-            <button type="submit" class="btn btn-primary">Submit Budget</button>
+        {{-- Form actions --}}
+        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+            <a href="{{ route('projects.files.index', $project) }}" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle"></i> Cancel
+            </a>
+            <div>
+                <button type="reset" class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-arrow-counterclockwise"></i> Reset
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Save Budget
+                </button>
+            </div>
+        </div>
+                </div>
+            </form>
         </div>
     </div>
-</form>
+</div>
 
+@endsection
+
+@push('scripts')
 {{-- JS for dynamic row addition/removal --}}
 <script>
     let productionIndex = 1;
@@ -220,4 +257,4 @@
 
 </script>
 
-@endsection
+

@@ -120,9 +120,63 @@
         color: var(--text-secondary);
     }
 
+    .phase-card {
+        background: #fff;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        height: 100%;
+    }
+    .phase-card:hover {
+        border-color: #0d6efd;
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
+    }
+    .phase-icon {
+        color: #0d6efd;
+        background-color: rgba(13, 110, 253, 0.1);
+        width: 2rem;
+        height: 2rem;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .phase-title {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #212529;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .phase-description {
+        font-size: 0.75rem;
+        line-height: 1.3;
+        min-height: 2.6rem;
+        margin-bottom: 0.5rem;
+    }
+    .col-lg-2_4 {
+        flex: 0 0 auto;
+        width: 20%;
+    }
+    @media (max-width: 1199.98px) {
+        .col-lg-2_4 {
+            width: 33.333333%;
+        }
+    }
+    @media (max-width: 767.98px) {
+        .col-lg-2_4 {
+            width: 50%;
+        }
+    }
+    @media (max-width: 575.98px) {
+        .col-lg-2_4 {
+            width: 100%;
+        }
+    }
 </style>
 
-<div class="container mt-1 mb-1">
+<div class="px-3 mx-10 w-100">
 <div class="project-header d-flex justify-content-between align-items-center flex-wrap gap-2 px-3 py-2 rounded shadow-sm" style="background: #0c2d48; color: #b1d4e0;">
     <div class="text-start flex-fill">
         <small class="text-white">Project Name</small>
@@ -145,33 +199,90 @@
     </div>
 </div>
     <hr>
-    <div class="row mt-1">
-        @if (empty($fileTypes))
-            <div class="col-12">
-                <div class="alert-minimal" role="alert">
-                    <i class="bi bi-info-circle"></i>
-                    <span>No project files or documents have been linked to this project yet.</span>
-                </div>
-            </div>
-        @else
-            @foreach ($fileTypes as $fileType)
-                <div class="col-lg-3 col-md-6 mb-1 d-flex align-items-stretch">
-                    <div class="file-card w-100">
-                        <div class="file-card-icon">
-                            <i class="bi {{ $fileType['name'] == 'Booking Order' ? 'bi-receipt-cutoff' : 'bi-file-earmark-zip' }}"></i>
+    
+    <!-- Phase Folders Section -->
+    <div class="mb-4">
+        <h4 class="mb-3 text-primary">Project Phases</h4>
+        <p class="text-muted mb-0">Manage project phases and related files</p>
+        <div class="row g-2">
+            @php
+                $phases = [
+                    ['name' => 'Client Engagement & Briefing', 'icon' => 'bi-folder-symlink'],
+                    ['name' => 'Design & Concept Development', 'icon' => 'bi-brush'],
+                    ['name' => 'Project Material List', 'icon' => 'bi-list-task'],
+                    ['name' => 'Budget & Quotation', 'icon' => 'bi-cash-coin'],
+                    ['name' => 'Procurement & Inventory', 'icon' => 'bi-box-seam'],
+                    ['name' => 'Production', 'icon' => 'bi-gear'],
+                    ['name' => 'Logistics', 'icon' => 'bi-truck'],
+                    ['name' => 'Event Setup & Execution', 'icon' => 'bi-tools'],
+                    ['name' => 'Client Handover', 'icon' => 'bi-clipboard-check'],
+                    ['name' => 'Set Down & Return', 'icon' => 'bi-arrow-return-left'],
+                    ['name' => 'Archival & Reporting', 'icon' => 'bi-archive'],
+                    
+                ];
+            @endphp
+            
+            @foreach ($phases as $phase)
+                <div class="col-lg-2_4 col-md-4 col-sm-6 mb-2">
+                    <div class="phase-card h-100 p-2">
+                        <div class="d-flex align-items-center mb-1">
+                            <div class="phase-icon me-2">
+                                <i class="bi {{ $phase['icon'] }} fs-5"></i>
+                            </div>
+                            <h5 class="phase-title mb-0">{{ $phase['name'] }}</h5>
                         </div>
-                        <h3 class="file-card-title">{{ $fileType['name'] }}</h3>
-                        <!-- <p class="file-card-description">
-                            Access and manage the {{ strtolower($fileType['name']) }} for this project.
-                        </p> -->
-                        <a href="{{ $fileType['route'] }}" class="btn btn-minimal">
-                            <span>Manage</span>
-                            <i class="bi bi-arrow-right ms-2"></i>
-                        </a>
+                        @if($phase['name'] == 'Client Engagement & Briefing')
+                            <p class="phase-description small text-muted mb-2">
+                                View and manage client engagement documents
+                            </p>
+                            <a href="{{ route('projects.files.client-engagement', $project) }}" class="btn btn-sm btn-outline-primary w-100">
+                                <span>Open</span>
+                                <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        @elseif($phase['name'] == 'Design & Concept Development')
+                            <p class="phase-description small text-muted mb-2">
+                                View and manage design assets and mockups
+                            </p>
+                            <a href="{{ route('projects.files.design-concept', $project) }}" class="btn btn-sm btn-outline-primary w-100">
+                                <span>Open</span>
+                                <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        @elseif($phase['name'] == 'Project Material List')
+                            <p class="phase-description small text-muted mb-2">
+                                View and manage Project Materials
+                            </p>
+                            <a href="" class="btn btn-sm btn-outline-primary w-100">
+                                <span>Open</span>
+                                <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        @elseif($phase['name'] == 'Logistics')
+                            <p class="phase-description small text-muted mb-2">
+                                View and manage logistics documents
+                            </p>
+                            <a href="{{ route('projects.logistics.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
+                                <span>Open</span>
+                                <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        @elseif($phase['name'] == 'Budget & Quotation')
+                            <p class="phase-description small text-muted mb-2">
+                                View and manage quotation documents
+                            </p>
+                            <a href="{{ route('projects.quotation.index', ['project' => $project->id]) }}" class="btn btn-sm btn-outline-primary w-100">
+                                <span>Open</span>
+                                <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        @else
+                            <p class="phase-description small text-muted mb-2">
+                                Coming soon
+                            </p>
+                            <button class="btn btn-sm btn-outline-secondary w-100" disabled>
+                                <span>Coming Soon</span>
+                            </button>
+                        @endif
                     </div>
                 </div>
             @endforeach
-        @endif
+        </div>
     </div>
 </div>
 @endsection

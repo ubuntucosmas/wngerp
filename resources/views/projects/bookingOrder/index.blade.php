@@ -101,7 +101,7 @@
                 <a href="{{ route('projects.booking-order.print', $project->id) }}" target="_blank" class="btn btn-outline-secondary"><i class="bi bi-printer me-1"></i> Print</a>
             </div>
         @else
-            <a href="{{ route('projects.booking-order.create', ['project' => $project->id]) }}" class="btn btn-primary">
+            <a href="{{ route('projects.logistics.booking-orders.create', ['project' => $project->id]) }}" class="btn btn-primary">
                 <i class="bi bi-plus-circle me-1"></i> New Booking Order
             </a>
         @endif

@@ -74,7 +74,7 @@ class SiteSurveyController extends Controller
             // Signatures
             'prepared_by' => 'required|string|max:255',
             'prepared_signature' => 'nullable|string',
-            'prepared_date' => 'required|date',
+            'prepared_date' => 'nullable|date',
             'client_approval_name' => 'nullable|string',
             'client_signature' => 'nullable|string',
             'client_approval_date' => 'nullable|date',

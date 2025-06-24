@@ -233,14 +233,23 @@
     }
 </style>
 
-<div class="px-3 mx-10 mt-2 w-100">
+<div class="px-3 mx-10 w-100">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1>Enquiries</h1>
-        <button type="button" class="btn btn-xs btn-outline-info" data-bs-toggle="modal" data-bs-target="#createEnquiryModal">
-            New Enquiry
-        </button>
+        <button type="button" class="btn btn-xs btn-primary" data-bs-toggle="modal" data-bs-target="#createEnquiryModal"><i class="bi bi-plus-circle"></i>  New Enquiry</button>
     </div>
-<hr class="mb-4">
+    <hr class="mb-4">
+    <!-- Search Box -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div class="search-box" style="min-width: 300px; max-width: 400px;">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control border-start-0" placeholder="Search enquiries..." id="enquirySearch">
+            </div>
+        </div>
+    </div>
+    
+
     <!-- Create Enquiry Modal -->
     <div class="modal fade" id="createEnquiryModal" tabindex="-1" aria-labelledby="createEnquiryModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -249,6 +258,7 @@
                     <h5 class="modal-title" id="createEnquiryModalLabel">New Enquiry</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
+                <hr class="mb-4">
                 <div class="modal-body">
                     @if ($errors->any())
                         <div class="alert alert-danger">
@@ -273,8 +283,8 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="expected_delivery_date" class="form-label">Expected Delivery Date</label>
-                                    <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="form-control" value="{{ old('expected_delivery_date') }}">
+                                    <label for="expected_delivery_date" class="form-label">Expected Delivery Date<span class="text-danger">*</span></label>
+                                    <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="form-control" required value="{{ old('expected_delivery_date') }}">
                                 </div>
                             </div>
                         </div>
@@ -288,8 +298,8 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="project_name" class="form-label text-muted">Project Name</label>
-                                    <input type="text" name="project_name" id="project_name" class="form-control" value="{{ old('project_name') }}">
+                                    <label for="project_name" class="form-label">Project Name<span class="text-danger">*</span></label>
+                                    <input type="text" name="project_name" id="project_name" class="form-control" required value="{{ old('project_name') }}">
                                 </div>
                             </div>
                         </div>
@@ -307,8 +317,8 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="assigned_po" class="form-label">Assigned PO</label>
-                                    <input type="text" name="assigned_po" id="assigned_po" class="form-control" value="{{ old('assigned_po') }}">
+                                    <label for="assigned_po" class="form-label">Assigned PO<span class="text-danger">*</span></label>
+                                    <input type="text" name="assigned_po" id="assigned_po" class="form-control" required value="{{ old('assigned_po') }}">
                                 </div>
                             </div>
                         </div>
@@ -316,14 +326,14 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="project_deliverables" class="form-label">Project Deliverables</label>
-                                    <textarea name="project_deliverables" id="project_deliverables" class="form-control" rows="4">{{ old('project_deliverables') }}</textarea>
+                                    <label for="project_deliverables" class="form-label">Project Deliverables<span class="text-danger">*</span></label>
+                                    <textarea name="project_deliverables" id="project_deliverables" class="form-control" rows="4" required>{{ old('project_deliverables') }}</textarea>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="follow_up_notes" class="form-label">Follow-Up Notes</label>
-                                    <textarea name="follow_up_notes" id="follow_up_notes" class="form-control" rows="4">{{ old('follow_up_notes') }}</textarea>
+                                    <label for="follow_up_notes" class="form-label">Follow-Up Notes<span class="text-danger">*</span></label>
+                                    <textarea name="follow_up_notes" id="follow_up_notes" class="form-control" rows="4" required>{{ old('follow_up_notes') }}</textarea>
                                 </div>
                             </div>
                         </div>
@@ -331,8 +341,8 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="contact_person" class="form-label">Contact Person</label>
-                                    <input type="text" name="contact_person" id="contact_person" class="form-control" value="{{ old('contact_person') }}">
+                                    <label for="contact_person" class="form-label">Contact Person<span class="text-danger">*</span></label>
+                                    <input type="text" name="contact_person" id="contact_person" class="form-control" required value="{{ old('contact_person') }}">
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -513,8 +523,8 @@
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="expected_delivery_date" class="form-label">Expected Delivery Date</label>
-                                                    <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="form-control" value="{{ $enquiry->expected_delivery_date ? date('Y-m-d', strtotime($enquiry->expected_delivery_date)) : '' }}">
+                                                    <label for="expected_delivery_date" class="form-label">Expected Delivery Date<span class="text-danger">*</span></label>
+                                                    <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="form-control" required value="{{ $enquiry->expected_delivery_date ? date('Y-m-d', strtotime($enquiry->expected_delivery_date)) : '' }}">
                                                 </div>
                                             </div>
                                         </div>
@@ -528,8 +538,8 @@
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="project_name" class="form-label text-muted">Project Name</label>
-                                                    <input type="text" name="project_name" id="project_name" class="form-control" value="{{ $enquiry->project_name }}">
+                                                    <label for="project_name" class="form-label">Project Name<span class="text-danger">*</span></label>
+                                                    <input type="text" name="project_name" id="project_name" class="form-control" required value="{{ $enquiry->project_name }}">
                                                 </div>
                                             </div>
                                         </div>
@@ -547,8 +557,8 @@
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="assigned_po" class="form-label">Assigned PO</label>
-                                                    <input type="text" name="assigned_po" id="assigned_po" class="form-control" value="{{ $enquiry->assigned_po }}">
+                                                    <label for="assigned_po" class="form-label">Assigned PO<span class="text-danger">*</span></label>
+                                                    <input type="text" name="assigned_po" id="assigned_po" class="form-control" required value="{{ $enquiry->assigned_po }}">
                                                 </div>
                                             </div>
                                         </div>
@@ -556,14 +566,14 @@
                                         <div class="row g-3">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="project_deliverables" class="form-label">Project Deliverables</label>
-                                                    <textarea name="project_deliverables" id="project_deliverables" class="form-control" rows="4">{{ $enquiry->project_deliverables }}</textarea>
+                                                    <label for="project_deliverables" class="form-label">Project Deliverables<span class="text-danger">*</span></label>
+                                                    <textarea name="project_deliverables" id="project_deliverables" class="form-control" rows="4" required>{{ $enquiry->project_deliverables }}</textarea>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="follow_up_notes" class="form-label">Follow-Up Notes</label>
-                                                    <textarea name="follow_up_notes" id="follow_up_notes" class="form-control" rows="4">{{ $enquiry->follow_up_notes }}</textarea>
+                                                    <label for="follow_up_notes" class="form-label">Follow-Up Notes<span class="text-danger">*</span></label>
+                                                    <textarea name="follow_up_notes" id="follow_up_notes" class="form-control" rows="4" required>{{ $enquiry->follow_up_notes }}</textarea>
                                                 </div>
                                             </div>
                                         </div>
@@ -571,8 +581,8 @@
                                         <div class="row g-3">
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label for="contact_person" class="form-label">Contact Person</label>
-                                                    <input type="text" name="contact_person" id="contact_person" class="form-control" value="{{ $enquiry->contact_person }}">
+                                                    <label for="contact_person" class="form-label">Contact Person<span class="text-danger">*</span></label>
+                                                    <input type="text" name="contact_person" id="contact_person" class="form-control" required value="{{ $enquiry->contact_person }}">
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
@@ -586,7 +596,7 @@
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-xs btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                                    <button type="submit" class="btn btn-xs btn-outline-info">Update Enquiry</button>
+                                    <button type="submit" form="editEnquiryForm{{ $enquiry->id }}" class="btn btn-xs btn-outline-info">Update Enquiry</button>
                                 </div>
                             </div>
                         </div>
@@ -682,5 +692,31 @@
         });
     });
 </script>
+
+@push('scripts')
+<script>
+    // Client-side search functionality for enquiries
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('enquirySearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const rows = document.querySelectorAll('table tbody tr');
+                
+                rows.forEach(row => {
+                    const text = row.textContent.toLowerCase();
+                    row.style.display = text.includes(searchTerm) ? '' : 'none';
+                });
+            });
+        }
+
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+@endpush
 
 @endsection

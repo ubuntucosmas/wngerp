@@ -20,10 +20,11 @@ class ProjectFileController extends Controller
             ['name' => 'Enquiry', 'route' => route('projects.enquiry-log.show', $project), 'template' => 'enquiry-log-template'],
             ['name' => 'Site Survey', 'route' => route('projects.site-survey.create', $project), 'template' => 'site-survey'],
             ['name' => 'Design Assets', 'route' => route('projects.files.mockups', $project), 'template' => 'mockups'],
+           // ['name' => 'Project Material List', 'route' => route('material.index', $project), 'template' => 'material'],
             ['name' => 'Budget', 'route' => route('budget.index', $project), 'template' => 'budget'],
             ['name' => 'Quotation', 'route' => route('quotes.index', $project), 'template' => 'quotes'],
-            ['name' => 'Booking Order', 'route' => route('projects.booking-order.index', $project), 'template' => 'booking-order-template'],
-            ['name' => 'Close-Out Report', 'route' => route('projects.booking-order.index', $project), 'template' => 'booking-order-template'],
+            ['name' => 'Booking Order', 'route' => route('projects.logistics.booking-orders.index', $project), 'template' => 'booking-order-template'],
+            ['name' => 'Close-Out Report', 'route' => route('projects.logistics.booking-orders.index', $project), 'template' => 'booking-order-template'],
             
         ];
         
@@ -132,19 +133,136 @@ class ProjectFileController extends Controller
     }
 
 
+    /**
+     * Display client engagement files for the project
+     */
+    public function showClientEngagement(Project $project)
+    {
+        $siteSurvey = \App\Models\SiteSurvey::where('project_id', $project->id)->first();
+        
+        $files = [
+            [
+                'name' => 'Enquiry Log',
+                'route' => route('projects.enquiry-log.show', $project),
+                'icon' => 'bi-journal-text',
+                'description' => 'View and manage client enquiry logs',
+                'type' => 'enquiry-log',
+                'updated_at' => now()->subDays(2)
+            ],
+            [
+                'name' => 'Site Survey',
+                'route' => $siteSurvey 
+                    ? route('projects.site-survey.show', [$project, $siteSurvey])
+                    : route('projects.site-survey.create', $project),
+                'icon' => 'bi-clipboard2-pulse',
+                'description' => 'View and manage site survey details',
+                'type' => 'site-survey',
+                'updated_at' => $siteSurvey ? $siteSurvey->updated_at : now()->subDays(1)
+            ],
+            // Add more files here as needed
+        ];
 
-    // // Method to handle download of templates
-    // public function downloadTemplate(Project $project, $template)
+        return view('projects.files.client-engagement', compact('project', 'files'));
+    }
+
+        /**
+     * Display design & concept development files for the project
+     */
+    public function showDesignConcept(Project $project)
+    {
+        $designAssets = \App\Models\DesignAsset::where('project_id', $project->id)
+            ->with('user')
+            ->latest()
+            ->get();
+            
+        // $materials = \App\Models\Material::where('project_id', $project->id)
+        //     ->with('user')
+        //     ->latest()
+        //     ->get();
+
+        return view('projects.files.design-concept', compact('project', 'designAssets'));
+    }
+
+    /**
+     * Display quotation files for the project
+     */
+    public function showQuotation(Project $project)
+    {
+        $files = \App\Models\Quote::where('project_id', $project->id)
+            ->latest()
+            ->get();
+
+        return view('projects.files.quotation', compact('project', 'files'));
+    }
+
+
+    // public function showMaterials(Project $project)
     // {
-    //     // Logic for downloading template
-    //     return response()->download(storage_path("app/templates/{$template}.docx"));
+    //     $materials = $project->materials()->latest()->get()->groupBy('item');
+    //     return view('projects.files.material', compact('project', 'materials'));
     // }
 
-    // // Method to handle printing of templates
-    // public function printTemplate(Project $project, $template)
+    // public function storeMaterial(Request $request, Project $project)
     // {
-    //     // Logic for printing template
-    //     // This could be handled via a PDF generation or a direct print dialog
-    //     return response()->file(storage_path("app/templates/{$template}.docx"));
+    //     $validated = $request->validate([
+    //         'item' => 'required|string|max:255',
+    //         'materials' => 'required|array',
+    //         'materials.*.material' => 'required|string|max:255',
+    //         'materials.*.specification' => 'nullable|string',
+    //         'materials.*.unit' => 'nullable|string|max:50',
+    //         'materials.*.quantity' => 'nullable|numeric',
+    //         'materials.*.notes' => 'nullable|string',
+    //         'materials.*.design_reference' => 'nullable|url',
+    //         'materials.*.approved_by' => 'nullable|string|max:255',
+    //     ]);
+
+    //     foreach ($validated['materials'] as $mat) {
+    //         $project->materials()->create([
+    //             'item' => $validated['item'],
+    //             'material' => $mat['material'],
+    //             'specification' => $mat['specification'] ?? null,
+    //             'unit' => $mat['unit'] ?? null,
+    //             'quantity' => $mat['quantity'] ?? null,
+    //             'notes' => $mat['notes'] ?? null,
+    //             'design_reference' => $mat['design_reference'] ?? null,
+    //             'approved_by' => $mat['approved_by'] ?? null,
+    //         ]);
+    //     }
+
+    //     return redirect()->back()->with('success', 'Materials added successfully.');
     // }
+
+    // public function editMaterial(Project $project, Material $material)
+    // {
+    //     return view('projects.material-list.edit', compact('project', 'material'));
+    // }
+
+    // public function updateMaterial(Request $request, Project $project, Material $material)
+    // {
+    //     $validated = $request->validate([
+    //         'item' => 'required|string|max:255',
+    //         'material' => 'required|string|max:255',
+    //         'specification' => 'nullable|string',
+    //         'unit' => 'nullable|string|max:50',
+    //         'quantity' => 'nullable|numeric',
+    //         'notes' => 'nullable|string',
+    //         'design_reference' => 'nullable|url',
+    //         'approved_by' => 'nullable|string|max:255',
+    //     ]);
+
+    //     $material->update($validated);
+
+    //     return redirect()->route('projects.material-list.show', $project)
+    //         ->with('success', 'Material updated successfully.');
+    // }
+
+    // public function destroyMaterial(Project $project, Material $material)
+    // {
+    //     $material->delete();
+
+    //     return redirect()->route('projects.material-list.show', $project)
+    //         ->with('success', 'Material deleted successfully.');
+    // }
+
+
 }

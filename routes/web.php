@@ -9,7 +9,7 @@ use App\Http\Controllers\{
     projects\PhaseController, projects\ClientController, projects\DeliverableController,
     projects\ProjectController, Auth\AuthenticatedSessionController,
     projects\BookingOrderController, projects\ProjectFileController, projects\EnquiryLogController, projects\SiteSurveyController,
-    FileUploadController, QuoteController, EnquiryController, projects\ProjectBudgetController
+    FileUploadController, QuoteController, EnquiryController, projects\ProjectBudgetController, projects\MaterialListController
 };
 
 Route::get('/', fn () => view('auth.login'));
@@ -130,6 +130,7 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
         Route::delete('site-survey/{siteSurvey}', [SiteSurveyController::class, 'destroy'])->name('projects.site-survey.destroy');
 
         // Project Files Routes
+        Route::get('quotation', [ProjectFileController::class, 'showQuotation'])->name('projects.quotation.index');
         Route::get('files', [ProjectFileController::class, 'index'])->name('projects.files.index');
         Route::get('files/mockups', [ProjectFileController::class, 'showMockups'])->name('projects.files.mockups');
         Route::post('files/design-assets', [ProjectFileController::class, 'storeDesignAsset'])->name('projects.files.design-assets.store');
@@ -137,14 +138,35 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
         Route::delete('files/design-assets/{design_asset}', [ProjectFileController::class, 'destroyDesignAsset'])->name('projects.files.design-assets.destroy');
         Route::get('files/download-template/{template}', [ProjectFileController::class, 'downloadTemplate'])->name('projects.files.download-template');
         Route::get('files/print-template/{template}', [ProjectFileController::class, 'printTemplate'])->name('projects.files.print-template');
+
+
+
+        Route::get('files/client-engagement', [ProjectFileController::class, 'showClientEngagement'])->name('projects.files.client-engagement');
+        Route::get('files/design-concept', [ProjectFileController::class, 'showDesignConcept'])->name('projects.files.design-concept');
+                // Logistics Routes
+        Route::prefix('logistics')->name('projects.logistics.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Projects\LogisticsController::class, 'index'])->name('index');
+            Route::get('/loading-sheet', [\App\Http\Controllers\Projects\LogisticsController::class, 'showLoadingSheet'])->name('loading-sheet');
+            Route::get('/booking-sheet', [\App\Http\Controllers\Projects\LogisticsController::class, 'showBookingSheet'])->name('booking-sheet');
+        });
         
+
+        Route::get('material-list/show', [MaterialListController::class, 'show'])->name('projects.material-list.show');
+        Route::post('material-list/store', [MaterialListController::class, 'store'])->name('projects.material-list.store');
+        Route::get('material-list/{item}/edit', [MaterialListController::class, 'edit'])->name('projects.material-list.edit-item');
+        Route::put('material-list/{item}', [MaterialListController::class, 'update'])->name('projects.material-list.update-item');
+        Route::delete('material-list/{item}', [MaterialListController::class, 'destroy'])->name('projects.material-list.destroy-item');
+        
+
+
+
         // Booking Orders Routes
-        Route::get('booking-order', [BookingOrderController::class, 'index'])->name('projects.booking-order.index');
-        Route::get('booking-order/create', [BookingOrderController::class, 'create'])->name('projects.booking-order.create');
-        Route::post('booking-order', [BookingOrderController::class, 'store'])->name('projects.booking-order.store');
-        Route::get('booking-order/{bookingOrder}/edit', [BookingOrderController::class, 'edit'])->name('projects.booking-order.edit');
-        Route::put('booking-order/{bookingOrder}', [BookingOrderController::class, 'update'])->name('projects.booking-order.update');
-        Route::delete('booking-order/{bookingOrder}', [BookingOrderController::class, 'destroy'])->name('projects.booking-order.destroy');
+        Route::get('logistics/booking-order', [BookingOrderController::class, 'index'])->name('projects.logistics.booking-orders.index');
+        Route::get('logistics/booking-order/create', [BookingOrderController::class, 'create'])->name('projects.logistics.booking-orders.create');
+        Route::post('logistics/booking-order', [BookingOrderController::class, 'store'])->name('projects.logistics.booking-orders.store');
+        Route::get('logistics/booking-order/{bookingOrder}/edit', [BookingOrderController::class, 'edit'])->name('projects.booking-order.edit');
+        Route::put('logistics/booking-order/{bookingOrder}', [BookingOrderController::class, 'update'])->name('projects.booking-order.update');
+        Route::delete('logistics/booking-order/{bookingOrder}', [BookingOrderController::class, 'destroy'])->name('projects.booking-order.destroy');
         Route::get('booking-order-download', [BookingOrderController::class, 'downloadBookingOrder'])->name('projects.booking-order.download');
         Route::get('booking-order-print', [BookingOrderController::class, 'printBookingOrder'])->name('projects.booking-order.print');
 
@@ -158,10 +180,6 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
         Route::get('enquiry-log/download', [EnquiryLogController::class, 'downloadEnquiryLog'])->name('projects.enquiry-log.download');
         Route::get('enquiry-log/print', [EnquiryLogController::class, 'printEnquiryLog'])->name('projects.enquiry-log.print');
 
-
-        // Quotation Routes
-        Route::get('quotation', [FileUploadController::class, 'showQuotation'])->name('projects.files.quotation');
-        Route::post('projects/files/quotation/upload', [FileUploadController::class, 'uploadQuotation'])->name('projects.files.quotation.upload');
 
         // Quotes Routes
         Route::prefix('quotes')->name('quotes.')->group(function () {

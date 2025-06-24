@@ -1,7 +1,7 @@
 @extends('layouts.master')
 
-@section('title', 'Quotation - ' . $project->name)
-@section('navbar-title', 'Quotation')
+@section('title', 'Materials - ' . $project->name)
+@section('navbar-title', 'Materials')
 
 @section('content')
 <div class="px-3 mx-10 w-100">
@@ -13,7 +13,7 @@
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
                 <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">Project Files</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Quotation</li>
+                <li class="breadcrumb-item active" aria-current="page">Materials</li>
             </ol>
         </nav>
     </div>
@@ -21,50 +21,26 @@
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="mb-1">Quotation Management</h2>
-            <p class="text-muted mb-0">Manage quotations</p>
+            <h2 class="mb-1">Materials Management</h2>
+            <p class="text-muted mb-0">Manage materials for the project</p>
         </div>
     </div>
 
-    <!-- Files Grid -->
-    <div class="row">
-        <!-- Loading Sheet Card -->
+        <!-- Material List Card -->
         <div class="col-lg-6 col-md-6 mb-4">
-            <a href="{{ route('budget.index', $project) }}" class="text-decoration-none">
-                <div class="file-card h-100">
-                    <div class="d-flex align-items-start">
-                        <div class="file-card-icon me-3">
-                            <i class="bi bi-truck"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <h3 class="file-card-title">Budget</h3>
-                            <p class="file-card-description">
-                                Create and manage budget document
-                            </p>
-                            <div class="d-flex justify-content-between align-items-center mt-2">
-                                <span class="badge bg-light text-dark">Budget</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <!-- Booking Orders Card -->
-        <div class="col-lg-6 col-md-6 mb-4">
-            <a href="{{ route('quotes.index', $project) }}" class="text-decoration-none">
+            <a href="{{ route('projects.material-list.show', $project) }}" class="text-decoration-none">
                 <div class="file-card h-100">
                     <div class="d-flex align-items-start">
                         <div class="file-card-icon me-3">
                             <i class="bi bi-file-earmark-text"></i>
                         </div>
                         <div class="flex-grow-1">
-                            <h3 class="file-card-title">Quotation</h3>
+                            <h3 class="file-card-title">Material List</h3>
                             <p class="file-card-description">
-                                Create and manage quotation document
+                                Manage material list for the project
                             </p>
                             <div class="d-flex justify-content-between align-items-center mt-2">
-                                <span class="badge bg-light text-dark">Quotation</span>
+                                <span class="badge bg-light text-dark">Material List</span>
                             </div>
                         </div>
                     </div>

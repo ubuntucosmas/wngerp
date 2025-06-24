@@ -251,9 +251,9 @@
                                 <a href="{{ route('projects.files.index', $project->id) }}" class="btn btn-sm btn-info">
                                     Project Files
                                 </a>
-                                <!-- <button class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" data-bs-target="#phasesCollapse{{ $project->id }}">
+                                <button class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" data-bs-target="#phasesCollapse{{ $project->id }}">
                                     Phases
-                                </button> -->
+                                </button>
                             </div>
                         @endif
                     </td>

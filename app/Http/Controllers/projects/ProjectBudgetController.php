@@ -26,7 +26,50 @@ class ProjectBudgetController extends Controller
             'Logistics' => ['Delivery to site', 'Delivery from site', 'Team transport to and from site set up', 'Team transport to and from set down','Materials Collection'],
         ];
 
-        return view('projects.budget.create', compact('project', 'categories'));
+        // Get the latest material list for this project
+        $materialList = $project->materialLists()->latest()->first();
+        
+        // Get all material items for auto-population
+        $materialItems = [];
+        
+        if ($materialList) {
+            // Production Items - Only include particulars, not the parent items
+            foreach ($materialList->productionItems as $item) {
+                foreach ($item->particulars as $particular) {
+                    $materialItems[] = [
+                        'category' => 'Materials - Production',
+                        'particular' => $particular->particular,
+                        'unit' => $particular->unit,
+                        'quantity' => $particular->quantity,
+                        'comment' => $particular->comment ?? ''
+                    ];
+                }
+            }
+            
+            // Materials for Hire
+            foreach ($materialList->materialsHire as $hire) {
+                $materialItems[] = [
+                    'category' => 'Materials for Hire',
+                    'particular' => $hire->particular,
+                    'unit' => $hire->unit,
+                    'quantity' => $hire->quantity,
+                    'comment' => $hire->comment ?? ''
+                ];
+            }
+            
+            // Labour Items
+            foreach ($materialList->labourItems as $labour) {
+                $materialItems[] = [
+                    'category' => $labour->category,
+                    'particular' => $labour->particular,
+                    'unit' => $labour->unit,
+                    'quantity' => $labour->quantity,
+                    'comment' => $labour->comment ?? ''
+                ];
+            }
+        }
+
+        return view('projects.budget.create', compact('project', 'categories', 'materialItems'));
     }
 
     public function show(Project $project, ProjectBudget $budget)

@@ -101,9 +101,9 @@
             <tr>
                 <td><input type="text" name="items[Materials for Hire][0][particular]" class="form-control"></td>
                 <td><input type="text" name="items[Materials for Hire][0][unit]" class="form-control"></td>
-                <td><input type="number" step="0.01" name="items[Materials for Hire][0][quantity]" class="form-control"></td>
-                <td><input type="number" step="0.01" name="items[Materials for Hire][0][unit_price]" class="form-control"></td>
-                <td><input type="number" step="0.01" name="items[Materials for Hire][0][budgeted_cost]" class="form-control"></td>
+                <td><input type="number" step="0.01" name="items[Materials for Hire][0][quantity]" class="form-control quantity"></td>
+                <td><input type="number" step="0.01" name="items[Materials for Hire][0][unit_price]" class="form-control unit-price"></td>
+                <td><input type="number" step="0.01" name="items[Materials for Hire][0][budgeted_cost]" class="form-control budgeted-cost" readonly></td>
                 <td><input type="text" name="items[Materials for Hire][0][comment]" class="form-control"></td>
                 <td><button type="button" class="btn btn-danger btn-sm remove-row">Remove</button></td>
             </tr>
@@ -148,8 +148,8 @@
         {{-- Budget Summary --}}
         <div class="row my-4">
             <div class="col-md-4">
-                <label for="budget_total">Total Budget</label>
-                <input type="number" step="0.01" name="budget_total" class="form-control">
+                <label for="total_budget">Total Budget</label>
+                <input type="number" step="0.01" name="total_budget" id="total_budget" class="form-control" readonly>
             </div>
             <div class="col-md-4">
                 <label for="invoice">Invoice</label>
@@ -195,10 +195,138 @@
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+    // Material list items from the server
+    const materialItems = @json($materialItems);
+
+    // Function to find the closest parent table for a category
+    function findTableForCategory(category) {
+        const headers = document.querySelectorAll('h5');
+        for (const header of headers) {
+            if (header.textContent.trim() === category) {
+                return header.nextElementSibling;
+            }
+        }
+        return null;
+    }
+
+    // Function to add a new row to a table
+    function addRowToTable(table, item, index) {
+        const tbody = table.querySelector('tbody');
+        const newRow = tbody.insertRow();
+        
+        // Create cells for the row
+        const cell1 = newRow.insertCell(0);
+        const cell2 = newRow.insertCell(1);
+        const cell3 = newRow.insertCell(2);
+        const cell4 = newRow.insertCell(3);
+        const cell5 = newRow.insertCell(4);
+        const cell6 = newRow.insertCell(5);
+        const cell7 = tbody.rows[0] && tbody.rows[0].cells.length > 6 ? newRow.insertCell(6) : null;
+        
+        // Add input fields to cells
+        cell1.innerHTML = `<input type="text" name="items[${item.category}][${index}][particular]" class="form-control" value="${item.particular || ''}">`;
+        cell2.innerHTML = `<input type="text" name="items[${item.category}][${index}][unit]" class="form-control" value="${item.unit || ''}">`;
+        cell3.innerHTML = `<input type="number" step="0.01" name="items[${item.category}][${index}][quantity]" class="form-control quantity" value="${item.quantity || ''}">`;
+        
+        if (cell7) {
+            // For tables with 7 columns (like Materials for Hire)
+            cell4.innerHTML = `<input type="number" step="0.01" name="items[${item.category}][${index}][unit_price]" class="form-control unit-price">`;
+            cell5.innerHTML = `<input type="number" step="0.01" name="items[${item.category}][${index}][budgeted_cost]" class="form-control budgeted-cost" readonly>`;
+            cell6.innerHTML = `<input type="text" name="items[${item.category}][${index}][comment]" class="form-control" value="${item.comment || ''}">`;
+            cell7.innerHTML = '<button type="button" class="btn btn-danger btn-sm remove-row">Remove</button>';
+        } else {
+            // For tables with 6 columns (like labor categories)
+            cell4.innerHTML = `<input type="number" step="0.01" name="items[${item.category}][${index}][unit_price]" class="form-control unit-price">`;
+            cell5.innerHTML = `<input type="number" step="0.01" name="items[${item.category}][${index}][budgeted_cost]" class="form-control budgeted-cost" readonly>`;
+            cell6.innerHTML = `<input type="text" name="items[${item.category}][${index}][comment]" class="form-control" value="${item.comment || ''}">`;
+        }
+    }
+
+    // Function to populate form fields
+    function populateFormFields() {
+        if (!materialItems || materialItems.length === 0) return;
+        
+        // Group items by category
+        const itemsByCategory = materialItems.reduce((acc, item) => {
+            if (!acc[item.category]) {
+                acc[item.category] = [];
+            }
+            acc[item.category].push(item);
+            return acc;
+        }, {});
+        
+        // Process each category
+        Object.entries(itemsByCategory).forEach(([category, items]) => {
+            const table = findTableForCategory(category);
+            if (!table) return;
+            
+            // Clear existing rows except the first one
+            const tbody = table.querySelector('tbody');
+            if (tbody.rows.length > 1) {
+                tbody.innerHTML = '';
+            }
+            
+            // Add rows for each item
+            items.forEach((item, index) => {
+                addRowToTable(table, item, index);
+            });
+        });
+    }
+
+    // Function to calculate budgeted cost for a row
+    function calculateBudgetedCost(row) {
+        const quantity = parseFloat(row.querySelector('.quantity').value) || 0;
+        const unitPrice = parseFloat(row.querySelector('.unit-price').value) || 0;
+        const budgetedCost = quantity * unitPrice;
+        const budgetedCostInput = row.querySelector('.budgeted-cost');
+        
+        if (budgetedCostInput) {
+            budgetedCostInput.value = budgetedCost.toFixed(2);
+        }
+        
+        // Update total budget
+        updateTotalBudget();
+        
+        return budgetedCost;
+    }
+    
+    // Function to update the total budget
+    function updateTotalBudget() {
+        let total = 0;
+        
+        // Sum up all budgeted costs from all tables
+        document.querySelectorAll('.budgeted-cost').forEach(input => {
+            total += parseFloat(input.value) || 0;
+        });
+        
+        // Update the total budget field
+        const totalBudgetInput = document.getElementById('total_budget');
+        if (totalBudgetInput) {
+            totalBudgetInput.value = total.toFixed(2);
+        }
+    }
+    
+    // Function to initialize calculation for all rows
+    function initializeCalculations() {
+        // No need to add event listeners here as they're handled by jQuery below
+        // This function is kept for future use if needed
+    }
+
     // Wait for the DOM to be fully loaded
     document.addEventListener('DOMContentLoaded', function() {
         let productionIndex = 1;
         let hireIndex = 1;
+        
+        // Initialize calculations
+        initializeCalculations();
+        
+        // Populate form fields with material list items after a short delay
+        // to ensure all tables are rendered
+        setTimeout(function() {
+            populateFormFields();
+            // Re-initialize calculations after populating fields
+            initializeCalculations();
+        }, 300);
 
         // Add row to Materials - Production
         $(document).on('click', '#addProductionRow', function() {
@@ -234,9 +362,10 @@
             hireIndex++;
         });
 
-        // Remove row for both tables
+        // Remove row for both tables and update total
         $(document).on('click', '.remove-row', function() {
             $(this).closest('tr').remove();
+            updateTotalBudget();
         });
 
         // Calculate budgeted cost when quantity or unit price changes
@@ -246,7 +375,11 @@
             const unitPrice = parseFloat(row.find('.unit-price').val()) || 0;
             const budgetedCost = (quantity * unitPrice).toFixed(2);
             row.find('.budgeted-cost').val(budgetedCost);
+            updateTotalBudget();
         });
+        
+        // Initialize total budget on page load
+        updateTotalBudget();
     });
 </script>
 @endpush

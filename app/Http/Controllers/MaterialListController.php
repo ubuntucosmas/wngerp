@@ -170,9 +170,9 @@ class MaterialListController extends Controller
     public function edit(Project $project, MaterialList $materialList)
     {
         // Ensure the material list belongs to the project
-        if ($materialList->project_id !== $project->id) {
-            abort(404, 'Material list not found for this project');
-        }
+        // if ($materialList->project_id !== $project->id) {
+        //     abort(404, 'Material list not found for this project');
+        // }
 
         $materialList->load([
             'productionItems.particulars',

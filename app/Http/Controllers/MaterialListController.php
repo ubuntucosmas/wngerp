@@ -34,9 +34,9 @@ class MaterialListController extends Controller
         $materialList = MaterialList::findOrFail($materialList);
         
         // Verify the material list belongs to the project
-        if ($materialList->project_id !== $project->id) {
-            abort(404);
-        }
+        // if ($materialList->project_id !== $project->id) {
+        //     abort(404);
+        // }
         
         // Eager load all necessary relationships
         $materialList->load([

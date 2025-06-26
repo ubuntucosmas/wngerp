@@ -9,7 +9,7 @@ use App\Http\Controllers\{
     projects\PhaseController, projects\ClientController, projects\DeliverableController,
     projects\ProjectController, Auth\AuthenticatedSessionController,
     projects\BookingOrderController, projects\ProjectFileController, projects\EnquiryLogController, projects\SiteSurveyController,
-    FileUploadController, QuoteController, EnquiryController, projects\ProjectBudgetController, projects\MaterialListController
+    FileUploadController, QuoteController, EnquiryController, projects\ProjectBudgetController, MaterialListController
 };
 
 Route::get('/', fn () => view('auth.login'));
@@ -151,17 +151,45 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
             Route::get('/loading-sheet', [\App\Http\Controllers\Projects\LogisticsController::class, 'showLoadingSheet'])->name('loading-sheet');
             Route::get('/booking-sheet', [\App\Http\Controllers\Projects\LogisticsController::class, 'showBookingSheet'])->name('booking-sheet');
         });
+
+        // Material List Routes
+        Route::prefix('material-list')->name('projects.material-list.')->group(function () {
+            // List all material lists
+            Route::get('/', [MaterialListController::class, 'index'])->name('index');
+            
+            // Create new material list
+            Route::get('/create', [MaterialListController::class, 'create'])->name('create');
+            Route::post('/', [MaterialListController::class, 'store'])->name('store');
+            
+            // Show specific material list - must come before other {materialList} routes
+            Route::get('/{materialList}/show', [MaterialListController::class, 'show'])
+                ->name('show');
+            
+            // Edit material list
+            Route::get('/{materialList}/edit', [MaterialListController::class, 'edit'])
+                ->name('edit');
+                
+            // Update/delete material list
+            Route::put('/{materialList}', [MaterialListController::class, 'update'])
+                ->name('update')
+                ->where('materialList', '[0-9]+');
+                
+            Route::delete('/{materialList}', [MaterialListController::class, 'destroy'])
+                ->name('destroy')
+                ->where('materialList', '[0-9]+');
+                
+            // Additional actions
+            Route::post('/{materialList}/approve', [MaterialListController::class, 'approve'])
+                ->name('approve')
+                ->where('materialList', '[0-9]+');
+                
+            Route::get('/{materialList}/export/{format?}', [MaterialListController::class, 'export'])
+                ->name('export')
+                ->where('materialList', '[0-9]+');
+        });
         
 
-        Route::get('material-list/show', [MaterialListController::class, 'show'])->name('projects.material-list.show');
-        Route::get('material-list', [MaterialListController::class, 'index'])->name('projects.material-list.index');
-        Route::post('material-list/store', [MaterialListController::class, 'store'])->name('projects.material-list.store');
-        Route::get('material-list/{item}/edit', [MaterialListController::class, 'edit'])->name('projects.material-list.edit-item');
-        Route::put('material-list/{item}', [MaterialListController::class, 'update'])->name('projects.material-list.update-item');
-        Route::delete('material-list/{item}', [MaterialListController::class, 'destroy'])->name('projects.material-list.destroy-item');
-        
-
-
+ 
 
         // Booking Orders Routes
         Route::get('logistics/booking-order', [BookingOrderController::class, 'index'])->name('projects.logistics.booking-orders.index');

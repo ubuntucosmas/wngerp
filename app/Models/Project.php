@@ -60,6 +60,12 @@ class Project extends Model
         return $this->hasOne(Enquiry::class, 'converted_to_project_id');
     }
 
+    public function materialLists()
+    {
+        return $this->hasMany(MaterialList::class);
+    }
+
+
 
 
     public function client()

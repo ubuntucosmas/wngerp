@@ -51,12 +51,41 @@
         background-color: #072540 !important;
     }
 
+    .table tbody {
+        counter-reset: rowNumber;
+    }
+
     .table tbody tr {
-        transition: background-color 0.2s ease;
+        transition: all 0.3s ease;
+        opacity: 0;
+        animation: fadeIn 0.5s ease-in-out forwards;
+        animation-delay: calc(var(--row-index) * 0.05s);
+    }
+
+    @keyframes fadeIn {
+        from { 
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to { 
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .table tbody tr:hover {
-        background-color: rgba(46, 139, 192, 0.05);
+        background-color: rgba(46, 139, 192, 0.05) !important;
+        transform: scale(1.005);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .table tbody tr.updated {
+        animation: highlight 1.5s ease-out;
+    }
+    
+    @keyframes highlight {
+        0% { background-color: rgba(255, 243, 205, 0.8); }
+        100% { background-color: transparent; }
     }
 
     .btn, .btn-sm, .btn-xs {
@@ -387,9 +416,10 @@
                     <th>Converted To Project</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="enquiryTableBody">
+                @php $rowIndex = 0; @endphp
                 @forelse($enquiries as $enquiry)
-                    <tr>
+                    <tr style="--row-index: {{ $loop->index }};">
                         <td>{{ $enquiry->formatted_id }}</td>
                         <td>{{ $enquiry->date_received ? date('Y-m-d', strtotime($enquiry->date_received)) : '-' }}</td>
                         <td>{{ $enquiry->expected_delivery_date ? date('Y-m-d', strtotime($enquiry->expected_delivery_date)) : '-' }}</td>
@@ -496,7 +526,7 @@
                         <td class="text-center">
                             @if ($enquiry->converted_to_project_id)
                                 <div class="d-flex flex-column align-items-center gap-1">
-                                    <span class="badge bg-success rounded-pill px-3 py-2 d-flex align-items-center">
+                                    <span class="bg-info border rounded px-1 py-1 d-flex align-items-center">
                                         <i class="bi bi-check-circle-fill me-1"></i>
                                         Converted
                                     </span>
@@ -651,10 +681,51 @@
         <div>Showing {{ $enquiries->count() }} enquiries</div>
         {{ $enquiries->links('pagination::bootstrap-5') }}
     </div>
+
+    @push('styles')
+        <style>
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            .table-animate {
+                animation: fadeInUp 0.6s ease-out forwards;
+                opacity: 0;
+            }
+        </style>
+    @endpush
+
+    @push('scripts')
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    @endpush
 </div>
 
 <script>
     $(document).ready(function() {
+        // Add animation to table rows
+        function animateTableRows() {
+            $('table tbody tr').each(function() {
+                $(this).css('opacity', '0');
+                $(this).css('transform', 'translateY(10px)');
+                $(this).css('animation', 'fadeIn 0.5s ease-in-out forwards');
+                $(this).css('animation-delay', $(this).index() * 0.05 + 's');
+            });
+        }
+        
+        // Initialize animations
+        animateTableRows();
+        
+        // Re-run animations when table is updated (e.g., after search, sort, etc.)
+        $(document).on('table:updated', function() {
+            animateTableRows();
+        });
+        
         // Add CSRF token to all AJAX requests
         $.ajaxSetup({
             headers: {
@@ -727,7 +798,45 @@
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
+
+        function animateTableRows() {
+            const rows = document.querySelectorAll('#enquiryTableBody tr');
+            anime({
+                targets: rows,
+                translateY: [20, 0],
+                opacity: [0, 1],
+                duration: 600,
+                delay: anime.stagger(50, {start: 100}),
+                easing: 'easeOutQuad'
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initial animation
+            animateTableRows();
+            
+            const searchInput = document.getElementById('enquirySearch');
+            
+            // Store original rows for search functionality
+            const originalRows = Array.from(document.querySelectorAll('#enquiryTableBody tr'));
+            
+            // Add animation class to new rows when they're added (for pagination)
+            document.addEventListener('DOMNodeInserted', function(e) {
+                if (e.target.matches('#enquiryTableBody tr')) {
+                    e.target.style.opacity = '0';
+                    e.target.style.transform = 'translateY(20px)';
+                    anime({
+                        targets: e.target,
+                        translateY: 0,
+                        opacity: 1,
+                        duration: 400,
+                        easing: 'easeOutQuad'
+                    });
+                }
+            });
     });
+
+
 </script>
 
 @endsection

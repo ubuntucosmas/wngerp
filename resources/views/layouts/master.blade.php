@@ -9,6 +9,69 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        /* Loading Spinner */
+        .page-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            position: relative;
+        }
+
+        .spinner:before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 4px solid rgba(12, 45, 72, 0.1);
+            border-radius: 50%;
+            border-top-color: #0C2D48;
+            animation: spin 0.4s linear infinite;
+        }
+
+        .spinner:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 30px;
+            height: 16px;
+            border: 4px solid #28a745;
+            border-top: none;
+            border-right: none;
+            transform: translate(-50%, -65%) rotate(-45deg) scale(0);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+
+        .spinner.complete:before {
+            animation: none;
+            border-color: #28a745;
+        }
+
+        .spinner.complete:after {
+            transform: translate(-50%, -65%) rotate(-45deg) scale(1);
+            opacity: 1;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 
 
     <style>
@@ -181,6 +244,10 @@
     </style>
 </head>
 <body>
+    <!-- Page Loader -->
+    <div class="page-loader" id="pageLoader">
+        <div class="spinner" id="spinner"></div>
+    </div>
     <div class="d-flex">
         <!-- Sidebar -->
         <nav class="sidebar vh-100" id="sidebar">
@@ -347,7 +414,20 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
     @stack('scripts')
-
-
+    @stack('modals')
+    
+    <script>
+        // Hide loader when page is fully loaded
+        window.addEventListener('load', function() {
+            const spinner = document.getElementById('spinner');
+            if (spinner) spinner.classList.add('complete');
+            
+            // Hide loader after animation completes
+            setTimeout(() => {
+                const pageLoader = document.getElementById('pageLoader');
+                if (pageLoader) pageLoader.style.display = 'none';
+            }, 600);
+        });
+    </script>
 </body>
 </html>

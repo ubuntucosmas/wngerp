@@ -171,145 +171,198 @@
         </a>
     </div>
     @endhasanyrole
-</div>
-    <div class="table-responsive">
-        <table class="table table-hover table-borderless align-middle">
-            <thead>
-                <tr>
-                    <th>Project ID</th>
-                    <th>Name</th>
-                    <th>Client</th>
-                    <th>Venue</th>
-                    <th>Start</th>
-                    <th>Due Date</th>
-                    <th>Officer</th>
-                    <th>Progress</th>
-                    <th class="text-end">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="projectTableBody">
-                @foreach($projects as $project)
-                <tr>
-                    <td class="text-primary"><strong>{{ $project->project_id }}</strong></td>
-                    <td class="text-primary"><strong>{{ $project->name }}</strong></td>
-                    <td>{{ $project->client_name }}</td>
-                    <td>{{ $project->venue }}</td>
-                    <td>{{ $project->start_date }}</td>
-                    <td>{{ $project->end_date }}</td>
-                    <td class="text-info">{{ $project->projectOfficer->name ?? '—' }}</td>
-                    @php
-                        $progress = $project->progress;
-                        $barColor = $progress < 40 ? 'danger' : ($progress < 70 ? 'warning' : 'success');
-                        $barColors = [
-                            'danger' => '#dc3545',  // Red for danger
-                            'warning' => '#ffc107', // Yellow for warning
-                            'success' => '#198754'  // Green for success
-                        ];
-                        $bgColor = $barColors[$barColor];
-                    @endphp
+    </div>
+        <div class="table-responsive">
+            <table class="table table-hover table-borderless align-middle">
+                <thead>
+                    <tr>
+                        <th>Project ID</th>
+                        <th>Name</th>
+                        <th>Client</th>
+                        <th>Venue</th>
+                        <th>Start</th>
+                        <th>Due Date</th>
+                        <th>Officer</th>
+                        <th>Progress</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="projectTableBody">
+                    @foreach($projects as $index => $project)
+                    <tr class="table-animate" style="animation-delay: {{ $index * 0.05 }}s">
+                        <td class="text-primary"><strong>{{ $project->project_id }}</strong></td>
+                        <td class="text-primary"><strong>{{ $project->name }}</strong></td>
+                        <td>{{ $project->client_name }}</td>
+                        <td>{{ $project->venue }}</td>
+                        <td>{{ $project->start_date }}</td>
+                        <td>{{ $project->end_date }}</td>
+                        <td class="text-info">{{ $project->projectOfficer->name ?? '—' }}</td>
+                        @php
+                            $progress = $project->progress;
+                            $barColor = $progress < 40 ? 'danger' : ($progress < 70 ? 'warning' : 'success');
+                            $barColors = [
+                                'danger' => '#dc3545',  // Red for danger
+                                'warning' => '#ffc107', // Yellow for warning
+                                'success' => '#198754'  // Green for success
+                            ];
+                            $bgColor = $barColors[$barColor];
+                        @endphp
 
-                    <td>
-                        <div class="progress position-relative" style="height: 15px; border-radius: 5px; background-color: #f8f9fa;">
-                            <div class="progress-bar" 
-                                role="progressbar" 
-                                style="width: {{ $progress }}%; 
-                                       border-radius: 4px;
-                                       background-color: {{ $bgColor }};"
-                                aria-valuenow="{{ $progress }}" 
-                                aria-valuemin="0" 
-                                aria-valuemax="100">
+                        <td>
+                            <div class="progress position-relative" style="height: 15px; border-radius: 5px; background-color: #f8f9fa;">
+                                <div class="progress-bar" 
+                                    role="progressbar" 
+                                    style="width: {{ $progress }}%; 
+                                        border-radius: 4px;
+                                        background-color: {{ $bgColor }};"
+                                    aria-valuenow="{{ $progress }}" 
+                                    aria-valuemin="0" 
+                                    aria-valuemax="100">
+                                </div>
+                                <span class="position-absolute w-100 text-center fw-bold" style="color: #000; font-size: 0.7rem; line-height: 15px;">
+                                    {{ $progress }}%
+                                </span>
                             </div>
-                            <span class="position-absolute w-100 text-center fw-bold" style="color: #000; font-size: 0.7rem; line-height: 15px;">
-                                {{ $progress }}%
-                            </span>
-                        </div>
-                    </td>
+                        </td>
 
-                    <td class="text-end">
-                        @if($project->status === 'closed')
-                            <span class="bg-danger mb-1" title="This project is finalized and read-only">Project Closed</span>
-                        @else
-                            @hasanyrole('pm|super-admin') {{-- or replace super-admin with your actual top-level role --}}
-                                @if(auth()->user()->hasRole('super-admin') || auth()->user()->level >= 4)
-                                    <button class="btn btn-sm btn-outline-secondary mb-1" data-bs-toggle="modal" data-bs-target="#assignOfficerModal{{ $project->id }}">
-                                        Assign Officer
-                                    </button>
+                        <td class="text-end">
+                            @if($project->status === 'closed')
+                                <span class="bg-danger mb-1" title="This project is finalized and read-only">Project Closed</span>
+                            @else
+                                @hasanyrole('pm|super-admin') {{-- or replace super-admin with your actual top-level role --}}
+                                    @if(auth()->user()->hasRole('super-admin') || auth()->user()->level >= 4)
+                                        <button class="btn btn-sm btn-outline-secondary mb-1" data-bs-toggle="modal" data-bs-target="#assignOfficerModal{{ $project->id }}">
+                                            Assign Officer
+                                        </button>
 
-                                    @if(auth()->user()->level > 4)
-                                        <form action="{{ route('projects.destroy', $project->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this project?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger mb-1 delete-project">
-                                                Delete
-                                            </button>
-                                        </form>
+                                        @if(auth()->user()->level > 4)
+                                            <form action="{{ route('projects.destroy', $project->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this project?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-outline-danger mb-1 delete-project">
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        @endif
                                     @endif
-                                @endif
-                            @endhasanyrole
+                                @endhasanyrole
 
-                            <div class="btn-group" role="group">
-                                <a href="{{ route('projects.files.index', $project->id) }}" class="btn btn-sm btn-info">
-                                    Project Files
-                                </a>
-                                <button class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" data-bs-target="#phasesCollapse{{ $project->id }}">
-                                    Phases
-                                </button>
+                                <div class="btn-group" role="group">
+                                    <a href="{{ route('projects.files.index', $project->id) }}" class="btn btn-sm btn-info">
+                                        Project Files
+                                    </a>
+                                    <button class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" data-bs-target="#phasesCollapse{{ $project->id }}">
+                                        Phases
+                                    </button>
+                                </div>
+                            @endif
+                        </td>
+                    </tr>
+
+                    <tr class="collapse" id="phasesCollapse{{ $project->id }}">
+                    <td colspan="12" class="rounded-2 px-3 py-2">
+                        @if($project->phases->count())
+                            <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-3 g-2">
+                                @foreach($project->phases->take(9) as $phase)
+                                    <div class="col">
+                                        <div class="card h-100 rounded-2 futuristic-card border-info shadow-sm">
+                                            <div class="card-body p-2">
+                                            <h6 class="card-title text-info-emphasis fw-semibold mb-1"
+                                                data-bs-toggle="tooltip" title="{{ $phase->title }}">
+                                                {{$phase->title}}
+                                            </h6>
+                                                <p class="card-text text-light-emphasis small mb-1">
+                                                    <span>Status: <span class="text-success">{{ $phase->status }}</span></span><br>
+                                                    <span>{{ $phase->start_date }} → {{ $phase->end_date }}</span>
+                                                </p>
+                                                <div class="d-flex justify-content-between gap-1">
+                                                    <a href="{{ route('phases.show', $phase->id) }}" class="btn btn-xs btn-outline-primary rounded-2 px-2 py-0">Tasks</a>
+                                                    <button class="btn btn-xs btn-outline-success rounded-2 px-2 py-0" data-bs-toggle="modal" data-bs-target="#editPhaseModal{{ $phase->id }}">
+                                                        Edit
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @include('partials.projects.phaseEdit', ['phase' => $phase])
+                                @endforeach
                             </div>
+                        @else
+                            <div class="text-center text-muted small fst-italic">No phases available.</div>
                         @endif
                     </td>
                 </tr>
 
-                <tr class="collapse" id="phasesCollapse{{ $project->id }}">
-                <td colspan="12" class="rounded-2 px-3 py-2">
-                    @if($project->phases->count())
-                        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-3 g-2">
-                            @foreach($project->phases->take(9) as $phase)
-                                <div class="col">
-                                    <div class="card h-100 rounded-2 futuristic-card border-info shadow-sm">
-                                        <div class="card-body p-2">
-                                        <h6 class="card-title text-info-emphasis fw-semibold mb-1"
-                                            data-bs-toggle="tooltip" title="{{ $phase->title }}">
-                                            {{$phase->title}}
-                                        </h6>
-                                            <p class="card-text text-light-emphasis small mb-1">
-                                                <span>Status: <span class="text-success">{{ $phase->status }}</span></span><br>
-                                                <span>{{ $phase->start_date }} → {{ $phase->end_date }}</span>
-                                            </p>
-                                            <div class="d-flex justify-content-between gap-1">
-                                                <a href="{{ route('phases.show', $phase->id) }}" class="btn btn-xs btn-outline-primary rounded-2 px-2 py-0">Tasks</a>
-                                                <button class="btn btn-xs btn-outline-success rounded-2 px-2 py-0" data-bs-toggle="modal" data-bs-target="#editPhaseModal{{ $phase->id }}">
-                                                    Edit
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                @include('partials.projects.phaseEdit', ['phase' => $phase])
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="text-center text-muted small fst-italic">No phases available.</div>
-                    @endif
-                </td>
-            </tr>
+                    @include('partials.projects.assign', ['project' => $project, 'users' => $users])
+                    @include('partials.projects.phase', ['project' => $project])
+                    @endforeach
+                </tbody>
+            </table>
+                <div class="d-flex justify-content-center mt-3">
+                    {{ $projects->links('pagination::bootstrap-5') }}
+                </div>
+        </div>
+        @push('styles')
+        <style>
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            .table-animate {
+                animation: fadeInUp 0.6s ease-out forwards;
+                opacity: 0;
+            }
+        </style>
+    @endpush
 
-                @include('partials.projects.assign', ['project' => $project, 'users' => $users])
-                @include('partials.projects.phase', ['project' => $project])
-                @endforeach
-            </tbody>
-        </table>
-            <div class="d-flex justify-content-center mt-3">
-                {{ $projects->links('pagination::bootstrap-5') }}
-            </div>
-    </div>
     @push('scripts')
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
     @endpush
-</div>
+    </div>
 
     <script>
+        function animateTableRows() {
+            const rows = document.querySelectorAll('#projectTableBody tr');
+            anime({
+                targets: rows,
+                translateY: [20, 0],
+                opacity: [0, 1],
+                duration: 600,
+                delay: anime.stagger(50, {start: 100}),
+                easing: 'easeOutQuad'
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
+            // Initial animation
+            animateTableRows();
+            
             const searchInput = document.getElementById('projectSearch');
+            
+            // Store original rows for search functionality
+            const originalRows = Array.from(document.querySelectorAll('#projectTableBody tr'));
+            
+            // Add animation class to new rows when they're added (for pagination)
+            document.addEventListener('DOMNodeInserted', function(e) {
+                if (e.target.matches('#projectTableBody tr')) {
+                    e.target.style.opacity = '0';
+                    e.target.style.transform = 'translateY(20px)';
+                    anime({
+                        targets: e.target,
+                        translateY: 0,
+                        opacity: 1,
+                        duration: 400,
+                        easing: 'easeOutQuad'
+                    });
+                }
+            });
             const rows = document.querySelectorAll('#projectTableBody tr');
 
             searchInput.addEventListener('input', function(e) {

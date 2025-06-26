@@ -16,9 +16,24 @@
     
     <div class="col-12 col-md-6 col-lg-3">
         <div class="form-group">
-            <label for="date_received" class="form-label small text-muted mb-1">Date Received</label>
-            <input type="date" name="date_received" class="form-control form-control-sm" 
-                   value="{{ old('date_received', isset($enquiryLog->date_received) ? $enquiryLog->date_received->format('Y-m-d') : '') }}" required>
+            @php
+                $dateReceived = old('date_received');
+                if (!$dateReceived && isset($enquiryLog->date_received)) {
+                    $dateReceived = $enquiryLog->date_received;
+                } elseif (!$dateReceived && isset($project->enquirySource->date_received)) {
+                    $dateReceived = $project->enquirySource->date_received;
+                } else {
+                    $dateReceived = now();
+                }
+                
+                if (is_string($dateReceived)) {
+                    $dateReceived = \Carbon\Carbon::parse($dateReceived);
+                }
+                $formattedDate = $dateReceived->format('Y-m-d\TH:i');
+            @endphp
+            <label for="date_received" class="form-label small text-muted mb-1">Date & Time Received</label>
+            <input type="datetime-local" name="date_received" class="form-control form-control-sm" 
+                   value="{{ $formattedDate }}" required>
         </div>
     </div>
     
@@ -35,7 +50,7 @@
         <div class="form-group">
             <label for="contact_person" class="form-label small text-muted mb-1">Contact Person</label>
             <input type="text" name="contact_person" class="form-control form-control-sm" 
-                   value="{{ old('contact_person', $enquiryLog->contact_person ?? '') }}">
+                   value="{{ old('contact_person', $enquiryLog->contact_person ?? $project->contact_person ?? '') }}">
         </div>
     </div>
     
@@ -54,9 +69,15 @@
     
     <div class="col-12 col-md-6 col-lg-4">
         <div class="form-group">
-            <label for="assigned_to" class="form-label small text-muted mb-1">Assigned To</label>
-            <input type="text" name="assigned_to" class="form-control form-control-sm" 
-                   value="{{ old('assigned_to', $enquiryLog->assigned_to ?? '') }}">
+            <label class="form-label small text-muted mb-1">Project Officer</label>
+            @php
+                // Get the project officer's name or fallback to enquiry source or empty string
+                $projectOfficerName = $project->projectOfficer->name ?? 
+                                    ($project->enquirySource->assigned_to ?? 'Not assigned');
+            @endphp
+            <input type="text" class="form-control form-control-sm bg-light" 
+                   value="{{ $projectOfficerName }}" readonly>
+            <input type="hidden" name="assigned_to" value="{{ $projectOfficerName }}">
         </div>
     </div>
     

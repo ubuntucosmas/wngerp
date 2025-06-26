@@ -1,6 +1,6 @@
 @extends('layouts.master')
 
-@section('title', 'Enquiry Log')
+@section('title', 'Project Brief')
 
 @push('styles')
 <style>
@@ -139,12 +139,12 @@
                     <ol class="breadcrumb mb-0">
                         <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
                         <li class="breadcrumb-item"><a href="{{ route('projects.files.index', ['project' => $project->id]) }}">Project Files</a></li>
-                        <li class="breadcrumb-item active">Enquiry Log</li>
+                        <li class="breadcrumb-item active">Project Brief</li>
                     </ol>
                 </nav>
                 <h4 class="mb-0 mt-1 d-flex align-items-center">
                     <i class="bi bi-journal-text me-2 text-primary"></i>
-                    Enquiry Log For Project {{ $project->name }}
+                    Project Brief For Project {{ $project->name }}
                 </h4>
             </div>
             <div class="page-actions">
@@ -165,7 +165,7 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h5 class="mb-0 d-flex align-items-center">
                     <i class="bi bi-info-circle text-primary me-2"></i>
-                    Enquiry Details
+                    Project Brief Details
                 </h5>
                 <h5 class="mb-0 d-flex align-items-center">
                     <i class="bi bi-info-circle text-primary me-2"></i>
@@ -295,10 +295,10 @@
         <div class="compact-card bg-white p-5 text-center">
             <div class="py-4">
                 <i class="bi bi-journal-x fs-1 text-muted mb-3 opacity-50"></i>
-                <h5 class="mb-2">No Enquiry Log Found</h5>
-                <p class="text-muted mb-4">There is no enquiry log associated with this project.</p>
+                <h5 class="mb-2">No Project Brief Found</h5>
+                <p class="text-muted mb-4">There is no project brief associated with this project.</p>
                 <a href="{{ route('projects.enquiry-log.create', $project) }}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle me-2"></i> Create Enquiry Log
+                    <i class="bi bi-plus-circle me-2"></i> Create Project Brief
                 </a>
             </div>
         </div>

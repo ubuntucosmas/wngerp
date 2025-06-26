@@ -209,21 +209,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize Flatpickr for all date inputs
-        flatpickr('.datepicker', {
-            dateFormat: 'Y-m-d',
-            allowInput: true,
-            theme: 'material_blue',
-            defaultDate: 'today',
-        });
 
-        // Initialize Flatpickr for datetime inputs
-        flatpickr('.datetime-picker', {
-            enableTime: true,
-            dateFormat: 'Y-m-d H:i',
-            allowInput: true,
-            theme: 'material_blue',
-        });
 
         // Initialize Select2
         $('.select2').select2({

@@ -193,68 +193,60 @@
 @endsection
 
 @push('scripts')
-{{-- JS for dynamic row addition/removal --}}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    let productionIndex = 1;
-    let hireIndex = 1;
+    // Wait for the DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        let productionIndex = 1;
+        let hireIndex = 1;
 
-    // Add row to Materials - Production
-    document.getElementById('addProductionRow').addEventListener('click', function () {
-        const tbody = document.getElementById('materialsProductionBody');
-        const newRow = document.createElement('tr');
-        newRow.innerHTML = `
-            <td><input type="text" name="items[Materials - Production][${productionIndex}][particular]" class="form-control"></td>
-            <td><input type="text" name="items[Materials - Production][${productionIndex}][unit]" class="form-control"></td>
-            <td><input type="number" step="0.01" name="items[Materials - Production][${productionIndex}][quantity]" class="form-control"></td>
-            <td><input type="number" step="0.01" name="items[Materials - Production][${productionIndex}][unit_price]" class="form-control"></td>
-            <td><input type="number" step="0.01" name="items[Materials - Production][${productionIndex}][budgeted_cost]" class="form-control"></td>
-            <td><input type="text" name="items[Materials - Production][${productionIndex}][comment]" class="form-control"></td>
-            <td><button type="button" class="btn btn-danger btn-sm remove-row">Remove</button></td>
-        `;
-        tbody.appendChild(newRow);
-        productionIndex++;
+        // Add row to Materials - Production
+        $(document).on('click', '#addProductionRow', function() {
+            const tbody = document.getElementById('materialsProductionBody');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td><input type="text" name="items[Materials - Production][${productionIndex}][particular]" class="form-control"></td>
+                <td><input type="text" name="items[Materials - Production][${productionIndex}][unit]" class="form-control"></td>
+                <td><input type="number" step="0.01" name="items[Materials - Production][${productionIndex}][quantity]" class="form-control quantity"></td>
+                <td><input type="number" step="0.01" name="items[Materials - Production][${productionIndex}][unit_price]" class="form-control unit-price"></td>
+                <td><input type="number" step="0.01" name="items[Materials - Production][${productionIndex}][budgeted_cost]" class="form-control budgeted-cost" readonly></td>
+                <td><input type="text" name="items[Materials - Production][${productionIndex}][comment]" class="form-control"></td>
+                <td><button type="button" class="btn btn-danger btn-sm remove-row">Remove</button></td>
+            `;
+            tbody.appendChild(newRow);
+            productionIndex++;
+        });
+
+        // Add row to Materials for Hire
+        $(document).on('click', '#addHireRow', function() {
+            const tbody = document.getElementById('materialsHireBody');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td><input type="text" name="items[Materials for Hire][${hireIndex}][particular]" class="form-control"></td>
+                <td><input type="text" name="items[Materials for Hire][${hireIndex}][unit]" class="form-control"></td>
+                <td><input type="number" step="0.01" name="items[Materials for Hire][${hireIndex}][quantity]" class="form-control quantity"></td>
+                <td><input type="number" step="0.01" name="items[Materials for Hire][${hireIndex}][unit_price]" class="form-control unit-price"></td>
+                <td><input type="number" step="0.01" name="items[Materials for Hire][${hireIndex}][budgeted_cost]" class="form-control budgeted-cost" readonly></td>
+                <td><input type="text" name="items[Materials for Hire][${hireIndex}][comment]" class="form-control"></td>
+                <td><button type="button" class="btn btn-danger btn-sm remove-row">Remove</button></td>
+            `;
+            tbody.appendChild(newRow);
+            hireIndex++;
+        });
+
+        // Remove row for both tables
+        $(document).on('click', '.remove-row', function() {
+            $(this).closest('tr').remove();
+        });
+
+        // Calculate budgeted cost when quantity or unit price changes
+        $(document).on('input', '.quantity, .unit-price', function() {
+            const row = $(this).closest('tr');
+            const quantity = parseFloat(row.find('.quantity').val()) || 0;
+            const unitPrice = parseFloat(row.find('.unit-price').val()) || 0;
+            const budgetedCost = (quantity * unitPrice).toFixed(2);
+            row.find('.budgeted-cost').val(budgetedCost);
+        });
     });
-
-    // Add row to Materials for Hire
-    document.getElementById('addHireRow').addEventListener('click', function () {
-        const tbody = document.getElementById('materialsHireBody');
-        const newRow = document.createElement('tr');
-        newRow.innerHTML = `
-            <td><input type="text" name="items[Materials for Hire][${hireIndex}][particular]" class="form-control"></td>
-            <td><input type="text" name="items[Materials for Hire][${hireIndex}][unit]" class="form-control"></td>
-            <td><input type="number" step="0.01" name="items[Materials for Hire][${hireIndex}][quantity]" class="form-control"></td>
-            <td><input type="number" step="0.01" name="items[Materials for Hire][${hireIndex}][unit_price]" class="form-control"></td>
-            <td><input type="number" step="0.01" name="items[Materials for Hire][${hireIndex}][budgeted_cost]" class="form-control"></td>
-            <td><input type="text" name="items[Materials for Hire][${hireIndex}][comment]" class="form-control"></td>
-            <td><button type="button" class="btn btn-danger btn-sm remove-row">Remove</button></td>
-        `;
-        tbody.appendChild(newRow);
-        hireIndex++;
-    });
-
-    // Remove row for both tables
-    document.addEventListener('click', function (e) {
-        if (e.target.classList.contains('remove-row')) {
-            e.target.closest('tr').remove();
-        }
-    });
-
-
-    document.addEventListener('input', function (e) {
-    const row = e.target.closest('tr');
-    if (!row) return;
-
-    const quantityInput = row.querySelector('input[name*="[quantity]"]');
-    const unitPriceInput = row.querySelector('input[name*="[unit_price]"]');
-    const budgetedCostInput = row.querySelector('input[name*="[budgeted_cost]"]');
-
-    if (quantityInput && unitPriceInput && budgetedCostInput) {
-        const quantity = parseFloat(quantityInput.value) || 0;
-        const unitPrice = parseFloat(unitPriceInput.value) || 0;
-        budgetedCostInput.value = (quantity * unitPrice).toFixed(2);
-    }
-});
-
 </script>
-
-
+@endpush

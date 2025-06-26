@@ -142,12 +142,12 @@ class ProjectFileController extends Controller
         
         $files = [
             [
-                'name' => 'Enquiry Log',
+                'name' => 'Project Brief',
                 'route' => route('projects.enquiry-log.show', $project),
                 'icon' => 'bi-journal-text',
-                'description' => 'View and manage client enquiry logs',
-                'type' => 'enquiry-log',
-                'updated_at' => now()->subDays(2)
+                'description' => 'View and manage Project Brief',
+                'type' => 'Project-Brief',
+                //'updated_at' => now(),
             ],
             [
                 'name' => 'Site Survey',
@@ -157,7 +157,7 @@ class ProjectFileController extends Controller
                 'icon' => 'bi-clipboard2-pulse',
                 'description' => 'View and manage site survey details',
                 'type' => 'site-survey',
-                'updated_at' => $siteSurvey ? $siteSurvey->updated_at : now()->subDays(1)
+                //'updated_at' => $siteSurvey ? $siteSurvey->updated_at : now()->subDays()
             ],
             // Add more files here as needed
         ];

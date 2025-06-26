@@ -251,7 +251,7 @@
                             <p class="phase-description small text-muted mb-2">
                                 View and manage Project Materials
                             </p>
-                            <a href="" class="btn btn-sm btn-outline-primary w-100">
+                            <a href="{{ route('projects.material-list.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
                                 <span>Open</span>
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>

@@ -96,6 +96,8 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
     Route::get('/projects/enquiry/{enquiry}/edit', [EnquiryController::class, 'edit'])->name('enquiries.edit');
     Route::put('/projects/enquiry/{enquiry}', [EnquiryController::class, 'update'])->name('enquiries.update');
     Route::delete('/projects/enquiry/{enquiry}', [EnquiryController::class, 'destroy'])->name('enquiries.destroy');
+    Route::post('/enquiries/{enquiry}/convert-to-project', [ProjectController::class, 'convertFromEnquiry'])->name('projects.convertFromEnquiry');
+
 
     // Phases & Tasks
     Route::post('/phases', [PhaseController::class, 'store'])->name('phases.store');
@@ -152,6 +154,7 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
         
 
         Route::get('material-list/show', [MaterialListController::class, 'show'])->name('projects.material-list.show');
+        Route::get('material-list', [MaterialListController::class, 'index'])->name('projects.material-list.index');
         Route::post('material-list/store', [MaterialListController::class, 'store'])->name('projects.material-list.store');
         Route::get('material-list/{item}/edit', [MaterialListController::class, 'edit'])->name('projects.material-list.edit-item');
         Route::put('material-list/{item}', [MaterialListController::class, 'update'])->name('projects.material-list.update-item');

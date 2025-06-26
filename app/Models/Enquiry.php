@@ -22,6 +22,7 @@ class Enquiry extends Model
         'follow_up_notes',
         'project_id',
         'enquiry_number',
+        'converted_to_project_id',
     ];
 
    protected $casts = [
@@ -67,4 +68,9 @@ class Enquiry extends Model
     {
         return $value ? date('Y-m-d', strtotime($value)) : null;
     }
+    public function project()
+{
+    return $this->belongsTo(Project::class, 'converted_to_project_id');
+}
+
 }

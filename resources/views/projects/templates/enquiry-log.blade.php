@@ -145,6 +145,7 @@
             <img src="{{ public_path('images/wng-logo.png') }}" alt="Company Logo">
         </div>
         <h1>WOODNORKGREEN</h1>
+        <h2>PROJECT BRIEF</h2>
         <p>Karen Village Art Centre, Ngong Rd Nairobi</p>
         <p>www.woodnorkgreen.co.ke | admin@woodnorkgreen.co.ke | +254780 397798</p>
     </div>

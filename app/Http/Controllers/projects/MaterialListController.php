@@ -45,6 +45,12 @@ class MaterialListController extends Controller
         return redirect()->back()->with('success', 'Materials added successfully.');
     }
 
+    public function index(Project $project)
+    {
+        //$materials = Material::all();
+        return view('projects.files.material', compact('project'));
+    }
+
     public function edit(Project $project, $item)
     {
         $materials = $project->materials()->where('item', $item)->get();

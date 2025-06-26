@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Enquiry;
+use App\Models\Project;
+use App\Models\User;
+use App\Models\Client;
 use Illuminate\Http\Request;
 
 class EnquiryController extends Controller
@@ -11,7 +14,9 @@ class EnquiryController extends Controller
     {
         $enquiries = Enquiry::orderBy('date_received', 'desc')->paginate(10);
         $statuses = ['Open', 'Quoted', 'Approved', 'Declined'];
-        return view('projects.Enquiry.index', compact('enquiries', 'statuses'));
+        $users = User::where('role', 'po')->get();
+        $clients = Client::all();
+        return view('projects.Enquiry.index', compact('enquiries', 'statuses', 'users', 'clients'));
     }
 
     public function create()
@@ -22,13 +27,15 @@ class EnquiryController extends Controller
 
     public function show(Enquiry $enquiry)
     {
+        //$enquiry = Enquiry::with('project')->find($enquiry->id);
+        //$projects = Project::all();
         return view('projects.Enquiry.show', compact('enquiry'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'date_received' => 'required|date',
+            'date_received' => 'required|date|after_or_equal:today',
             'expected_delivery_date' => 'nullable|date|after_or_equal:date_received',
             'client_name' => 'required|string|max:255',
             'project_name' => 'nullable|string|max:255',
@@ -55,7 +62,7 @@ class EnquiryController extends Controller
     public function update(Request $request, Enquiry $enquiry)
     {
         $validated = $request->validate([
-            'date_received' => 'required|date',
+            'date_received' => 'required|date|after_or_equal:today',
             'expected_delivery_date' => 'nullable|date|after_or_equal:date_received',
             'client_name' => 'required|string|max:255',
             'project_name' => 'nullable|string|max:255',

@@ -4,21 +4,21 @@
             <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="Dashboard">
                 <a class="nav-link d-flex align-items-center {{ request()->routeIs('admin.dashboard') ? 'active bg-bg-cyan text-white' : 'text-dark' }}" href="{{ route('admin.dashboard') }}">
                     <i class="bi bi-house-door me-2"></i>
-                    <span class="nav-text">Dashboard</span>
+                    <span class="nav-text">ADMIN DASHBOARD</span>
                 </a>
             </li>
             <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="Users">
                 <a class="nav-link d-flex align-items-center {{ request()->routeIs('admin.users') ? 'active bg-cyan text-white' : 'text-dark' }}" href="{{ route('admin.users') }}">
                     <i class="bi bi-people me-2"></i>
-                    <span class="nav-text">Users</span>
+                    <span class="nav-text">ADMIN USERS</span>
                 </a>
             </li>
-            <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="Manage Users">
+            <!-- <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="Manage Users">
                 <a class="nav-link d-flex align-items-center {{ request()->routeIs('admin.manage-users') ? 'active bg-cyan text-white' : 'text-dark' }}" href="{{ route('admin.manage-users') }}">
                     <i class="bi bi-tools me-2"></i>
                     <span class="nav-text">Manage Users</span>
                 </a>
-            </li>
+            </li> -->
         @endif
 
         @php
@@ -31,13 +31,13 @@
             <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="Inventory Dashboard">
                 <a class="nav-link d-flex align-items-center {{ request()->routeIs('inventory.dashboard') ? 'active bg-cyan text-white' : 'text-dark' }}" href="{{ route('inventory.dashboard') }}">
                     <i class="bi bi-box me-2"></i>
-                    <span class="nav-text">Dashboard</span>
+                    <span class="nav-text">INVENTORY DASHBOARD</span>
                 </a>
             </li>
             <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="Inventory Management">
                 <a class="nav-link d-flex align-items-center {{ request()->routeIs('inventory.index') ? 'active bg-cyan text-white' : 'text-dark' }}" href="{{ route('inventory.index') }}">
                     <i class="bi bi-list-check me-2"></i>
-                    <span class="nav-text">Inventory</span>
+                    <span class="nav-text">INVENTORY</span>
                 </a>
             </li>
             <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="Check-in">
@@ -84,7 +84,7 @@
             <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="View All Projects">
                 <a class="nav-link d-flex align-items-center {{ request()->routeIs('projects.overview') ? 'active bg-cyan text-white' : 'text-dark' }}" href="{{ route('projects.overview') }}">
                     <i class="bi bi-bar-chart me-2"></i>
-                    <span class="nav-text">Dashboard</span>
+                    <span class="nav-text">PROJECTS DASHBOARD</span>
                 </a>
             </li>
             <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="Manage Enquiries">

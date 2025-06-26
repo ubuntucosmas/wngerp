@@ -116,95 +116,217 @@ class ProjectController extends Controller
 
     
     public function store(Request $request)
-{
-    // Only PMs can create projects
-    if (!auth()->user()->hasAnyRole(['super-admin', 'pm'])) {
-        abort(403, 'Unauthorized');
-    }
-
-    // Validate input
-    $validated = $request->validate([
-        'name' => 'required|string|max:255',
-        'client_id' => 'required|exists:clients,ClientID',
-        'venue' => 'required|string|max:255',
-        'start_date' => 'required|date',
-        'end_date' => 'required|date|after:start_date',
-    ]);
-
-    // Fetch client name
-    $client = Client::findOrFail($request->client_id);
-    $clientName = $client->FullName;
-
-    // Generate ProjectID like J0525001
-    $month = Carbon::now()->format('m'); // 05
-    $year = Carbon::now()->format('y');  // 25
-    $prefix = 'WNG' . $month . $year;
-
-    $lastProject = Project::where('project_id', 'like', $prefix . '%')
-        ->orderByDesc('created_at')
-        ->first();
-
-    $lastNumber = 0;
-    if ($lastProject && preg_match('/WNG\d{4}(\d+)/', $lastProject->project_id, $matches)) {
-        $lastNumber = (int) $matches[1];
-    }
-
-    $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
-    $projectId = $prefix . $newNumber;
-
-    // Create the project
-    $project = Project::create([
-        'project_id' => $projectId,
-        'name' => $request->name,
-        'client_name' => $clientName,
-        'client_id' => $request->client_id,
-        'venue' => $request->venue,
-        'start_date' => $request->start_date,
-        'end_date' => $request->end_date,
-        'project_manager_id' => auth()->id(),
-        'project_officer_id' => null, 
-    ]);
-
-    // Create default phases and their tasks
-    $defaultPhases = config('project_phases');
-
-    foreach ($defaultPhases as $phaseData) {
-        $phase = Phase::create([
-            'project_id' => $project->id,
-            'title' => $phaseData['title'],
-            'start_date' => now()->addDays($phaseData['offsetStart']),
-            'end_date' => now()->addDays($phaseData['offsetEnd']),
-            'description' => $phaseData['title'] . ' phase of the project',
-            'status' => 'Pending',
-        ]);
-
-        // Create default tasks for the phase
-        foreach ($phaseData['default_tasks'] as $taskData) {
-            $task = Task::create([
-                'project_id' => $project->id,
-                'phase_id' => $phase->id,
-                'name' => $taskData['name'],
-                'description' => $taskData['description'],
-                'status' => 'Pending',
-                'assigned_to' => null,
-                'start_date' => $phase->start_date,
-                'end_date' => $phase->end_date,
-            ]);
-            // Create Deliverables for the task
-            foreach ($taskData['deliverables'] as $deliverableText) {
-                Deliverable::create([
-                    'task_id' => $task->id,
-                    'item' => $deliverableText,
-                    'done' => false,
-            ]);
+    {
+        // Only PMs can create projects
+        if (!auth()->user()->hasAnyRole(['super-admin', 'pm'])) {
+            abort(403, 'Unauthorized');
         }
+    
+        // Validate request
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'client_id' => 'required|exists:clients,ClientID',
+            'venue' => 'required|string|max:255',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
+            'enquiry_id' => 'nullable|exists:enquiries,id', // 👈 Support optional enquiry
+        ]);
+    
+        // Fetch client
+        $client = Client::findOrFail($validated['client_id']);
+        $clientName = $client->FullName;
+    
+        // Generate project ID
+        $month = now()->format('m');
+        $year = now()->format('y');
+        $prefix = 'WNG' . $month . $year;
+    
+        $lastProject = Project::where('project_id', 'like', $prefix . '%')
+            ->latest('created_at')
+            ->first();
+    
+        $lastNumber = 0;
+        if ($lastProject && preg_match('/WNG\d{4}(\d+)/', $lastProject->project_id, $matches)) {
+            $lastNumber = (int) $matches[1];
+        }
+    
+        $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+        $projectId = $prefix . $newNumber;
+    
+        // If enquiry is provided, pull extra data
+        $deliverables = null;
+        $followUpNotes = null;
+        $contactPerson = null;
+        $status = 'Initiated'; // default fallback
+    
+        if (!empty($validated['enquiry_id'])) {
+            $enquiry = Enquiry::findOrFail($validated['enquiry_id']);
+            $deliverables = $enquiry->project_deliverables;
+            $followUpNotes = $enquiry->follow_up_notes;
+            $contactPerson = $enquiry->contact_person;
+            $status = $enquiry->status ?? 'Initiated';
+        }
+    
+        // Create project
+        $project = Project::create([
+            'project_id' => $projectId,
+            'name' => $validated['name'],
+            'client_id' => $validated['client_id'],
+            'client_name' => $clientName,
+            'venue' => $validated['venue'],
+            'start_date' => $validated['start_date'],
+            'end_date' => $validated['end_date'],
+            'project_manager_id' => auth()->id(),
+            'project_officer_id' => null,
+            'deliverables' => $deliverables,
+            'follow_up_notes' => $followUpNotes,
+            'contact_person' => $contactPerson,
+            'status' => $status,
+        ]);
+    
+        // Link project to enquiry
+        if (isset($enquiry)) {
+            $enquiry->converted_to_project_id = $project->id;
+            $enquiry->save();
+        }
+    
+
+        // Create default phases and their tasks
+        $defaultPhases = config('project_phases');
+
+        foreach ($defaultPhases as $phaseData) {
+            $phase = Phase::create([
+                'project_id' => $project->id,
+                'title' => $phaseData['title'],
+                'start_date' => now()->addDays($phaseData['offsetStart']),
+                'end_date' => now()->addDays($phaseData['offsetEnd']),
+                'description' => $phaseData['title'] . ' phase of the project',
+                'status' => 'Pending',
+            ]);
+
+            // Create default tasks for the phase
+            foreach ($phaseData['default_tasks'] as $taskData) {
+                $task = Task::create([
+                    'project_id' => $project->id,
+                    'phase_id' => $phase->id,
+                    'name' => $taskData['name'],
+                    'description' => $taskData['description'],
+                    'status' => 'Pending',
+                    'assigned_to' => null,
+                    'start_date' => $phase->start_date,
+                    'end_date' => $phase->end_date,
+                ]);
+                // Create Deliverables for the task
+                foreach ($taskData['deliverables'] as $deliverableText) {
+                    Deliverable::create([
+                        'task_id' => $task->id,
+                        'item' => $deliverableText,
+                        'done' => false,
+                ]);
+            }
         }
     }
 
     return redirect()->route('projects.index')->with('success', 'Project, phases, and default tasks created successfully!');
-}
+    }
 
-    
+    public function convertFromEnquiry(Enquiry $enquiry)
+    {
+        // Prevent double conversion
+        if ($enquiry->converted_to_project_id) {
+            return redirect()->back()->with('error', 'This enquiry has already been converted.');
+        }
+
+        // Find the client
+        $client = Client::where('FullName', $enquiry->client_name)->first();
+
+        if (!$client) {
+            return redirect()->back()->with('error', 'Client not found. Please create the client first.');
+        }
+
+        // Generate Project ID
+        $month = now()->format('m');
+        $year = now()->format('y');
+        $prefix = 'WNG' . $month . $year;
+
+        $lastProject = Project::where('project_id', 'like', $prefix . '%')->latest('created_at')->first();
+        $lastNumber = 0;
+
+        if ($lastProject && preg_match('/WNG\d{4}(\d+)/', $lastProject->project_id, $matches)) {
+            $lastNumber = (int)$matches[1];
+        }
+
+        $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+        $projectId = $prefix . $newNumber;
+
+        // Find the project officer by name if assigned_po is set
+        $projectOfficerId = null;
+        if (!empty($enquiry->assigned_po)) {
+            $projectOfficer = User::where('name', $enquiry->assigned_po)->first();
+            if ($projectOfficer) {
+                $projectOfficerId = $projectOfficer->id;
+            }
+        }
+
+        // Create the project
+        $project = Project::create([
+            'project_id' => $projectId,
+            'name' => $enquiry->project_name ?? 'Project from Enquiry ' . $enquiry->id,
+            'client_id' => $client->ClientID,
+            'client_name' => $client->FullName,
+            'venue' => $enquiry->venue ?? 'TBD',
+            'start_date' => $enquiry->expected_delivery_date ?? now(),
+            'end_date' => $enquiry->expected_delivery_date ?? now()->addDays(2),
+            'project_manager_id' => auth()->id(),
+            'project_officer_id' => $projectOfficerId,
+            'deliverables' => $enquiry->project_deliverables,
+            'follow_up_notes' => $enquiry->follow_up_notes,
+            'contact_person' => $enquiry->contact_person,
+            'status' => $enquiry->status ?? 'Initiated',
+        ]);
+        // Create default phases and their tasks
+        $defaultPhases = config('project_phases');
+
+        foreach ($defaultPhases as $phaseData) {
+            $phase = Phase::create([
+                'project_id' => $project->id,
+                'title' => $phaseData['title'],
+                'start_date' => now()->addDays($phaseData['offsetStart']),
+                'end_date' => now()->addDays($phaseData['offsetEnd']),
+                'description' => $phaseData['title'] . ' phase of the project',
+                'status' => 'Pending',
+            ]);
+
+            // Create default tasks for the phase
+            foreach ($phaseData['default_tasks'] as $taskData) {
+                $task = Task::create([
+                    'project_id' => $project->id,
+                    'phase_id' => $phase->id,
+                    'name' => $taskData['name'],
+                    'description' => $taskData['description'],
+                    'status' => 'Pending',
+                    'assigned_to' => null,
+                    'start_date' => $phase->start_date,
+                    'end_date' => $phase->end_date,
+                ]);
+                // Create Deliverables for the task
+                foreach ($taskData['deliverables'] as $deliverableText) {
+                    Deliverable::create([
+                        'task_id' => $task->id,
+                        'item' => $deliverableText,
+                        'done' => false,
+                ]);
+            }
+        }
+    }
+
+        // Update the enquiry
+        $enquiry->converted_to_project_id = $project->id;
+        $enquiry->save();
+
+        return redirect()->back()->with('success', 'Project created successfully from enquiry!');
+    }
+
 
 
     public function assignProjectOfficer(Request $request, Project $project)

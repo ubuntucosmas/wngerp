@@ -33,6 +33,9 @@ class Project extends Model
         'project_manager_id',
         'project_officer_id',
         'status',
+        'deliverables',
+        'follow_up_notes',
+        'contact_person',
     ];
 
     public function siteSurveys()
@@ -51,6 +54,12 @@ class Project extends Model
     {
         return $this->hasMany(Material::class);
     }
+
+    public function enquirySource()
+    {
+        return $this->hasOne(Enquiry::class, 'converted_to_project_id');
+    }
+
 
 
     public function client()

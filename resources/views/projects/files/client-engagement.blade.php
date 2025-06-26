@@ -43,7 +43,7 @@
                                 </p>
                                 <div class="d-flex justify-content-between align-items-center mt-2">
                                     <span class="badge bg-light text-dark">{{ $file['type'] }}</span>
-                                    <small class="text-muted">Updated {{ $file['updated_at']->diffForHumans() }}</small>
+                                    
                                 </div>
                             </div>
                         </div>

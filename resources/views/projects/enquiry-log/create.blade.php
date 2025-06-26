@@ -15,17 +15,17 @@
         </div>
         <div>
             <a href="" class="btn btn-outline-primary">
-                <i class="bi bi-plus-circle"></i> New Enquiry Log
+                <i class="bi bi-plus-circle"></i> New Project Brief   
             </a>
         </div>
     </div>
 
-    <h4 class="fw-semibold mb-3 text-dark">Enquiry Log for <span class="text-primary">Project</span></h4>
+    <h4 class="fw-semibold mb-3 text-dark">Project Brief for <span class="text-primary">Project</span></h4>
 
 
 
     <div class="container py-4">
-    <h4 class="mb-4">Create Enquiry Log for Project: <strong>{{ $project->name }}</strong></h4>
+    <h4 class="mb-4">Create Project Brief for Project: <strong>{{ $project->name }}</strong></h4>
 
     <form action="{{ route('projects.enquiry-log.store', $project) }}" method="POST">
         @csrf

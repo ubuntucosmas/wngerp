@@ -151,23 +151,33 @@
                 <label for="total_budget">Total Budget</label>
                 <input type="number" step="0.01" name="total_budget" id="total_budget" class="form-control" readonly>
             </div>
-            <div class="col-md-4">
+            <!-- <div class="col-md-4">
                 <label for="invoice">Invoice</label>
                 <input type="text" name="invoice" class="form-control">
             </div>
             <div class="col-md-4">
                 <label for="profit">Profit</label>
                 <input type="number" step="0.01" name="profit" class="form-control">
-            </div>
+            </div> -->
         </div>
 
         {{-- Approval Section --}}
         <div class="mb-4">
-            <label for="approved_by">Approved By</label>
-            <input type="text" name="approved_by" class="form-control mb-2">
+            <div class="mb-3">
+                <label for="approved_by">Approved By</label>
+                <input type="text" name="approved_by" class="form-control" value="{{ auth()->user()->name }}" readonly>
+                <small class="text-muted">Auto-filled with your name</small>
+            </div>
 
-            <label for="approved_departments">Departments (comma-separated)</label>
-            <input type="text" name="approved_departments" class="form-control" placeholder="Production, Finance">
+            <div class="mb-3">
+                <label for="approved_departments">Department</label>
+                @php
+                    $user = auth()->user();
+                    $department = $user->department ?? 'Not assigned';
+                @endphp
+                <input type="text" name="approved_departments" class="form-control" value="{{ $department }}" readonly>
+                <small class="text-muted">Auto-filled with your department</small>
+            </div>
         </div>
 
         {{-- Form actions --}}

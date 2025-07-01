@@ -279,16 +279,31 @@
             </div>
             <div class="col-md-4">
                 <div class="form-group mb-4">
-                    <label for="project_manager" class="form-label required-field">Project Manager</label>
+                    <label for="project_manager" class="form-label required-field">Project Officer</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                        <select class="form-select @error('project_manager') is-invalid @enderror" 
+                                id="project_manager" 
+                                name="project_manager" 
+                                required>
+                            <option value="">Select Project Officer</option>
+                            @if(isset($teamMembers) && $teamMembers->count() > 0)
+                                @foreach($teamMembers as $member)
+                                    <option value="{{ $member->name }}" 
+                                        {{ old('project_manager', $siteSurvey->project_manager) == $member->name ? 'selected' : '' }}>
+                                        {{ $member->name }}
+                                    </option>
+                                @endforeach
+                            @endif
+                            <option value="Other" {{ old('project_manager', $siteSurvey->project_manager) == 'Other' ? 'selected' : '' }}>Other (specify)</option>
+                        </select>
+                    </div>
+                    <div id="otherProjectManagerContainer" class="mt-2" style="display: none;">
                         <input type="text" 
-                               class="form-control @error('project_manager') is-invalid @enderror" 
-                               id="project_manager" 
-                               name="project_manager" 
-                               value="{{ getFormValue('project_manager', $siteSurvey) }}"
-                               placeholder="Project manager's name"
-                               required>
+                               class="form-control mt-2" 
+                               name="other_project_manager" 
+                               placeholder="Enter project officer's name"
+                               value="{{ old('other_project_manager') }}">
                     </div>
                     @error('project_manager')
                         <div class="invalid-feedback d-block">
@@ -307,7 +322,7 @@
                                id="client_name" 
                                name="client_name" 
                                placeholder="Enter client's name"
-                               value="{{ getFormValue('client_name', $siteSurvey) }}" 
+                               value="{{ $project->client_name }}" 
                                required>
                     </div>
                     @error('client_name')
@@ -330,7 +345,7 @@
                                id="location" 
                                name="location" 
                                placeholder="Enter site location"
-                               value="{{ getFormValue('location', $siteSurvey) }}" 
+                               value="{{ $project->venue }}" 
                                required>
                     </div>
                     @error('location')
@@ -562,7 +577,7 @@
                                id="client_contact_person" 
                                name="client_contact_person" 
                                placeholder="Contact person's name"
-                               value="{{ getFormValue('client_contact_person', $siteSurvey) }}" 
+                               value="{{ old('client_contact_person', $siteSurvey->client_contact_person) }}" 
                                required>
                     </div>
                     @error('client_contact_person')
@@ -583,7 +598,7 @@
                                name="client_phone" 
                                placeholder="Contact phone number"
                                data-inputmask="'mask': '+255 999 999 999'"
-                               value="{{ getFormValue('client_phone', $siteSurvey) }}" 
+                               value="{{ old('client_phone', $siteSurvey->client_phone ?? $project->client->Phone) }}" 
                                required>
                     </div>
                     @error('client_phone')
@@ -602,8 +617,8 @@
                                class="form-control @error('client_email') is-invalid @enderror" 
                                id="client_email" 
                                name="client_email" 
-                               placeholder="contact@example.com"
-                               value="{{ getFormValue('client_email', $siteSurvey) }}">
+                               placeholder="Contact email address"
+                               value="{{ old('client_email', $siteSurvey->client_email ?? $project->client->Email) }}">
                     </div>
                     @error('client_email')
                         <div class="invalid-feedback d-block">
@@ -631,7 +646,7 @@
                          id="project_description" 
                          name="project_description" 
                          rows="4"
-                         placeholder="Provide a detailed description of the project...">{{ old('project_description', $siteSurvey->project_description ?? '') }}</textarea>
+                         placeholder="Provide a detailed description of the project..."></textarea>
             </div>
             @error('project_description')
                 <div class="invalid-feedback d-block">
@@ -1338,7 +1353,29 @@
         
         @push('scripts')
         <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        // Initialize datepicker and handle project manager dropdown
+        $(document).ready(function() {
+            // Handle project manager dropdown change
+            $('#project_manager').on('change', function() {
+                const selectedValue = $(this).val();
+                const otherContainer = $('#otherProjectManagerContainer');
+                
+                if (selectedValue === 'Other') {
+                    otherContainer.show();
+                    otherContainer.find('input').attr('required', true);
+                } else {
+                    otherContainer.hide();
+                    otherContainer.find('input').attr('required', false);
+                }
+            });
+            
+            // Trigger change event on page load in case 'Other' is selected
+            $('#project_manager').trigger('change');
+            
+            // If there's a validation error, ensure the other field is shown if needed
+            @if(old('project_manager') === 'Other' || ($siteSurvey->exists && $siteSurvey->project_manager === 'Other'))
+                $('#otherProjectManagerContainer').show();
+            @endif
             // Add action item
             document.getElementById('addActionItemBtn').addEventListener('click', function() {
                 const container = document.getElementById('actionItemsContainer');

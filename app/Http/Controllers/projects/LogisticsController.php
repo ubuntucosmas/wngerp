@@ -34,7 +34,7 @@ class LogisticsController extends Controller
     {
         $project->load('client');
         
-        return view('projects.logistics.loading-sheet', [
+        return view('projects.files.logistics', [
             'project' => $project,
             'activeTab' => 'loading-sheet'
         ]);

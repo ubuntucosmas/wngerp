@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Enquiry;
 use App\Models\DesignAsset;
 use App\Models\SiteSurvey;
 use App\Models\BookingOrder;
@@ -12,11 +13,25 @@ use App\Models\Client;
 use App\Models\User;
 use App\Models\Quote;
 use App\Models\Phase;
+use App\Models\SetDownReturn;
+use App\Models\ArchivalReport;
+use App\Models\HandoverReport;
+use App\Models\SetupReport;
+use App\Models\LogisticsReport;
+
 
 
 class Project extends Model
 {
     use HasFactory;
+
+    /**
+     * Get the enquiry associated with the project.
+     */
+    public function enquiry()
+    {
+        return $this->hasOne(Enquiry::class, 'converted_to_project_id');
+    }
 
     // Specify the table (optional if the table name matches the plural of the model name)
     protected $table = 'projects';
@@ -129,6 +144,38 @@ public function updateStatusIfComplete()
         $this->status = 'active';
         $this->save();
     }
+}
+
+
+
+
+public function setupReports()
+{
+    return $this->hasMany(SetupReport::class);
+}
+
+/**
+ * Get all of the handover reports for the project.
+ */
+public function handoverReports()
+{
+    return $this->hasMany(HandoverReport::class);
+}
+
+/**
+ * Get all of the set down return reports for the project.
+ */
+public function setDownReturns()
+{
+    return $this->hasMany(SetDownReturn::class);
+}
+
+/**
+ * Get all of the archival reports for the project.
+ */
+public function archivalReports()
+{
+    return $this->hasMany(ArchivalReport::class);
 }
 
 

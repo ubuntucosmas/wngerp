@@ -13,8 +13,30 @@ class SiteSurveyController extends Controller
 {
     public function create(Project $project)
     {
-        $siteSurvey = new SiteSurvey(); // Create empty instance for the form
-        return view('projects.site-survey.create', compact('project', 'siteSurvey'));
+        // Load necessary relationships
+        $project->load(['client', 'projectManager', 'projectOfficer']);
+        
+        // Create new site survey with default values from project
+        $siteSurvey = new SiteSurvey([
+            'client_name' => $project->client_name,
+            'location' => $project->venue,
+            'project_manager' => $project->projectManager ? $project->projectManager->name : null,
+            'client_contact_person' => $project->contact_person,
+            'client_phone' => $project->client->phone ?? null,
+            'client_email' => $project->client->email ?? null,
+            'project_description' => $project->name,
+        ]);
+        
+        // Get team members (project manager and project officer)
+        $teamMembers = collect([$project->projectManager, $project->projectOfficer])
+            ->filter()
+            ->unique('id');
+        
+        return view('projects.site-survey.create', [
+            'project' => $project,
+            'siteSurvey' => $siteSurvey,
+            'teamMembers' => $teamMembers
+        ]);
     }
 
     public function store(Request $request, Project $project)

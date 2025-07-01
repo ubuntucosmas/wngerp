@@ -224,9 +224,12 @@
                 </nav>
             </div>
             <div class="d-flex gap-2">
-                <button onclick="window.print()" class="btn btn-light me-2 no-print" data-bs-toggle="tooltip" title="Print this page">
+                <a href="{{ route('projects.material-list.download', [$project, $materialList]) }}" class="btn btn-light me-2 no-print" data-bs-toggle="tooltip" title="Download as PDF">
+                    <i class="bi bi-file-earmark-pdf"></i> <span class="d-none d-md-inline">PDF</span>
+                </a>
+                <a href="{{ route('projects.material-list.print', [$project, $materialList]) }}" class="btn btn-light me-2 no-print" data-bs-toggle="tooltip" title="Print PDF" target="_blank">
                     <i class="bi bi-printer"></i> <span class="d-none d-md-inline">Print</span>
-                </button>
+                </a>
                 <a href="{{ route('projects.material-list.edit', [$project, $materialList]) }}" class="btn btn-light me-2 no-print" data-bs-toggle="tooltip" title="Edit material list">
                     <i class="bi bi-pencil"></i> <span class="d-none d-md-inline">Edit</span>
                 </a>

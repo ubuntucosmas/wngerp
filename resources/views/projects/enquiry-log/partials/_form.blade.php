@@ -93,21 +93,42 @@
         <div class="form-group">
             @php
                 $scopeSummary = old('project_scope_summary');
-                if (isset($enquiryLog)) {
+                
+                // If there's no old input and we have an enquiry log, use its data
+                if (empty($scopeSummary) && isset($enquiryLog)) {
                     $rawSummary = $enquiryLog->project_scope_summary;
-                    $decoded = is_array($rawSummary) ? $rawSummary : json_decode($rawSummary, true);
-                    if (!$scopeSummary) {
-                        $scopeSummary = is_array($decoded) ? implode(', ', $decoded) : '';
+                    if (!empty($rawSummary)) {
+                        $decoded = is_array($rawSummary) ? $rawSummary : json_decode($rawSummary, true);
+                        $scopeSummary = is_array($decoded) ? implode(', ', $decoded) : $rawSummary;
                     }
                 }
+                
+                // If still no data, try to get from enquiry
+                if (empty($scopeSummary) && isset($enquiry) && $enquiry) {
+                    $rawSummary = $enquiry->project_deliverables;
+                    if (!empty($rawSummary)) {
+                        $decoded = is_array($rawSummary) ? $rawSummary : json_decode($rawSummary, true);
+                        $scopeSummary = is_array($decoded) ? implode(', ', $decoded) : $rawSummary;
+                    }
+                }
+                
+                // If we still don't have anything, use an empty string
+                $scopeSummary = $scopeSummary ?? '';
             @endphp
+            
             <label for="project_scope_summary" class="form-label small text-muted mb-1">
                 Project Scope Summary 
                 <small class="text-muted">(Enter items separated by commas)</small>
             </label>
-            <textarea name="project_scope_summary" class="form-control form-control-sm" rows="3" 
+            <textarea name="project_scope_summary" id="project_scope_summary" class="form-control form-control-sm" rows="3" 
                      placeholder="e.g., Design, Development, Testing, Deployment">{{ $scopeSummary }}</textarea>
             <div class="form-text small">Each item will be saved as a separate scope item.</div>
+            
+            @if(isset($enquiry) && $enquiry && empty($scopeSummary))
+                <div class="alert alert-warning small mt-2">
+                    No project scope found in the associated enquiry.
+                </div>
+            @endif
         </div>
     </div>
 </div>

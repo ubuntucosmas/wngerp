@@ -51,41 +51,12 @@
         background-color: #072540 !important;
     }
 
-    .table tbody {
-        counter-reset: rowNumber;
-    }
-
     .table tbody tr {
-        transition: all 0.3s ease;
-        opacity: 0;
-        animation: fadeIn 0.5s ease-in-out forwards;
-        animation-delay: calc(var(--row-index) * 0.05s);
-    }
-
-    @keyframes fadeIn {
-        from { 
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        to { 
-            opacity: 1;
-            transform: translateY(0);
-        }
+        transition: background-color 0.2s ease;
     }
 
     .table tbody tr:hover {
-        background-color: rgba(46, 139, 192, 0.05) !important;
-        transform: scale(1.005);
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    }
-    
-    .table tbody tr.updated {
-        animation: highlight 1.5s ease-out;
-    }
-    
-    @keyframes highlight {
-        0% { background-color: rgba(255, 243, 205, 0.8); }
-        100% { background-color: transparent; }
+        background-color: rgba(46, 139, 192, 0.05);
     }
 
     .btn, .btn-sm, .btn-xs {
@@ -262,203 +233,244 @@
     }
 </style>
 
-<div class="px-3 mx-10 mt-2 w-100">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>Enquiries</h1>
-        <button type="button" class="btn btn-xs btn-outline-info" data-bs-toggle="modal" data-bs-target="#createEnquiryModal">
-            New Enquiry
-        </button>
-    </div>
-<hr class="mb-4">
-    <!-- Create Enquiry Modal -->
-    <div class="modal fade" id="createEnquiryModal" tabindex="-1" aria-labelledby="createEnquiryModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="createEnquiryModalLabel">New Enquiry</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    @if ($errors->any())
-                        <div class="alert alert-danger">
-                            <strong>There were some problems with your input.</strong>
-                            <ul>
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
+<div class="container-fluid p-2">
 
-                    <form id="createEnquiryForm" action="{{ route('enquiries.store') }}" method="POST">
-                        @csrf
+    <div class="px-3 mx-10 mt-2 w-100">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>Enquiries</h1>
+            <button type="button" class="btn btn-xs btn-outline-info" data-bs-toggle="modal" data-bs-target="#createEnquiryModal">
+                New Enquiry
+            </button>
+        </div>
+    <hr class="mb-4">
+        <!-- Create Enquiry Modal -->
+        <div class="modal fade" id="createEnquiryModal" tabindex="-1" aria-labelledby="createEnquiryModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="createEnquiryModalLabel">New Enquiry</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        @if ($errors->any())
+                            <div class="alert alert-danger">
+                                <strong>There were some problems with your input.</strong>
+                                <ul>
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
 
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="date_received" class="form-label">Date Received<span class="text-danger">*</span></label>
-                                    <input type="date" name="date_received" id="date_received" class="form-control" required value="{{ old('date_received', date('Y-m-d')) }}">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="expected_delivery_date" class="form-label">Expected Delivery Date</label>
-                                    <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="form-control" value="{{ old('expected_delivery_date') }}">
-                                </div>
-                            </div>
-                        </div>
+                        <form id="createEnquiryForm" action="{{ route('enquiries.store') }}" method="POST">
+                            @csrf
 
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="client_name" class="form-label">Client Name<span class="text-danger">*</span></label>
-                                    <select name="client_name" id="client_name" class="form-select" required>
-                                        <option value="">-- Select Client --</option>
-                                        @foreach($clients as $client)
-                                            <option value="{{ $client->FullName }}" {{ old('client_name') == $client->FullName ? 'selected' : '' }}>
-                                                {{ $client->FullName }}
-                                            </option>
-                                        @endforeach
-                                    </select>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="date_received" class="form-label">Date Received<span class="text-danger">*</span></label>
+                                        <input type="datetime-local" name="date_received" id="date_received" class="form-control" required 
+                                        value="{{ old('date_received', \Carbon\Carbon::now()->format('Y-m-d\TH:i')) }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="expected_delivery_date" class="form-label">Expected Delivery Date</label>
+                                        <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="form-control" value="{{ old('expected_delivery_date') }}">
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="project_name" class="form-label text-muted">Project Name</label>
-                                    <input type="text" name="project_name" id="project_name" class="form-control" value="{{ old('project_name') }}">
-                                </div>
-                            </div>
-                        </div>
 
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="status" class="form-label">Status<span class="text-danger">*</span></label>
-                                    <select name="status" id="status" class="form-select" required>
-                                        @foreach($statuses as $status)
-                                            <option value="{{ $status }}" {{ old('status') == $status ? 'selected' : '' }}>{{ $status }}</option>
-                                        @endforeach
-                                    </select>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="client_name" class="form-label">Client Name<span class="text-danger">*</span></label>
+                                        <select name="client_name" id="client_name" class="form-select" required>
+                                            <option value="">-- Select Client --</option>
+                                            @foreach($clients as $client)
+                                                <option value="{{ $client->FullName }}" {{ old('client_name') == $client->FullName ? 'selected' : '' }}>
+                                                    {{ $client->FullName }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="project_name" class="form-label text-muted">Project Name</label>
+                                        <input type="text" name="project_name" id="project_name" list="projectNameSuggestions" class="form-control" value="{{ old('project_name') }}">
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="assigned_po" class="form-label">Project Officer<span class="text-danger">*</span></label>
-                                    <select name="assigned_po" id="assigned_po" class="form-select" required>
-                                        <option value="">-- Select Officer --</option>
-                                        @foreach($users as $user)
-                                            <option value="{{ $user->name }}" {{ old('assigned_po') == $user->name ? 'selected' : '' }}>
-                                                {{ $user->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
 
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="project_deliverables" class="form-label">Project Deliverables</label>
-                                    <textarea name="project_deliverables" id="project_deliverables" class="form-control" rows="4">{{ old('project_deliverables') }}</textarea>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="status" class="form-label">Status<span class="text-danger">*</span></label>
+                                        <select name="status" id="status" class="form-select" required>
+                                            @foreach($statuses as $status)
+                                                <option value="{{ $status }}" {{ old('status') == $status ? 'selected' : '' }}>{{ $status }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="assigned_po" class="form-label">Project Officer<span class="text-danger">*</span></label>
+                                        <select name="assigned_po" id="assigned_po" class="form-select" required>
+                                            <option value="">-- Select Officer --</option>
+                                            @foreach($users as $user)
+                                                <option value="{{ $user->name }}" {{ old('assigned_po') == $user->name ? 'selected' : '' }}>
+                                                    {{ $user->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="follow_up_notes" class="form-label">Follow-Up Notes</label>
-                                    <textarea name="follow_up_notes" id="follow_up_notes" class="form-control" rows="4">{{ old('follow_up_notes') }}</textarea>
-                                </div>
-                            </div>
-                        </div>
 
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="contact_person" class="form-label">Contact Person</label>
-                                    <input type="text" name="contact_person" id="contact_person" class="form-control" value="{{ old('contact_person') }}">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="project_deliverables" class="form-label">Project Deliverables</label>
+                                        <textarea name="project_deliverables" id="project_deliverables" class="form-control" rows="4">{{ old('project_deliverables') }}</textarea>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="follow_up_notes" class="form-label">Follow-Up Notes</label>
+                                        <textarea name="follow_up_notes" id="follow_up_notes" class="form-control" rows="4">{{ old('follow_up_notes') }}</textarea>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="project_id" class="form-label">Project ID</label>
-                                    <input type="text" name="project_id" id="project_id" class="form-control" value="{{ old('project_id') }}">
-                                </div>
-                            </div>
-                        </div>
 
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-xs btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" form="createEnquiryForm" class="btn btn-xs btn-outline-success">Create Enquiry</button>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="contact_person" class="form-label">Contact Person</label>
+                                        <input type="text" name="contact_person" id="contact_person" class="form-control" value="{{ old('contact_person') }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="project_id" class="form-label">Project ID</label>
+                                        <input type="text" name="project_id" id="project_id" class="form-control" value="{{ old('project_id') }}">
+                                    </div>
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-xs btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" form="createEnquiryForm" class="btn btn-xs btn-outline-success">Create Enquiry</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
 
-    <div class="table-responsive">
-        <table class="table table-striped table-hover align-middle shadow-sm">
-            <thead>
-                <tr>
-                    <th>Enquiry ID</th>
-                    <th>Date Received</th>
-                    <th>Setup Date</th>
-                    <th>Client</th>
-                    <th>Project</th>
-                    <th>Deliverables</th>
-                    <th>Contact</th>
-                    <th>Status</th>
-                    <th>PO</th>
-                    <th>Notes</th>
-                    <th>Project ID</th>
-                    <th class="text-nowrap">Actions</th>
-                    <th>Converted To Project</th>
-                </tr>
-            </thead>
-            <tbody id="enquiryTableBody">
-                @php $rowIndex = 0; @endphp
-                @forelse($enquiries as $enquiry)
-                    <tr style="--row-index: {{ $loop->index }};">
-                        <td>{{ $enquiry->formatted_id }}</td>
-                        <td>{{ $enquiry->date_received ? date('Y-m-d', strtotime($enquiry->date_received)) : '-' }}</td>
-                        <td>{{ $enquiry->expected_delivery_date ? date('Y-m-d', strtotime($enquiry->expected_delivery_date)) : '-' }}</td>
-                        <td>{{ $enquiry->client_name }}</td>
-                        <td>{{ $enquiry->project_name }}</td>
-                        <td>
-                            @if($enquiry->project_deliverables)
-                                @php
-                                    $deliverables = array_filter(
-                                        preg_split('/\r\n|\r|\n/', $enquiry->project_deliverables),
-                                        fn($item) => trim($item) !== ''
-                                    );
-                                    $totalDeliverables = count($deliverables);
-                                @endphp
-                                @if($totalDeliverables > 0)
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle shadow-sm">
+                <thead>
+                    <tr>
+                        <th>Enquiry ID</th>
+                        <th>Date Received</th>
+                        <th>Setup Date</th>
+                        <th>Client</th>
+                        <th>Project</th>
+                        <th>Deliverables</th>
+                        <th>Contact</th>
+                        <th>Status</th>
+                        <th>PO</th>
+                        <th>Notes</th>
+                        <th>Project ID</th>
+                        <th class="text-nowrap">Actions</th>
+                        <th>Converted To Project</th>
+                    </tr>
+                </thead>
+                <tbody id="enquiryTableBody">
+                    @php $rowIndex = 0; @endphp
+                    @forelse($enquiries as $enquiry)
+                        <tr>
+                            <td>{{ $enquiry->formatted_id }}</td>
+                            <td>{{ $enquiry->date_received ? \Carbon\Carbon::parse($enquiry->date_received)->format('M d, Y \a\t h:i A') : '-' }}</td>
+                            <td>{{ $enquiry->expected_delivery_date ? date('Y-m-d', strtotime($enquiry->expected_delivery_date)) : '-' }}</td>
+                            <td>{{ $enquiry->client_name }}</td>
+                            <td>{{ $enquiry->project_name }}</td>
+                            <td>
+                                @if($enquiry->project_deliverables)
+                                    @php
+                                        $deliverables = array_filter(
+                                            preg_split('/\r\n|\r|\n/', $enquiry->project_deliverables),
+                                            fn($item) => trim($item) !== ''
+                                        );
+                                        $totalDeliverables = count($deliverables);
+                                    @endphp
+                                    @if($totalDeliverables > 0)
+                                        <button type="button" 
+                                                class="btn btn-xs btn-outline-primary"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deliverablesModal{{ $enquiry->id }}">
+                                            View Deliverables
+                                        </button>
+
+                                        <!-- Deliverables Modal -->
+                                        <div class="modal fade" id="deliverablesModal{{ $enquiry->id }}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Deliverables for {{ $enquiry->formatted_id }}</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <ul class="list-unstyled mb-0">
+                                                            @foreach($deliverables as $deliverable)
+                                                                <li class="mb-2">
+                                                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                                                    {{ $deliverable }}
+                                                                </li>
+                                                            @endforeach
+                                                        </ul>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
+                            <td>{{ $enquiry->contact_person ?? '-' }}</td>
+                            <td>{{ $enquiry->status }}</td>
+                            <td>{{ $enquiry->assigned_po ?? '-' }}</td>
+                            <td>
+                                @if($enquiry->follow_up_notes)
                                     <button type="button" 
-                                            class="btn btn-xs btn-outline-primary"
+                                            class="btn btn-xs btn-outline-info"
                                             data-bs-toggle="modal" 
-                                            data-bs-target="#deliverablesModal{{ $enquiry->id }}">
-                                        View Deliverables
+                                            data-bs-target="#notesModal{{ $enquiry->id }}">
+                                        View Notes
                                     </button>
 
-                                    <!-- Deliverables Modal -->
-                                    <div class="modal fade" id="deliverablesModal{{ $enquiry->id }}" tabindex="-1" aria-hidden="true">
-                                        <div class="modal-dialog modal-dialog-centered">
+                                    <!-- Notes Modal -->
+                                    <div class="modal fade" id="notesModal{{ $enquiry->id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered modal-lg">
                                             <div class="modal-content">
                                                 <div class="modal-header">
-                                                    <h5 class="modal-title">Deliverables for {{ $enquiry->formatted_id }}</h5>
+                                                    <h5 class="modal-title">Notes for {{ $enquiry->formatted_id }}</h5>
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
                                                 <div class="modal-body">
-                                                    <ul class="list-unstyled mb-0">
-                                                        @foreach($deliverables as $deliverable)
-                                                            <li class="mb-2">
-                                                                <i class="fas fa-check-circle text-success me-2"></i>
-                                                                {{ $deliverable }}
-                                                            </li>
-                                                        @endforeach
-                                                    </ul>
+                                                    <div class="p-3 bg-light rounded">
+                                                        {!! nl2br(e($enquiry->follow_up_notes)) !!}
+                                                    </div>
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -469,259 +481,191 @@
                                 @else
                                     <span class="text-muted">-</span>
                                 @endif
-                            @else
-                                <span class="text-muted">-</span>
-                            @endif
-                        </td>
-                        <td>{{ $enquiry->contact_person ?? '-' }}</td>
-                        <td>{{ $enquiry->status }}</td>
-                        <td>{{ $enquiry->assigned_po ?? '-' }}</td>
-                        <td>
-                            @if($enquiry->follow_up_notes)
-                                <button type="button" 
-                                        class="btn btn-xs btn-outline-info"
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#notesModal{{ $enquiry->id }}">
-                                    View Notes
-                                </button>
-
-                                <!-- Notes Modal -->
-                                <div class="modal fade" id="notesModal{{ $enquiry->id }}" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered modal-lg">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title">Notes for {{ $enquiry->formatted_id }}</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <div class="p-3 bg-light rounded">
-                                                    {!! nl2br(e($enquiry->follow_up_notes)) !!}
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @else
-                                <span class="text-muted">-</span>
-                            @endif
-                        </td>
-                        <td>{{ $enquiry->project_id ?? '-' }}</td>
-                        <td class="actions">
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-xs btn-outline-info" data-bs-toggle="modal" data-bs-target="#editEnquiryModal{{ $enquiry->id }}" title="Edit">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <form action="{{ route('enquiries.destroy', $enquiry) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-xs btn-outline-danger" onclick="return confirm('Are you sure you want to delete this enquiry?')" title="Delete">
-                                        <i class="bi bi-trash"></i> 
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                        <td class="text-center">
-                            @if ($enquiry->converted_to_project_id)
-                                <div class="d-flex flex-column align-items-center gap-1">
-                                    <span class="bg-info border rounded px-1 py-1 d-flex align-items-center">
-                                        <i class="bi bi-check-circle-fill me-1"></i>
-                                        Converted
-                                    </span>
-                                    <a href="{{ route('projects.index', $enquiry->converted_to_project_id) }}" 
-                                       class="btn btn-sm btn-outline-primary btn-sm"
-                                       data-bs-toggle="tooltip" 
-                                       title="View Project #{{ $enquiry->converted_to_project_id }}">
-                                        <i class="bi bi-box-arrow-up-right me-1"></i> View
-                                    </a>
-                                </div>
-                            @else
-                                <form action="{{ route('projects.convertFromEnquiry', $enquiry->id) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    <button type="submit" 
-                                            class="btn btn-sm btn-success px-3" 
-                                            onclick="return confirm('Convert this enquiry to a project?')" 
-                                            data-bs-toggle="tooltip" 
-                                            title="Convert to Project">
-                                        <i class="bi bi-arrow-right-circle me-1"></i> Convert
-                                    </button>
-                                </form>
-                            @endif
                             </td>
-                        </tr>
-
-                    <!-- Edit Enquiry Modal -->
-                        <div class="modal fade" id="editEnquiryModal{{ $enquiry->id }}" tabindex="-1" aria-labelledby="editEnquiryModalLabel{{ $enquiry->id }}" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered modal-lg">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="editEnquiryModalLabel{{ $enquiry->id }}">Edit Enquiry</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    @if ($errors->any())
-                                        <div class="alert alert-danger">
-                                            <strong>There were some problems with your input.</strong>
-                                            <ul>
-                                                @foreach ($errors->all() as $error)
-                                                    <li>{{ $error }}</li>
-                                                @endforeach
-                                            </ul>
-                                        </div>
+                            <td>{{ $enquiry->project_id ?? '-' }}</td>
+                            <td class="actions">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-xs btn-outline-info" data-bs-toggle="modal" data-bs-target="#editEnquiryModal{{ $enquiry->id }}" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    @if(auth()->user()->hasRole('super-admin'))
+                                        <form action="{{ route('enquiries.destroy', ['enquiry' => $enquiry->id]) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-xs btn-outline-danger" onclick="return confirm('Are you sure you want to delete this enquiry?')" title="Delete">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
                                     @endif
-
-                                    <form id="editEnquiryForm{{ $enquiry->id }}" action="{{ route('enquiries.update', $enquiry) }}" method="POST" class="edit-enquiry-form">
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                @if ($enquiry->converted_to_project_id)
+                                    <div class="d-flex flex-column align-items-center gap-1">
+                                        <span class="bg-info border rounded px-1 py-1 d-flex align-items-center">
+                                            <i class="bi bi-check-circle-fill me-1"></i>
+                                            Converted
+                                        </span>
+                                        <a href="{{ route('projects.index', $enquiry->converted_to_project_id) }}" 
+                                        class="btn btn-sm btn-outline-primary btn-sm"
+                                        data-bs-toggle="tooltip" 
+                                        title="View Project #{{ $enquiry->converted_to_project_id }}">
+                                            <i class="bi bi-box-arrow-up-right me-1"></i> View
+                                        </a>
+                                    </div>
+                                @else
+                                    <form action="{{ route('projects.convertFromEnquiry', $enquiry->id) }}" method="POST" class="d-inline">
                                         @csrf
-                                        @method('PUT')
+                                        <button type="submit" 
+                                                class="btn btn-sm btn-success px-3" 
+                                                onclick="return confirm('Convert this enquiry to a project?')" 
+                                                data-bs-toggle="tooltip" 
+                                                title="Convert to Project">
+                                            <i class="bi bi-arrow-right-circle me-1"></i> Convert
+                                        </button>
+                                    </form>
+                                @endif
+                                </td>
+                            </tr>
 
-                                        <div class="row g-3">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="date_received" class="form-label">Date Received<span class="text-danger">*</span></label>
-                                                    <input type="date" name="date_received" id="date_received" class="form-control" required value="{{ $enquiry->date_received ? date('Y-m-d', strtotime($enquiry->date_received)) : '' }}">
-                                                </div>
+                        <!-- Edit Enquiry Modal -->
+                            <div class="modal fade" id="editEnquiryModal{{ $enquiry->id }}" tabindex="-1" aria-labelledby="editEnquiryModalLabel{{ $enquiry->id }}" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="editEnquiryModalLabel{{ $enquiry->id }}">Edit Enquiry</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        @if ($errors->any())
+                                            <div class="alert alert-danger">
+                                                <strong>There were some problems with your input.</strong>
+                                                <ul>
+                                                    @foreach ($errors->all() as $error)
+                                                        <li>{{ $error }}</li>
+                                                    @endforeach
+                                                </ul>
                                             </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="expected_delivery_date" class="form-label">Expected Delivery Date<span class="text-danger">*</span></label>
-                                                    <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="form-control" required value="{{ $enquiry->expected_delivery_date ? date('Y-m-d', strtotime($enquiry->expected_delivery_date)) : '' }}">
-                                                </div>
-                                            </div>
-                                        </div>
+                                        @endif
 
-                                        <div class="row g-3">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="client_name" class="form-label">Client Name<span class="text-danger">*</span></label>
-                                                    <input type="text" name="client_name" id="client_name" class="form-control" required value="{{ $enquiry->client_name }}">
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="project_name" class="form-label">Project Name<span class="text-danger">*</span></label>
-                                                    <input type="text" name="project_name" id="project_name" class="form-control" required value="{{ $enquiry->project_name }}">
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <form id="editEnquiryForm{{ $enquiry->id }}" action="{{ route('enquiries.update', $enquiry) }}" method="POST" class="edit-enquiry-form">
+                                            @csrf
+                                            @method('PUT')
 
-                                        <div class="row g-3">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="status" class="form-label">Status<span class="text-danger">*</span></label>
-                                                    <select name="status" id="status" class="form-select" required>
-                                                        @foreach(['Open', 'Quoted', 'Approved', 'Declined'] as $status)
-                                                            <option value="{{ $status }}" {{ $enquiry->status == $status ? 'selected' : '' }}>{{ $status }}</option>
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="date_received" class="form-label">Date Received<span class="text-danger">*</span></label>
+                                                        <input type="date" name="date_received" id="date_received" class="form-control" required value="{{ $enquiry->date_received ? date('Y-m-d', strtotime($enquiry->date_received)) : '' }}">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="expected_delivery_date" class="form-label">Expected Delivery Date<span class="text-danger">*</span></label>
+                                                        <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="form-control" required value="{{ $enquiry->expected_delivery_date ? date('Y-m-d', strtotime($enquiry->expected_delivery_date)) : '' }}">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="client_name" class="form-label">Client Name<span class="text-danger">*</span></label>
+                                                        <input type="text" name="client_name" id="client_name" class="form-control" required value="{{ $enquiry->client_name }}">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="project_name" class="form-label">Project Name<span class="text-danger">*</span></label>
+                                                        <input type="text" name="project_name" id="project_name" class="form-control" required value="{{ $enquiry->project_name }}">
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="status" class="form-label">Status<span class="text-danger">*</span></label>
+                                                        <select name="status" id="status" class="form-select" required>
+                                                            @foreach(['Open', 'Quoted', 'Approved', 'Declined'] as $status)
+                                                                <option value="{{ $status }}" {{ $enquiry->status == $status ? 'selected' : '' }}>{{ $status }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="project_officer_id" class="form-label">Project Officer<span class="text-danger">*</span></label>
+                                                    <select name="assigned_po" class="form-select" required>
+                                                        <option value="">-- Select Officer --</option>
+                                                        @foreach($users as $user)
+                                                            <option value="{{ $user->name }}" {{ $enquiry->assigned_po == $user->name ? 'selected' : '' }}>
+                                                                {{ $user->name }}
+                                                            </option>
                                                         @endforeach
                                                     </select>
                                                 </div>
                                             </div>
-                                            <div class="col-md-6">
-                                                <label for="project_officer_id" class="form-label">Project Officer<span class="text-danger">*</span></label>
-                                                <select name="assigned_po" class="form-select" required>
-                                                    <option value="">-- Select Officer --</option>
-                                                    @foreach($users as $user)
-                                                        <option value="{{ $user->name }}" {{ $enquiry->assigned_po == $user->name ? 'selected' : '' }}>
-                                                            {{ $user->name }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                        </div>
 
-                                        <div class="row g-3">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="project_deliverables" class="form-label">Project Deliverables<span class="text-danger">*</span></label>
-                                                    <textarea name="project_deliverables" id="project_deliverables" class="form-control" rows="4" required>{{ $enquiry->project_deliverables }}</textarea>
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="project_deliverables" class="form-label">Project Deliverables<span class="text-danger">*</span></label>
+                                                        <textarea name="project_deliverables" id="project_deliverables" class="form-control" rows="4" required>{{ $enquiry->project_deliverables }}</textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="follow_up_notes" class="form-label">Follow-Up Notes<span class="text-danger">*</span></label>
+                                                        <textarea name="follow_up_notes" id="follow_up_notes" class="form-control" rows="4" required>{{ $enquiry->follow_up_notes }}</textarea>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="follow_up_notes" class="form-label">Follow-Up Notes<span class="text-danger">*</span></label>
-                                                    <textarea name="follow_up_notes" id="follow_up_notes" class="form-control" rows="4" required>{{ $enquiry->follow_up_notes }}</textarea>
-                                                </div>
-                                            </div>
-                                        </div>
 
-                                        <div class="row g-3">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="contact_person" class="form-label">Contact Person<span class="text-danger">*</span></label>
-                                                    <input type="text" name="contact_person" id="contact_person" class="form-control" required value="{{ $enquiry->contact_person }}">
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="contact_person" class="form-label">Contact Person<span class="text-danger">*</span></label>
+                                                        <input type="text" name="contact_person" id="contact_person" class="form-control" required value="{{ $enquiry->contact_person }}">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label for="project_id" class="form-label">Project ID</label>
+                                                        <input type="text" name="project_id" id="project_id" class="form-control" value="{{ $enquiry->project_id }}">
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label for="project_id" class="form-label">Project ID</label>
-                                                    <input type="text" name="project_id" id="project_id" class="form-control" value="{{ $enquiry->project_id }}">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </form>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-xs btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                                    <button type="submit" form="editEnquiryForm{{ $enquiry->id }}" class="btn btn-xs btn-outline-info">Update Enquiry</button>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-xs btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" form="editEnquiryForm{{ $enquiry->id }}" class="btn btn-xs btn-outline-info">Update Enquiry</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                @empty
-                    <tr>
-                        <td colspan="12" class="text-center">No enquiries found.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
+                    @empty
+                        <tr>
+                            <td colspan="12" class="text-center">No enquiries found.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
 
-    <div class="d-flex justify-content-between mt-3">
-        <div>Showing {{ $enquiries->count() }} enquiries</div>
-        {{ $enquiries->links('pagination::bootstrap-5') }}
-    </div>
+        <div class="d-flex justify-content-between mt-3">
+            <div>Showing {{ $enquiries->count() }} enquiries</div>
+            {{ $enquiries->links('pagination::bootstrap-5') }}
+        </div>
+
+    
 
     @push('styles')
-        <style>
-            @keyframes fadeInUp {
-                from {
-                    opacity: 0;
-                    transform: translateY(20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-            .table-animate {
-                animation: fadeInUp 0.6s ease-out forwards;
-                opacity: 0;
-            }
-        </style>
-    @endpush
-
-    @push('scripts')
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
     @endpush
 </div>
 
 <script>
     $(document).ready(function() {
-        // Add animation to table rows
-        function animateTableRows() {
-            $('table tbody tr').each(function() {
-                $(this).css('opacity', '0');
-                $(this).css('transform', 'translateY(10px)');
-                $(this).css('animation', 'fadeIn 0.5s ease-in-out forwards');
-                $(this).css('animation-delay', $(this).index() * 0.05 + 's');
-            });
-        }
-        
-        // Initialize animations
-        animateTableRows();
-        
-        // Re-run animations when table is updated (e.g., after search, sort, etc.)
         $(document).on('table:updated', function() {
             animateTableRows();
         });
@@ -743,12 +687,13 @@
             const url = $form.attr('action');
             const method = $form.find('input[name="_method"]').val() || 'POST';
             
-            console.log('Form submitted:', { url, method, formData });
-            
             // Show loading state
             const $submitBtn = $form.find('button[type="submit"]');
             const originalBtnText = $submitBtn.html();
             $submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...');
+            
+            // Clear previous errors
+            $form.find('.alert').remove();
             
             // Handle form submission
             $.ajax({
@@ -757,12 +702,11 @@
                 data: formData,
                 dataType: 'json',
                 success: function(response) {
-                    console.log('Form submission successful', response);
-                    $modal.modal('hide');
-                    window.location.reload();
+                    $modal.one('hidden.bs.modal', function() {
+                        window.location.reload();
+                    }).modal('hide');
                 },
                 error: function(xhr, status, error) {
-                    console.error('Form submission error:', status, error);
                     let errorHtml = '<div class="alert alert-danger"><ul>';
                     
                     if (xhr.responseJSON && xhr.responseJSON.errors) {
@@ -771,14 +715,12 @@
                         });
                     } else {
                         errorHtml += '<li>An error occurred. Please try again.</li>';
-                        console.log('Response:', xhr.responseText);
                     }
                     
                     errorHtml += '</ul></div>';
-                    $form.find('.alert').remove();
                     $form.prepend(errorHtml);
-                },
-                complete: function() {
+                    
+                    // Re-enable the submit button
                     $submitBtn.prop('disabled', false).html(originalBtnText);
                 }
             });
@@ -791,6 +733,18 @@
             const $form = $(this).find('form');
             $form[0].reset();
             $form.find('.alert').remove();
+            
+            // Reset any select2 elements if they exist
+            if ($.fn.select2) {
+                $form.find('select.select2').val(null).trigger('change');
+            }
+        });
+        
+        // Initialize modals with proper backdrop handling
+        $('.modal').modal({
+            backdrop: 'static',
+            keyboard: true,
+            show: false
         });
 
         // Initialize tooltips
@@ -835,6 +789,7 @@
                 }
             });
     });
+    
 
 
 </script>

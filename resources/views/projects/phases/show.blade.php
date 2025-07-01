@@ -553,9 +553,11 @@
                                     <form action="{{ route('attachments.delete', $file->id) }}" method="POST" onsubmit="return confirm('Delete this file?');">
                                         @csrf
                                         @method('DELETE')
+                                        @if(auth()->user()->hasRole('super-admin'))
                                         <button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Delete this file?');">
                                             <i class="bi bi-trash"></i>
                                         </button>
+                                        @endif
                                     </form>
                                 </div>
                             @empty

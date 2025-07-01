@@ -25,7 +25,8 @@ class EnquiryLogController extends Controller
      */
     public function create(Project $project)
     {
-        return view('projects.enquiry-log.create', compact('project'));
+        $enquiry = $project->enquiry;
+        return view('projects.enquiry-log.create', compact('project', 'enquiry'));
     }
 
     /**
@@ -67,7 +68,8 @@ class EnquiryLogController extends Controller
         //     abort(404);
         // }
         
-        return view('projects.enquiry-log.edit', compact('project', 'enquiryLog'));
+        $enquiry = $project->enquiry;
+        return view('projects.enquiry-log.edit', compact('project', 'enquiryLog', 'enquiry'));
     }
 
     /**

@@ -211,7 +211,6 @@
                     ['name' => 'Design & Concept Development', 'icon' => 'bi-brush'],
                     ['name' => 'Project Material List', 'icon' => 'bi-list-task'],
                     ['name' => 'Budget & Quotation', 'icon' => 'bi-cash-coin'],
-                    ['name' => 'Procurement & Inventory', 'icon' => 'bi-box-seam'],
                     ['name' => 'Production', 'icon' => 'bi-gear'],
                     ['name' => 'Logistics', 'icon' => 'bi-truck'],
                     ['name' => 'Event Setup & Execution', 'icon' => 'bi-tools'],
@@ -268,6 +267,55 @@
                                 View and manage quotation documents
                             </p>
                             <a href="{{ route('projects.quotation.index', ['project' => $project->id]) }}" class="btn btn-sm btn-outline-primary w-100">
+                                <span>Open</span>
+                                <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+
+                            @elseif($phase['name'] == 'Event Setup & Execution')
+                            <p class="phase-description small text-muted mb-2">
+                                View and manage setup and execution documents
+                            </p>
+                            <a href="{{ route('projects.files.setup', $project) }}" class="btn btn-sm btn-outline-primary w-100">
+                                <span>Open</span>
+                                <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        @elseif($phase['name'] == 'Client Handover')
+                            <p class="phase-description small text-muted mb-2">
+                                View and manage client handover documents
+                            </p>
+                            <a href="{{ route('projects.handover.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
+                                <span>Open</span>
+                                <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        @elseif($phase['name'] == 'Set Down & Return')
+                            <p class="phase-description small text-muted mb-2">
+                                View and manage set down and return documents
+                            </p>
+                            <a href="{{ route('projects.set-down-return.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
+                                <span>Open</span>
+                                <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        @elseif($phase['name'] == 'Production')
+                            <p class="phase-description small text-muted mb-2">
+                                Manage job briefs and production workflows
+                            </p>
+                            <a href="{{ route('projects.production.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
+                                <span>Open</span>
+                                <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        @elseif($phase['name'] == 'Client Handover')
+                            <p class="phase-description small text-muted mb-2">
+                                Manage client handover documents and sign-offs
+                            </p>
+                            <a href="{{ route('projects.handover.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
+                                <span>Open</span>
+                                <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        @elseif($phase['name'] == 'Archival & Reporting')
+                            <p class="phase-description small text-muted mb-2">
+                                Access final project reports and archives
+                            </p>
+                            <a href="{{ route('projects.archival.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
                                 <span>Open</span>
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>

@@ -2,7 +2,7 @@
 @section('title', 'Create Project Material-List')
 
 @section('content')
-<div class="container-fluid p-0">
+<div class="container-fluid p-2">
     <div class="mb-3">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
@@ -56,9 +56,11 @@
                             <input type="date" class="form-control" name="end_date" value="{{ old('end_date', $project->end_date) }}">
                         </div>
                     </div>
-
-                    <div class="mb-4">
-                        <h5>Materials - Production</h5>
+                    <hr class="my-4">
+                    <div class="section-card section-production">
+                        <h5 class="section-header">
+                            <i class="bi bi-box-seam me-2"></i>Materials - Production
+                        </h5>
                         <div id="items-wrapper">
                             <div class="item-group border rounded p-3 mb-3">
                                 <div class="mb-2">
@@ -77,24 +79,21 @@
                                         </tr>
                                     </thead>
                                     <tbody class="particulars-body">
-                                        <tr>
-                                            <td><input type="text" name="production_items[0][particulars][0][particular]" class="form-control"></td>
-                                            <td><input type="text" name="production_items[0][particulars][0][unit]" class="form-control"></td>
-                                            <td><input type="number" step="0.01" name="production_items[0][particulars][0][quantity]" class="form-control"></td>
-                                            <td><input type="text" name="production_items[0][particulars][0][comment]" class="form-control"></td>
-                                            <td><input type="text" name="production_items[0][particulars][0][design_reference]" class="form-control"></td>
-                                            <td><button type="button" class="btn btn-danger btn-sm remove-row">Remove</button></td>
-                                        </tr>
+                                        <!-- Rows will be added dynamically -->
                                     </tbody>
                                 </table>
                                 <button type="button" class="btn btn-success btn-sm add-particular">+ Add Particular</button>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-primary btn-sm" id="addItemGroup">+ Add Item</button>
+                        <button type="button" class="btn btn-primary btn-sm btn-add-item" id="addItemGroup">
+                            <i class="bi bi-plus-circle"></i> Add Item
+                        </button>
                     </div>
-
-                    <div class="mb-4">
-                        <h5>Materials for Hire</h5>
+                    <hr class="my-4">
+                    <div class="section-card section-hire">
+                        <h5 class="section-header">
+                            <i class="bi bi-tools me-2"></i>Materials for Hire
+                        </h5>
                         <table class="table table-bordered" id="materialsHireTable">
                             <thead>
                                 <tr>
@@ -106,16 +105,12 @@
                                 </tr>
                             </thead>
                             <tbody id="materialsHireBody">
-                                <tr>
-                                    <td><input type="text" name="materials_hire[0][particular]" class="form-control"></td>
-                                    <td><input type="text" name="materials_hire[0][unit]" class="form-control"></td>
-                                    <td><input type="number" step="0.01" name="materials_hire[0][quantity]" class="form-control"></td>
-                                    <td><input type="text" name="materials_hire[0][comment]" class="form-control"></td>
-                                    <td><button type="button" class="btn btn-danger btn-sm remove-row">Remove</button></td>
-                                </tr>
+                                <!-- Rows will be added dynamically -->
                             </tbody>
                         </table>
-                        <button type="button" class="btn btn-success btn-sm" id="addHireRow">+ Add Row</button>
+                        <button type="button" class="btn btn-success btn-sm btn-add-item" id="addHireRow">
+                            <i class="bi bi-plus-circle"></i> Add Row
+                        </button>
                     </div>
 
                     @php
@@ -128,8 +123,10 @@
                     @endphp
 
                     @foreach($subCategories as $category => $roles)
-                        <div class="mb-4">
-                            <h5>{{ $category }}</h5>
+                        <div class="section-card section-labor">
+                            <h5 class="section-header">
+                                <i class="bi bi-people me-2"></i>{{ $category }}
+                            </h5>
                             <table class="table table-bordered">
                                 <thead>
                                     <tr>
@@ -155,10 +152,10 @@
 
                     <div class="mb-4">
                         <label for="approved_by">Approved By</label>
-                        <input type="text" name="approved_by" class="form-control mb-2">
+                        <input type="text" name="approved_by" class="form-control mb-2 required" required>
 
                         <label for="approved_departments">Departments (comma-separated)</label>
-                        <input type="text" name="approved_departments" class="form-control" placeholder="Production, Finance">
+                        <input type="text" name="approved_departments" class="form-control" placeholder="Production, Finance" required>
                     </div>
 
                     <div class="d-flex justify-content-between mt-4 pt-3 border-top">
@@ -181,6 +178,53 @@
 </div>
 @endsection
 
+@push('styles')
+<style>
+    .section-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .section-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .section-production {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-left: 4px solid #4e73df;
+    }
+    
+    .section-hire {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-left: 4px solid #36b9cc;
+    }
+    
+    .section-labor {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-left: 4px solid #1cc88a;
+    }
+    
+    .section-header {
+        color: #2e59d9;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #e3e6f0;
+    }
+    
+    .btn-add-item {
+        border-radius: 20px;
+        font-weight: 500;
+        padding: 0.4rem 1.25rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
@@ -198,14 +242,9 @@
         $('#addItemGroup').on('click', function() {
             const newGroup = `
             <div class="item-group border rounded p-3 mb-3">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div class="flex-grow-1 me-2">
-                        <label class="form-label">Item</label>
-                        <input type="text" name="production_items[${itemIndex}][item_name]" class="form-control" placeholder="e.g. Table" required>
-                    </div>
-                    <button type="button" class="btn btn-danger btn-sm remove-item-group" style="margin-top: 1.5rem;">
-                        <i class="bi bi-trash"></i> Remove Item
-                    </button>
+                <div class="mb-2">
+                    <label>Item</label>
+                    <input type="text" name="production_items[${itemIndex}][item_name]" class="form-control" placeholder="e.g. Table">
                 </div>
                 <table class="table table-bordered">
                     <thead>
@@ -219,14 +258,7 @@
                         </tr>
                     </thead>
                     <tbody class="particulars-body">
-                        <tr>
-                            <td><input type="text" name="production_items[${itemIndex}][particulars][0][particular]" class="form-control" required></td>
-                            <td><input type="text" name="production_items[${itemIndex}][particulars][0][unit]" class="form-control" required></td>
-                            <td><input type="number" step="0.01" name="production_items[${itemIndex}][particulars][0][quantity]" class="form-control" required></td>
-                            <td><input type="text" name="production_items[${itemIndex}][particulars][0][comment]" class="form-control"></td>
-                            <td><input type="text" name="production_items[${itemIndex}][particulars][0][design_reference]" class="form-control"></td>
-                            <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="bi bi-trash"></i></button></td>
-                        </tr>
+                        <!-- Rows will be added dynamically -->
                     </tbody>
                 </table>
                 <button type="button" class="btn btn-success btn-sm add-particular">
@@ -234,48 +266,161 @@
                 </button>
             </div>`;
             
-            $('#items-wrapper').append(newGroup);
-            particularCounters[itemIndex] = 1; // Initialize counter for this item
+            const $newGroup = $(newGroup);
+            $('#items-wrapper').append($newGroup);
+            particularCounters[itemIndex] = 0; // Initialize counter for this item
+            
+            // Add the first particular row
+            $newGroup.find('.add-particular').trigger('click');
+            
             itemIndex++;
         });
 
+        // Function to load inventory items into dropdown
+        function loadInventoryDropdown(selectElement, selectedValue = '') {
+            // Show loading state
+            selectElement.prop('disabled', true).html('<option value="">Loading items...</option>');
+            
+            $.ajax({
+                url: '{{ route("api.inventory.items") }}',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    // Store current value
+                    const currentValue = selectElement.val();
+                    
+                    // Clear existing options
+                    selectElement.empty();
+                    
+                    // Add default option
+                    selectElement.append($('<option>', {
+                        value: '',
+                        text: '-- Select an item --',
+                        disabled: true,
+                        selected: !currentValue && !selectedValue
+                    }));
+                    
+                    // Add inventory items
+                    data.forEach(item => {
+                        const option = $('<option>', {
+                            value: item.name,
+                            text: item.name,
+                            'data-unit': item.unit_of_measure || ''
+                        });
+                        
+                        // Mark as selected if it matches the current or selected value
+                        if ((selectedValue && item.name === selectedValue) || 
+                            (!selectedValue && currentValue === item.name)) {
+                            option.prop('selected', true);
+                        }
+                        
+                        selectElement.append(option);
+                    });
+                    
+                    // Enable the select
+                    selectElement.prop('disabled', false);
+                    
+                    // Trigger change to update unit field if needed
+                    if (selectedValue || currentValue) {
+                        selectElement.trigger('change');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading inventory items:', error);
+                    selectElement.empty().append($('<option>', {
+                        value: '',
+                        text: 'Error loading items. Please refresh the page.',
+                        disabled: true
+                    }));
+                }
+            });
+        }
+
         // Add particular to item group
         $(document).on('click', '.add-particular', function() {
-            const group = $(this).closest('.item-group');
-            const groupIndex = $('.item-group').index(group);
-            const tbody = group.find('.particulars-body');
-            
-            // Initialize counter for this group if it doesn't exist
-            if (typeof particularCounters[groupIndex] === 'undefined') {
-                particularCounters[groupIndex] = tbody.find('tr').length;
-            }
+            const $itemGroup = $(this).closest('.item-group');
+            const itemIndex = $itemGroup.index();
+            const particularIndex = particularCounters[itemIndex] || 0;
             
             const newRow = `
-            <tr>
-                <td><input type="text" name="production_items[${groupIndex}][particulars][${particularCounters[groupIndex]}][particular]" class="form-control" required></td>
-                <td><input type="text" name="production_items[${groupIndex}][particulars][${particularCounters[groupIndex]}][unit]" class="form-control" required></td>
-                <td><input type="number" step="0.01" name="production_items[${groupIndex}][particulars][${particularCounters[groupIndex]}][quantity]" class="form-control" required></td>
-                <td><input type="text" name="production_items[${groupIndex}][particulars][${particularCounters[groupIndex]}][comment]" class="form-control"></td>
-                <td><input type="text" name="production_items[${groupIndex}][particulars][${particularCounters[groupIndex]}][design_reference]" class="form-control"></td>
-                <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="bi bi-trash"></i></button></td>
-            </tr>`;
+                <tr>
+                    <td>
+                        <select name="production_items[${itemIndex}][particulars][${particularIndex}][particular]" class="form-select inventory-dropdown" required>
+                            <option value="" selected disabled>-- Loading items --</option>
+                        </select>
+                    </td>
+                    <td><input type="text" name="production_items[${itemIndex}][particulars][${particularIndex}][unit]" class="form-control unit-field" readonly></td>
+                    <td><input type="number" step="0.01" name="production_items[${itemIndex}][particulars][${particularIndex}][quantity]" class="form-control" required></td>
+                    <td><input type="text" name="production_items[${itemIndex}][particulars][${particularIndex}][comment]" class="form-control"></td>
+                    <td><input type="text" name="production_items[${itemIndex}][particulars][${particularIndex}][design_reference]" class="form-control"></td>
+                    <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="bi bi-trash"></i></button></td>
+                </tr>`;
             
-            tbody.append(newRow);
-            particularCounters[groupIndex]++;
+            const $newRow = $(newRow);
+            $itemGroup.find('.particulars-body').append($newRow);
+            particularCounters[itemIndex] = particularIndex + 1;
+            
+            // Initialize the new row
+            initializeProductionRow($newRow);
         });
 
-        // Add hire row
+        // Function to initialize a production row
+        function initializeProductionRow($row) {
+            const $select = $row.find('.inventory-dropdown');
+            const $unitField = $row.find('.unit-field');
+            
+            // Set up the unit field to be read-only
+            $unitField.prop('readonly', true);
+            
+            // Initialize the dropdown
+            if (!$select.data('initialized')) {
+                populateDropdown($select);
+                $select.data('initialized', true);
+            }
+        }
+
+        // Function to initialize a new hire row
+        function initializeHireRow($row) {
+            const $select = $row.find('.inventory-dropdown');
+            const $unitField = $row.find('.unit-field');
+            
+            // Set up the unit field to be read-only
+            $unitField.prop('readonly', true);
+            
+            // Initialize the dropdown
+            if (!$select.data('initialized')) {
+                populateDropdown($select);
+                $select.data('initialized', true);
+            }
+        }
+        
+        // Add new hire row
         $('#addHireRow').on('click', function() {
             const newRow = `
                 <tr>
-                    <td><input type="text" name="materials_hire[${hireIndex}][particular]" class="form-control" required></td>
-                    <td><input type="text" name="materials_hire[${hireIndex}][unit]" class="form-control" required></td>
-                    <td><input type="number" step="0.01" name="materials_hire[${hireIndex}][quantity]" class="form-control" required></td>
+                    <td>
+                        <select name="materials_hire[${hireIndex}][particular]" class="form-select inventory-dropdown" required>
+                            <option value="" selected disabled>-- Loading items --</option>
+                        </select>
+                    </td>
+                    <td><input type="text" name="materials_hire[${hireIndex}][unit]" class="form-control unit-field" readonly></td>
+                    <td><input type="number" step="0.01" name="materials_hire[${hireIndex}][quantity]" class="form-control"></td>
                     <td><input type="text" name="materials_hire[${hireIndex}][comment]" class="form-control"></td>
-                    <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="bi bi-trash"></i></button></td>
+                    <td><button type="button" class="btn btn-danger btn-sm remove-row">Remove</button></td>
                 </tr>`;
-            $('#materialsHireBody').append(newRow);
+            
+            const $newRow = $(newRow);
+            $('#materialsHireBody').append($newRow);
+            
+            // Initialize the new row
+            initializeHireRow($newRow);
+            
             hireIndex++;
+        });
+        
+        // Initialize existing hire rows on page load
+        $('#materialsHireBody tr').each(function() {
+            initializeHireRow($(this));
         });
 
         // Remove row
@@ -331,5 +476,137 @@
             }
         });
     });
+
+    // Load inventory items once and cache them
+    let inventoryItems = [];
+    
+    // Function to fetch inventory items
+    function fetchInventoryItems() {
+        return new Promise((resolve, reject) => {
+            if (inventoryItems.length > 0) {
+                resolve(inventoryItems);
+                return;
+            }
+            
+            $.ajax({
+                url: '{{ route("api.inventory.items") }}',
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    inventoryItems = data;
+                    resolve(data);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading inventory items:', error);
+                    reject(error);
+                }
+            });
+        });
+    }
+    
+    // Initialize all dropdowns on page load
+    async function initializeDropdowns() {
+        try {
+            await fetchInventoryItems();
+            
+            $('.inventory-dropdown').each(function() {
+                const $select = $(this);
+                if (!$select.data('initialized')) {
+                    const currentValue = $select.val();
+                    // If dropdown has a value but wasn't initialized yet, find and set the unit
+                    if (currentValue) {
+                        const unit = findUnitOfMeasure(currentValue);
+                        if (unit) {
+                            $select.closest('tr').find('.unit-field').val(unit);
+                        }
+                    }
+                    populateDropdown($select);
+                    $select.data('initialized', true);
+                }
+            });
+        } catch (error) {
+            console.error('Failed to initialize dropdowns:', error);
+        }
+    }
+    
+    // Function to find unit of measure for an item
+    function findUnitOfMeasure(itemName) {
+        if (!itemName) return '';
+        const item = inventoryItems.find(i => i.name === itemName);
+        return item ? (item.unit_of_measure || '') : '';
+    }
+
+    // Populate a single dropdown with cached items
+    function populateDropdown($select, selectedValue = '') {
+        // Store current value if not provided
+        const currentValue = selectedValue || $select.val();
+        const $row = $select.closest('tr');
+        
+        // Clear existing options
+        $select.empty();
+        
+        // Add default option
+        $select.append($('<option>', {
+            value: '',
+            text: '-- Select an item --',
+            disabled: true,
+            selected: !currentValue
+        }));
+        
+        // Add inventory items
+        inventoryItems.forEach(item => {
+            const option = $('<option>', {
+                value: item.name,
+                text: item.name,
+                'data-unit': item.unit_of_measure || ''
+            });
+            
+            if (currentValue === item.name) {
+                option.prop('selected', true);
+                // Update unit field immediately for selected item
+                $row.find('.unit-field').val(item.unit_of_measure || '');
+            }
+            
+            $select.append(option);
+        });
+        
+        // Enable the select
+        $select.prop('disabled', false);
+        
+        // If we have a current value but no selection was made (item not found in list),
+        // still try to set the unit of measure
+        if (currentValue && !$select.val()) {
+            const unit = findUnitOfMeasure(currentValue);
+            if (unit) {
+                $row.find('.unit-field').val(unit);
+            }
+        }
+    }
+
+    // Handle dropdown change
+    $(document).on('change', '.inventory-dropdown', function() {
+        const $this = $(this);
+        const selectedOption = $this.find('option:selected');
+        const unit = selectedOption.data('unit') || findUnitOfMeasure($this.val());
+        const $unitField = $this.closest('tr').find('.unit-field').first();
+        
+        // Update the unit field
+        $unitField.val(unit || '');
+    });
+
+    // Initialize dropdowns when new rows are added
+    $(document).on('rowAdded', '.inventory-dropdown', function() {
+        const $select = $(this);
+        if (!$select.data('initialized')) {
+            populateDropdown($select);
+            $select.data('initialized', true);
+        }
+    });
+
+    // Initialize on page load
+    $(document).ready(function() {
+        initializeDropdowns();
+    });
+
 </script>
 @endpush

@@ -60,11 +60,15 @@
                             @hasanyrole('finance|accounts|super-admin')
                                 <a href="{{ route('budget.edit', [$project, $budget]) }}" class="btn btn-warning btn-sm">Edit</a>
 
-                                <form action="{{ route('budget.destroy', [$project, $budget]) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this budget?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm delete-budget">Delete</button>
-                                </form>
+                                @if(auth()->user()->hasRole('super-admin'))
+                                    <form action="{{ route('budget.destroy', ['project' => $project->id, 'budget' => $budget->id]) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm delete-budget" onclick="return confirm('Are you sure you want to delete this budget? This action cannot be undone.')">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                @endif
                             @endhasanyrole
                         </td>
                     </tr>

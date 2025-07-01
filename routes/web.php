@@ -9,7 +9,8 @@ use App\Http\Controllers\{
     projects\PhaseController, projects\ClientController, projects\DeliverableController,
     projects\ProjectController, Auth\AuthenticatedSessionController,
     projects\BookingOrderController, projects\ProjectFileController, projects\EnquiryLogController, projects\SiteSurveyController,
-    FileUploadController, QuoteController, EnquiryController, projects\ProjectBudgetController, MaterialListController
+    FileUploadController, QuoteController, EnquiryController, projects\ProjectBudgetController, MaterialListController, projects\SetupController,
+    projects\HandoverController, projects\SetDownReturnController, projects\ArchivalReportController, projects\LogisticsController, 
 };
 
 Route::get('/', fn () => view('auth.login'));
@@ -75,6 +76,83 @@ Route::middleware(['auth', 'role:store|storeadmin|procurement|super-admin'])->pr
     Route::get('/defective-items', [DefectiveItemController::class, 'index'])->name('defective_items.index');
     Route::post('/defective-items', [DefectiveItemController::class, 'store'])->name('defective_items.store');
 });
+
+
+// francis
+// Setup Module Routes
+Route::prefix('projects/{project}/setup')->name('projects.setup.')->group(function () {
+    // Setup Reports
+    Route::get('/', [\App\Http\Controllers\projects\SetupController::class, 'index'])
+        ->name('index');
+    
+    // Store new setup report
+    Route::post('/', [\App\Http\Controllers\projects\SetupController::class, 'store'])
+        ->name('store');
+    
+    // Delete setup report
+    Route::delete('/{setupReport}', [\App\Http\Controllers\projects\SetupController::class, 'destroy'])
+        ->name('destroy');
+});
+
+// Handover Module Routes
+Route::prefix('projects/{project}/handover')->name('projects.handover.')->group(function () {
+    // Handover Reports
+    Route::get('/', [\App\Http\Controllers\projects\HandoverController::class, 'index'])
+        ->name('index');
+    
+    // Store new handover report
+    Route::post('/', [\App\Http\Controllers\projects\HandoverController::class, 'store'])
+        ->name('store');
+    
+    // Delete handover report
+    Route::delete('/{handoverReport}', [\App\Http\Controllers\projects\HandoverController::class, 'destroy'])
+        ->name('destroy');
+});
+
+// Set Down & Return Module Routes
+Route::prefix('projects/{project}/set-down-return')->name('projects.set-down-return.')->group(function () {
+    // Set Down & Return Reports
+    Route::get('/', [\App\Http\Controllers\projects\SetDownReturnController::class, 'index'])
+        ->name('index');
+    
+    // Store new set down return report
+    Route::post('/', [\App\Http\Controllers\projects\SetDownReturnController::class, 'store'])
+        ->name('store');
+    
+    // Delete set down return report
+    Route::delete('/{setDownReturn}', [\App\Http\Controllers\projects\SetDownReturnController::class, 'destroy'])
+        ->name('destroy');
+});
+
+// Archival & Reporting Module Routes
+Route::prefix('projects/{project}/archival')->name('projects.archival.')->group(function () {
+    // View all archival reports
+    Route::get('/', [\App\Http\Controllers\projects\ArchivalReportController::class, 'index'])
+        ->name('index');
+    
+    // Store new archival report
+    Route::post('/', [\App\Http\Controllers\projects\ArchivalReportController::class, 'store'])
+        ->name('store');
+    
+    // Delete archival report
+    Route::delete('/{archivalReport}', [\App\Http\Controllers\projects\ArchivalReportController::class, 'destroy'])
+        ->name('destroy');
+});
+
+//endof francis
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Project Manager / Project Officer Routes
 Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
@@ -142,6 +220,11 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
         Route::get('files/print-template/{template}', [ProjectFileController::class, 'printTemplate'])->name('projects.files.print-template');
 
 
+        // Setup & Execution
+        Route::get('setup', [SetupController::class, 'index'])->name('setup');
+        Route::get('files/setup', [SetupController::class, 'index'])->name('projects.files.setup');
+
+
 
         Route::get('files/client-engagement', [ProjectFileController::class, 'showClientEngagement'])->name('projects.files.client-engagement');
         Route::get('files/design-concept', [ProjectFileController::class, 'showDesignConcept'])->name('projects.files.design-concept');
@@ -164,6 +247,14 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
             // Show specific material list - must come before other {materialList} routes
             Route::get('/{materialList}/show', [MaterialListController::class, 'show'])
                 ->name('show');
+                
+            // Download material list as PDF
+            Route::get('/{materialList}/download', [MaterialListController::class, 'downloadPdf'])
+                ->name('download');
+                
+            // Print material list (view in browser)
+            Route::get('/{materialList}/print', [MaterialListController::class, 'printPdf'])
+                ->name('print');
             
             // Edit material list
             Route::get('/{materialList}/edit', [MaterialListController::class, 'edit'])
@@ -235,11 +326,52 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
         Route::put('budgets/{budget}', [ProjectBudgetController::class, 'update'])->name('budget.update');
         Route::delete('budgets/{budget}', [ProjectBudgetController::class, 'destroy'])->name('budget.destroy');
         
+//francis
+
+        // Production Routes
+        Route::prefix('production')->name('projects.production.')->group(function () {
+            // Main production dashboard
+            Route::get('/', [\App\Http\Controllers\projects\ProductionController::class, 'index'])->name('index');
+            
+            // Job Brief Routes
+            Route::get('job-brief', [\App\Http\Controllers\projects\ProductionController::class, 'showJobBrief'])
+                ->name('job-brief');
+            Route::post('job-brief', [\App\Http\Controllers\projects\ProductionController::class, 'storeJobBrief'])
+                ->name('job-brief.store');
+            
+            // Status Update Route
+            Route::post('status', [\App\Http\Controllers\projects\ProductionController::class, 'updateStatus'])
+                ->name('status.update');
+            
+            // Production File Routes
+            Route::get('files', [\App\Http\Controllers\projects\ProductionController::class, 'showFiles'])->name('files');
+            Route::put('files/{production}', [\App\Http\Controllers\projects\ProductionController::class, 'updateFiles'])->name('files.update');
+            Route::delete('files/{production}', [\App\Http\Controllers\projects\ProductionController::class, 'destroyFiles'])->name('files.destroy');
+            
+            // Delete Production Record
+            Route::delete('{production}', [\App\Http\Controllers\projects\ProductionController::class, 'destroy'])->name('destroy');
+        });
+
+
+        // Archival Routes
+        Route::get('files/archival', [ProjectFileController::class, 'showArchival'])->name('projects.files.archival');
+        Route::post('files/archival', [ProjectFileController::class, 'storeArchival'])->name('projects.files.archival.store');
+        Route::put('files/archival/{archivalId}', [ProjectFileController::class, 'updateArchival'])->name('projects.files.archival.update');
+        Route::delete('files/archival/{archivalId}', [ProjectFileController::class, 'destroyArchival'])->name('projects.files.archival.destroy');
+        
+        Route::get('files/download-template/{template}', [ProjectFileController::class, 'downloadTemplate'])->name('projects.files.download-template');
+        Route::get('files/print-template/{template}', [ProjectFileController::class, 'printTemplate'])->name('projects.files.print-template');
 
 
 
     });
+    ///end of francis
 });
+
+// API Routes
+Route::get('/api/inventory/items', [\App\Http\Controllers\API\InventoryController::class, 'index'])
+    ->middleware('auth')
+    ->name('api.inventory.items');
 
 // Authenticated User Routes
 Route::middleware(['auth'])->group(function () {
@@ -253,6 +385,22 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 });
+
+use App\Models\Inventory;
+use Illuminate\Http\Request;
+
+Route::get('/api/search-inventory', function (Request $request) {
+    $q = $request->input('q');
+
+    return Inventory::search($q)
+        ->take(10)
+        ->get()
+        ->pluck('item_name')
+        ->unique()
+        ->values();
+});
+
+
 
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 

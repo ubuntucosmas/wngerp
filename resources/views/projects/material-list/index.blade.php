@@ -2,7 +2,7 @@
 @section('title', 'Project Material-List')
 
 @section('content')
-<div class="container-fluid p-0">
+<div class="container-fluid p-2">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 text-primary fw-bold">Material-List for Project: {{ $project->name }}</h1>
         <a href="{{ route('projects.material-list.create', $project) }}" class="btn btn-outline-primary">
@@ -39,13 +39,16 @@
                                     <a href="{{ route('projects.material-list.edit', [$project, $materialList]) }}" class="btn btn-sm btn-outline-warning me-1" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <form action="{{ route('projects.material-list.destroy', [$project, $materialList]) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this material list? This action cannot be undone.');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
+                                    @if(auth()->user()->hasRole('super-admin'))
+                                        <form action="{{ route('projects.material-list.destroy', ['project' => $project->id, 'materialList' => $materialList->id]) }}" method="POST" style="display: inline-block;">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"
+                                                onclick="return confirm('Are you sure you want to delete this material list? This action cannot be undone.')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    @endif
                                 </td>
                             </tr>
                         @empty

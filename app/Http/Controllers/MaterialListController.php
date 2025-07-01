@@ -8,7 +8,9 @@ use App\Models\MaterialList;
 use App\Models\ProductionItem;
 use App\Models\ProductionParticular;
 use App\Models\BudgetItem;
+use App\Models\Inventory;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class MaterialListController extends Controller
 {
@@ -21,7 +23,7 @@ class MaterialListController extends Controller
             ->withCount(['productionItems', 'materialsHire', 'labourItems'])
             ->latest()
             ->paginate(15);
-            
+
         return view('projects.material-list.index', compact('project', 'materialLists'));
     }
 
@@ -60,15 +62,27 @@ class MaterialListController extends Controller
      */
     public function create(Project $project)
     {
+        // Get distinct inventory items with their unit of measure
+        $inventoryItems = Inventory::select('item_name', 'unit_of_measure')
+            ->distinct('item_name')
+            ->orderBy('item_name')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'name' => $item->item_name,
+                    'unit_of_measure' => $item->unit_of_measure
+                ];
+            });
+    
         return view('projects.material-list.create', [
             'project' => $project,
             'materialList' => new MaterialList([
                 'start_date' => now(),
                 'end_date' => now()->addWeek(),
-            ])
+            ]),
+            'inventoryItems' => $inventoryItems
         ]);
     }
-
     /**
      * Store a newly created material list in storage.
      */
@@ -203,20 +217,21 @@ class MaterialListController extends Controller
             'approved_by' => 'required|string|max:255',
             'approved_departments' => 'required|string|max:255',
             'materials_hire' => 'sometimes|array',
-            'materials_hire.*.particular' => 'required_with:materials_hire|string|max:255',
-            'materials_hire.*.unit' => 'required_with:materials_hire.*.particular|string|max:50',
-            'materials_hire.*.quantity' => 'required_with:materials_hire.*.particular|numeric|min:0',
+            'materials_hire.*.item_name' => 'required_with:materials_hire|string|max:255',
+            'materials_hire.*.particular' => 'nullable|string|max:255',
+            'materials_hire.*.unit' => 'nullable|string|max:50',
+            'materials_hire.*.quantity' => 'nullable|numeric|min:0',
             'production_items' => 'sometimes|array',
-            'production_items.*.item_name' => 'required_with:production_items|string|max:255',
+            'production_items.*.particular' => 'nullable|string|max:255',
             'production_items.*.particulars' => 'sometimes|array',
-            'production_items.*.particulars.*.particular' => 'required_with:production_items.*.particulars|string|max:255',
-            'production_items.*.particulars.*.unit' => 'required_with:production_items.*.particulars.*.particular|string|max:50',
-            'production_items.*.particulars.*.quantity' => 'required_with:production_items.*.particulars.*.particular|numeric|min:0',
+            'production_items.*.particulars.*.particular' => 'nullable|string|max:255',
+            'production_items.*.particulars.*.unit' => 'nullable|string|max:50',
+            'production_items.*.particulars.*.quantity' => 'nullable|numeric|min:0',
             'items' => 'sometimes|array',
             'items.*' => 'array',
-            'items.*.*.particular' => 'required_with:items|string|max:255',
-            'items.*.*.unit' => 'required_with:items.*.*.particular|string|max:50',
-            'items.*.*.quantity' => 'required_with:items.*.*.particular|numeric|min:0',
+            'items.*.*.particular' => 'nullable|string|max:255',
+            'items.*.*.unit' => 'nullable|string|max:50',
+            'items.*.*.quantity' => 'nullable|numeric|min:0',
         ]);
 
         DB::beginTransaction();
@@ -277,14 +292,20 @@ class MaterialListController extends Controller
         }
         
         $materialsData = [];
+        
         foreach ($materialsHire as $item) {
-            if (!empty($item['particular'])) {
+            // Check for both item_name and particular for backward compatibility
+            $itemName = $item['item_name'] ?? $item['particular'] ?? null;
+            
+            if (!empty($itemName)) {
                 $materialsData[] = [
                     'category' => 'Materials for Hire',
-                    'particular' => $item['particular'],
+                    'item_name' => $itemName,
+                    'particular' => $item['particular'] ?? $itemName, // Use particular if exists, otherwise use item_name
                     'unit' => $item['unit'] ?? null,
                     'quantity' => $item['quantity'] ?? 0,
                     'comment' => $item['comment'] ?? null,
+                    'design_reference' => $item['design_reference'] ?? null,
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
@@ -307,13 +328,16 @@ class MaterialListController extends Controller
         }
         
         foreach ($productionItems as $item) {
-            if (empty($item['item_name'])) {
+            // Check for both item_name and particular for backward compatibility
+            $itemName = $item['item_name'] ?? $item['particular'] ?? null;
+            
+            if (empty($itemName)) {
                 continue;
             }
             
             // Create the main production item
             $productionItem = $materialList->productionItems()->create([
-                'item_name' => $item['item_name'],
+                'item_name' => $itemName,
             ]);
             
             // Add particulars if they exist
@@ -356,14 +380,33 @@ class MaterialListController extends Controller
                 continue;
             }
             
-            foreach ($items as $item) {
-                if (!empty($item['particular'])) {
+            // Handle both indexed and associative arrays
+            if (isset($items[0]) && is_array($items[0])) {
+                // Indexed array of items
+                foreach ($items as $item) {
+                    if (!empty($item['particular'])) {
+                        $labourData[] = [
+                            'category' => $category,
+                            'item_name' => $item['particular'], // Map particular to item_name
+                            'particular' => $item['particular'],
+                            'unit' => $item['unit'] ?? null,
+                            'quantity' => $item['quantity'] ?? 0,
+                            'comment' => $item['comment'] ?? null,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ];
+                    }
+                }
+            } else {
+                // Single item
+                if (!empty($items['particular'])) {
                     $labourData[] = [
                         'category' => $category,
-                        'particular' => $item['particular'],
-                        'unit' => $item['unit'] ?? null,
-                        'quantity' => $item['quantity'] ?? 0,
-                        'comment' => $item['comment'] ?? null,
+                        'item_name' => $items['particular'], // Map particular to item_name
+                        'particular' => $items['particular'],
+                        'unit' => $items['unit'] ?? null,
+                        'quantity' => $items['quantity'] ?? 0,
+                        'comment' => $items['comment'] ?? null,
                         'created_at' => now(),
                         'updated_at' => now(),
                     ];
@@ -372,8 +415,65 @@ class MaterialListController extends Controller
         }
         
         if (!empty($labourData)) {
-            // Use labourItems relationship
             $materialList->labourItems()->createMany($labourData);
         }
+    }
+    
+    /**
+     * Download the material list as PDF
+     */
+    public function downloadPdf(Project $project, MaterialList $materialList)
+    {
+        // Verify the material list belongs to the project
+        if ($materialList->project_id !== $project->id) {
+            abort(404);
+        }
+        
+        // Eager load all necessary relationships
+        $materialList->load([
+            'productionItems.particulars',
+            'materialsHire',
+            'labourItems'
+        ]);
+        
+        // Group labour items by category for the view
+        $labourItemsByCategory = $materialList->labourItems->groupBy('category');
+        
+        $pdf = Pdf::loadView('projects.templates.material-list', [
+            'project' => $project,
+            'materialList' => $materialList,
+            'labourItemsByCategory' => $labourItemsByCategory
+        ]);
+        
+        return $pdf->download('material-list-' . $project->id . '.pdf');
+    }
+    
+    /**
+     * Display the material list PDF in the browser
+     */
+    public function printPdf(Project $project, MaterialList $materialList)
+    {
+        // Verify the material list belongs to the project
+        if ($materialList->project_id !== $project->id) {
+            abort(404);
+        }
+        
+        // Eager load all necessary relationships
+        $materialList->load([
+            'productionItems.particulars',
+            'materialsHire',
+            'labourItems'
+        ]);
+        
+        // Group labour items by category for the view
+        $labourItemsByCategory = $materialList->labourItems->groupBy('category');
+        
+        $pdf = Pdf::loadView('projects.templates.material-list', [
+            'project' => $project,
+            'materialList' => $materialList,
+            'labourItemsByCategory' => $labourItemsByCategory
+        ]);
+        
+        return $pdf->stream('material-list-' . $project->id . '.pdf');
     }
 }

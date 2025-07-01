@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Models\User;
 use App\Models\Client;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class EnquiryController extends Controller
 {
@@ -35,7 +36,7 @@ class EnquiryController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'date_received' => 'required|date|after_or_equal:today',
+            'date_received' => 'required|date',
             'expected_delivery_date' => 'nullable|date|after_or_equal:date_received',
             'client_name' => 'required|string|max:255',
             'project_name' => 'nullable|string|max:255',
@@ -46,12 +47,15 @@ class EnquiryController extends Controller
             'follow_up_notes' => 'nullable|string',
             'project_id' => 'nullable|string|max:255',
         ]);
-
+    
+        // Parse the datetime string into a Carbon instance
+        $validated['date_received'] = Carbon::parse($request->input('date_received'));
+    
         Enquiry::create($validated);
-
-            // Redirect back with success message
+    
         return redirect()->back()->with('success', 'Enquiry created successfully.');
     }
+    
 
     public function edit(Enquiry $enquiry)
     {

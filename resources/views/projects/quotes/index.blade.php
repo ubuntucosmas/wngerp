@@ -58,13 +58,16 @@
                                             <a href="{{ route('quotes.edit', ['project' => $project->id, 'quote' => $quote->id]) }}" class="btn btn-sm btn-outline-primary" title="Edit">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-                                            <form action="{{ route('quotes.destroy', ['project' => $project->id, 'quote' => $quote->id]) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this quote?')">
+                                            @if(auth()->user()->hasRole('super-admin'))
+                                            <form action="{{ route('projects.quotes.destroy', ['project' => $project->id, 'quote' => $quote->id]) }}" method="POST" class="d-inline">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-outline-danger delete-quote" title="Delete">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger delete-quote" title="Delete"
+                                                    onclick="return confirm('Are you sure you want to delete this quote? This action cannot be undone.')">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

@@ -5,11 +5,22 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
+use Laravel\Scout\Searchable;
 class Inventory extends Model
 {
     use HasFactory;
     use SoftDeletes;
+    use Searchable;
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'item_name' => $this->item_name,
+            'sku' => $this->sku,
+            'supplier' => $this->supplier,
+        ];
+    }
+
         // Define relationship with Checkouts
     public function checkouts()
     {

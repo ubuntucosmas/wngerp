@@ -40,13 +40,15 @@
                         <a href="{{ route('projects.site-survey.edit', [$project, $siteSurvey]) }}" class="btn btn-sm btn-primary">
                             <i class="fas fa-edit"></i> Edit
                         </a>
-                        <form action="{{ route('projects.site-survey.destroy', [$project, $siteSurvey]) }}" method="POST" class="d-inline">
+                        @if(auth()->user()->hasRole('super-admin'))
+                        <form action="{{ route('projects.site-survey.destroy', ['project' => $project->id, 'site_survey' => $siteSurvey->id]) }}" method="POST" class="d-inline">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this site survey? This action cannot be undone.')">
-                                <i class="fas fa-trash"></i> Delete
+                                <i class="bi bi-trash"></i> Delete
                             </button>
                         </form>
+                        @endif
                         <a href="{{ route('projects.site-survey.print', ['project' => $project]) }}" class="btn btn-sm btn-outline-primary" target="_blank">
                             <i class="fas fa-print"></i> Print
                         </a>

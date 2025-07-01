@@ -197,3 +197,127 @@
                             </button>
                         </div>
                     </div>
+
+                    <!-- Materials for Hire Section -->
+                    <div class="section-card mt-4">
+                        <h5 class="section-header">
+                            <i class="bi bi-tools me-2"></i>Materials for Hire
+                        </h5>
+                        <div id="materials-hire-wrapper">
+                            @forelse($materialList->materialsHire as $index => $item)
+                                <div class="material-hire-item border rounded p-3 mb-3" data-index="{{ $index }}">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label class="form-label">Item Name</label>
+                                                <input type="text" class="form-control" name="materials_hire[{{ $index }}][item_name]" value="{{ $item->item_name }}" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="mb-3">
+                                                <label class="form-label">Unit</label>
+                                                <input type="text" class="form-control" name="materials_hire[{{ $index }}][unit]" value="{{ $item->unit }}" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="mb-3">
+                                                <label class="form-label">Quantity</label>
+                                                <input type="number" class="form-control" name="materials_hire[{{ $index }}][quantity]" value="{{ $item->quantity }}" min="0" step="0.01" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="mb-3">
+                                                <label class="form-label">Comment</label>
+                                                <input type="text" class="form-control" name="materials_hire[{{ $index }}][comment]" value="{{ $item->comment }}">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 d-flex align-items-end">
+                                            <button type="button" class="btn btn-outline-danger remove-material-hire" data-index="{{ $index }}">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle me-2"></i>No materials for hire added yet
+                                </div>
+                            @endforelse
+                        </div>
+                        <div class="mt-3">
+                            <button type="button" class="btn btn-outline-primary" id="addMaterialHireBtn">
+                                <i class="bi bi-plus-circle"></i> Add Material for Hire
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Labour Section -->
+                    <div class="section-card mt-4">
+                        <h5 class="section-header">
+                            <i class="bi bi-people me-2"></i>Labour
+                        </h5>
+                        
+                        @php
+                            $labourCategories = [
+                                'skilled' => 'Skilled',
+                                'unskilled' => 'Unskilled',
+                                'supervisors' => 'Supervisors',
+                                'other' => 'Other'
+                            ];
+                        @endphp
+
+                        @foreach($labourCategories as $categoryKey => $categoryName)
+                            <div class="labour-category border rounded p-3 mb-4">
+                                <h6 class="mb-3">{{ $categoryName }}</h6>
+                                <div class="labour-items-wrapper" data-category="{{ $categoryKey }}">
+                                    @php
+                                        $categoryItems = $labourItemsByCategory[$categoryKey] ?? [];
+                                    @endphp
+                                    
+                                    @forelse($categoryItems as $index => $item)
+                                        <div class="labour-item row mb-3" data-index="{{ $index }}">
+                                            <input type="hidden" name="items[{{ $categoryKey }}][{{ $index }}][category]" value="{{ $categoryKey }}">
+                                            <div class="col-md-4">
+                                                <input type="text" class="form-control" name="items[{{ $categoryKey }}][{{ $index }}][particular]" value="{{ $item->particular }}" placeholder="Particular" required>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <input type="text" class="form-control" name="items[{{ $categoryKey }}][{{ $index }}][unit]" value="{{ $item->unit }}" placeholder="Unit" required>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <input type="number" class="form-control" name="items[{{ $categoryKey }}][{{ $index }}][quantity]" value="{{ $item->quantity }}" placeholder="Qty" min="0" step="0.01" required>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <input type="number" class="form-control" name="items[{{ $categoryKey }}][{{ $index }}][rate]" value="{{ $item->rate }}" placeholder="Rate" min="0" step="0.01" required>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <input type="text" class="form-control" name="items[{{ $categoryKey }}][{{ $index }}][comment]" value="{{ $item->comment }}" placeholder="Comment">
+                                            </div>
+                                            <div class="col-md-2 d-flex align-items-center">
+                                                <button type="button" class="btn btn-outline-danger remove-labour-item" data-category="{{ $categoryKey }}" data-index="{{ $index }}">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    @empty
+                                        <div class="alert alert-info">
+                                            <i class="bi bi-info-circle me-2"></i>No {{ strtolower($categoryName) }} items added yet
+                                        </div>
+                                    @endforelse
+                                </div>
+                                <div class="mt-2">
+                                    <button type="button" class="btn btn-sm btn-outline-primary add-labour-item" data-category="{{ $categoryKey }}">
+                                        <i class="bi bi-plus-circle"></i> Add {{ $categoryName }} Item
+                                    </button>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <div class="mt-4 text-end">
+                        <a href="{{ route('projects.material-list.show', [$project, $materialList]) }}" class="btn btn-outline-secondary me-2">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Update Material List
+                        </button>
+                    </div>

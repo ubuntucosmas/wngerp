@@ -232,7 +232,7 @@
                                 @hasanyrole('pm|super-admin') {{-- or replace super-admin with your actual top-level role --}}
                                     @if(auth()->user()->hasRole('super-admin') || auth()->user()->level >= 4)
                                         <button class="btn btn-sm btn-outline-secondary mb-1" data-bs-toggle="modal" data-bs-target="#assignOfficerModal{{ $project->id }}">
-                                            Assign Officer
+                                            Re-Assign
                                         </button>
 
                                         @if(auth()->user()->level > 4)

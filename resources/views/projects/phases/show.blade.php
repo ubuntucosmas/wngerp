@@ -313,13 +313,13 @@
                 </style>
             @endif
         </div>
-        @role('pm')
-        @if(auth()->user()->level >= 4)
+        <!-- @role('pm')
+        @if(auth()->user()->level >= 4) -->
         <button class="btn btn-primary d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#createTaskModal">
             <i class="bi bi-plus-lg me-2"></i> New Task
         </button>
-        @endif
-        @endrole
+        <!-- @endif
+        @endrole -->
     </div>
     <h2 class="text-info sticky-header" style="margin-top: -10px; padding-top: 10px; background-color: white; z-index: 1;">Tasks</h2>
 
@@ -366,16 +366,16 @@
                 <h5 class="mb-0 text-info"><strong>{{ $task->name }}</strong></h5>
                 <small class="text-muted mx-auto">Assigned to: <strong class="text-dark">{{ $task->assigned_to ?? 'N/A' }}</strong></small>
                 <div>
-                    @role('pm')
-                    @if(auth()->user()->level >= 4) {{-- Only PMs can edit tasks --}}
+                    <!-- @role('pm')
+                    @if(auth()->user()->level >= 4) {{-- Only PMs can edit tasks --}} -->
                     <button class="btn btn-sm btn-outline-secondary me-1" data-bs-toggle="modal" data-bs-target="#editTaskModal{{ $task->id }}"><i class="bi bi-pencil"></i></button>
                     <form action="{{ route('tasks.destroy', $task->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this task?');">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                     </form>
-                    @endif
-                    @endrole
+                    <!-- @endif
+                    @endrole -->
                 </div>
             </div>
             <hr class="my-3">
@@ -460,8 +460,7 @@
                                     <p class="text-muted small">No actions added yet.</p>
                                 @endforelse
                             </div>
-                            @role('po')
-                            @if(auth()->user()->level >= 4)
+            
                             <button class="btn btn-sm btn-outline-primary mt-2">Update changes</button> {{-- Update button --}}
                         </form>
 
@@ -475,8 +474,6 @@
                                 </button>
                             </div>
                         </form>
-                        @endif
-                        @endrole
                     </div>
                 <hr class="my-3"> 
                 <!-- Comments Section -->

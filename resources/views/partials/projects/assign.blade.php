@@ -4,7 +4,7 @@
             @csrf @method('PUT')
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5>Assign Officer – {{ $project->name }}</h5>
+                    <h5>Select Officer – Project {{ $project->name }}</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">

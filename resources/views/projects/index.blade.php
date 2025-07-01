@@ -182,7 +182,8 @@
                         <th>Venue</th>
                         <th>Start</th>
                         <th>Due Date</th>
-                        <th>Officer</th>
+                        <th>PO</th>
+                        <th>Status</th>
                         <th>Progress</th>
                         <th class="text-end">Actions</th>
                     </tr>
@@ -197,6 +198,7 @@
                         <td>{{ $project->start_date }}</td>
                         <td>{{ $project->end_date }}</td>
                         <td class="text-info">{{ $project->projectOfficer->name ?? '—' }}</td>
+                        <td>{{ $project->status }}</td>
                         @php
                             $progress = $project->progress;
                             $barColor = $progress < 40 ? 'danger' : ($progress < 70 ? 'warning' : 'success');

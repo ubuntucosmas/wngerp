@@ -356,6 +356,8 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
             Route::get('files', [\App\Http\Controllers\projects\ProductionController::class, 'showFiles'])->name('files');
             Route::put('files/{production}', [\App\Http\Controllers\projects\ProductionController::class, 'updateFiles'])->name('files.update');
             Route::delete('files/{production}', [\App\Http\Controllers\projects\ProductionController::class, 'destroyFiles'])->name('files.destroy');
+            Route::get('files/download', [\App\Http\Controllers\projects\ProductionController::class, 'download'])->name('download');
+            Route::get('files/print', [\App\Http\Controllers\projects\ProductionController::class, 'print'])->name('print');
             
             // Delete Production Record
             Route::delete('{production}', [\App\Http\Controllers\projects\ProductionController::class, 'destroy'])->name('destroy');

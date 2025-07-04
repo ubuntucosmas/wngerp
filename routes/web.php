@@ -235,9 +235,9 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
         Route::get('files/design-concept', [ProjectFileController::class, 'showDesignConcept'])->name('projects.files.design-concept');
                 // Logistics Routes
         Route::prefix('logistics')->name('projects.logistics.')->group(function () {
-            Route::get('/', [\App\Http\Controllers\Projects\LogisticsController::class, 'index'])->name('index');
-            Route::get('/loading-sheet', [\App\Http\Controllers\Projects\LogisticsController::class, 'showLoadingSheet'])->name('loading-sheet');
-            Route::get('/booking-sheet', [\App\Http\Controllers\Projects\LogisticsController::class, 'showBookingSheet'])->name('booking-sheet');
+            Route::get('/', [\App\Http\Controllers\projects\LogisticsController::class, 'index'])->name('index');
+            Route::get('/loading-sheet', [\App\Http\Controllers\projects\LogisticsController::class, 'showLoadingSheet'])->name('loading-sheet');
+            Route::get('/booking-sheet', [\App\Http\Controllers\projects\LogisticsController::class, 'showBookingSheet'])->name('booking-sheet');
         });
 
         // Material List Routes

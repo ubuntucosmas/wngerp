@@ -58,6 +58,9 @@
                 <option value="hr" {{ old('department', $user->department ?? '') == 'hr' ? 'selected' : '' }}>HR</option>
                 <option value="stores" {{ old('department', $user->department ?? '') == 'stores' ? 'selected' : '' }}>Stores</option>
                 <option value="procurement" {{ old('department', $user->department ?? '') == 'procurement' ? 'selected' : '' }}>Procurement</option>
+                <option value="finance" {{ old('department', $user->department ?? '') == 'finance' ? 'selected' : '' }}>Finance</option>
+                <option value="design" {{ old('department', $user->department ?? '') == 'design' ? 'selected' : '' }}>Design</option>
+                <option value="production" {{ old('department', $user->department ?? '') == 'production' ? 'selected' : '' }}>Production</option>
             </select>
             @error('department') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>

@@ -2,7 +2,7 @@
 @section('title', 'Create Project Budget')
 
 @section('content')
-<div class="container-fluid p-0">
+<div class="container-fluid p-2">
     <div class="mb-3">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
@@ -23,12 +23,18 @@
         </div>
     </div>
 
+    @error('start_date')
+        <div class="alert alert-danger">{{ $message }}</div>
+    @enderror
+    @error('end_date')
+        <div class="alert alert-danger">{{ $message }}</div>
+    @enderror
+
     <div class="card">
         <div class="card-body">
             <form action="{{ route('budget.store', $project) }}" method="POST">
                 @csrf
                 <div class="container">
-                    {{-- Project & Client --}}
         <div class="row mb-3">
             <div class="col-md-6">
                 <label for="project_name">Project Name</label>
@@ -40,7 +46,6 @@
             </div>
         </div>
 
-        {{-- Start & End Dates --}}
         <div class="row mb-4">
             <div class="col-md-6">
                 <label for="start_date">Start Date</label>
@@ -51,11 +56,23 @@
                 <input type="date" class="form-control" name="end_date" value="{{ old('end_date', $project->end_date) }}">
             </div>
         </div>
-
-        {{-- Materials - Production --}}
-<div class="mb-4">
-    <h5>Materials - Production</h5>
-    <table class="table table-bordered" id="materialsProductionTable">
+                    <hr class="my-4">
+                    <div class="section-card section-production">
+                        <h5 class="section-header">
+                            <i class="bi bi-box-seam me-2"></i>Materials - Production
+                        </h5>
+                        <div id="budget-items-wrapper">
+                            @php $prodGroups = $grouped['Materials - Production'] ?? collect();
+                            $prodByItem = $prodGroups->groupBy('item_name');
+                            $prodItemIdx = 0;
+                            @endphp
+                            @foreach($prodByItem as $itemName => $particulars)
+                                <div class="item-group border rounded p-3 mb-3" data-item-idx="{{ $prodItemIdx }}">
+                                    <div class="mb-2">
+                                        <label>Item Name</label>
+                                        <input type="text" name="production_items[{{ $prodItemIdx }}][item_name]" class="form-control" value="{{ $itemName }}">
+                                    </div>
+                                    <table class="table table-bordered">
         <thead>
             <tr>
                 <th>Particular</th>
@@ -67,25 +84,39 @@
                 <th>Action</th>
             </tr>
         </thead>
-        <tbody id="materialsProductionBody">
-            <tr>
-                <td><input type="text" name="items[Materials - Production][0][particular]" class="form-control"></td>
-                <td><input type="text" name="items[Materials - Production][0][unit]" class="form-control"></td>
-                <td><input type="number" step="0.01" name="items[Materials - Production][0][quantity]" class="form-control"></td>
-                <td><input type="number" step="0.01" name="items[Materials - Production][0][unit_price]" class="form-control"></td>
-                <td><input type="number" step="0.01" name="items[Materials - Production][0][budgeted_cost]" class="form-control"></td>
-                <td><input type="text" name="items[Materials - Production][0][comment]" class="form-control"></td>
-                <td><button type="button" class="btn btn-danger btn-sm remove-row">Remove</button></td>
+                                        <tbody class="particulars-body">
+                                            @foreach($particulars as $pIdx => $particular)
+                                                <tr>
+                                                    <td><input type="text" name="production_items[{{ $prodItemIdx }}][particulars][{{ $pIdx }}][particular]" class="form-control" value="{{ $particular['particular'] }}"></td>
+                                                    <td><input type="text" name="production_items[{{ $prodItemIdx }}][particulars][{{ $pIdx }}][unit]" class="form-control" value="{{ $particular['unit'] }}"></td>
+                                                    <td><input type="number" step="0.01" name="production_items[{{ $prodItemIdx }}][particulars][{{ $pIdx }}][quantity]" class="form-control" value="{{ $particular['quantity'] }}"></td>
+                                                    <td><input type="number" step="0.01" name="production_items[{{ $prodItemIdx }}][particulars][{{ $pIdx }}][unit_price]" class="form-control" value="{{ $particular['unit_price'] ?? '' }}"></td>
+                                                    <td><input type="number" step="0.01" name="production_items[{{ $prodItemIdx }}][particulars][{{ $pIdx }}][budgeted_cost]" class="form-control" value="{{ $particular['budgeted_cost'] ?? '' }}"></td>
+                                                    <td><input type="text" name="production_items[{{ $prodItemIdx }}][particulars][{{ $pIdx }}][comment]" class="form-control" value="{{ $particular['comment'] }}"></td>
+                                                    <td><button type="button" class="btn btn-danger btn-sm remove-particular">Remove</button></td>
             </tr>
+                                            @endforeach
         </tbody>
     </table>
-    <button type="button" class="btn btn-success btn-sm" id="addProductionRow">+ Add Row</button>
+                                    <button type="button" class="btn btn-success btn-sm add-particular">+ Add Particular</button>
+                                </div>
+                                @php $prodItemIdx++; @endphp
+                            @endforeach
+                            <button type="button" class="btn btn-primary btn-sm btn-add-item" id="addBudgetItemGroup">
+                                <i class="bi bi-plus-circle"></i> Add Item
+                            </button>
+                        </div>
 </div>
-
-{{-- Materials for Hire --}}
-<div class="mb-4">
-    <h5>Materials for Hire</h5>
-    <table class="table table-bordered" id="materialsHireTable">
+                    <hr class="my-4">
+                    @php
+                        $otherCategories = ['Materials for Hire', 'Workshop labour', 'Site', 'Set down', 'Logistics'];
+                    @endphp
+                    @foreach($otherCategories as $cat)
+                        <div class="section-card section-{{ str_replace(' ', '-', strtolower($cat)) }}">
+                            <h5 class="section-header">
+                                <i class="bi bi-tools me-2"></i>{{ $cat }}
+                            </h5>
+                            <table class="table table-bordered" id="table_{{ str_replace(' ', '_', strtolower($cat)) }}">
         <thead>
             <tr>
                 <th>Particular</th>
@@ -97,90 +128,36 @@
                 <th>Action</th>
             </tr>
         </thead>
-        <tbody id="materialsHireBody">
-            <tr>
-                <td><input type="text" name="items[Materials for Hire][0][particular]" class="form-control"></td>
-                <td><input type="text" name="items[Materials for Hire][0][unit]" class="form-control"></td>
-                <td><input type="number" step="0.01" name="items[Materials for Hire][0][quantity]" class="form-control quantity"></td>
-                <td><input type="number" step="0.01" name="items[Materials for Hire][0][unit_price]" class="form-control unit-price"></td>
-                <td><input type="number" step="0.01" name="items[Materials for Hire][0][budgeted_cost]" class="form-control budgeted-cost" readonly></td>
-                <td><input type="text" name="items[Materials for Hire][0][comment]" class="form-control"></td>
+                                <tbody>
+                                    @php $rows = $grouped[$cat] ?? collect(); @endphp
+                                    @foreach($rows as $i => $row)
+                                        <tr>
+                                            <td><input type="text" name="items[{{ $cat }}][{{ $i }}][particular]" class="form-control" value="{{ $row['particular'] }}"></td>
+                                            <td><input type="text" name="items[{{ $cat }}][{{ $i }}][unit]" class="form-control" value="{{ $row['unit'] }}"></td>
+                                            <td><input type="number" step="0.01" name="items[{{ $cat }}][{{ $i }}][quantity]" class="form-control" value="{{ $row['quantity'] }}"></td>
+                                            <td><input type="number" step="0.01" name="items[{{ $cat }}][{{ $i }}][unit_price]" class="form-control" value="{{ $row['unit_price'] ?? '' }}"></td>
+                                            <td><input type="number" step="0.01" name="items[{{ $cat }}][{{ $i }}][budgeted_cost]" class="form-control" value="{{ $row['budgeted_cost'] ?? '' }}"></td>
+                                            <td><input type="text" name="items[{{ $cat }}][{{ $i }}][comment]" class="form-control" value="{{ $row['comment'] }}"></td>
                 <td><button type="button" class="btn btn-danger btn-sm remove-row">Remove</button></td>
-            </tr>
-        </tbody>
-    </table>
-    <button type="button" class="btn btn-success btn-sm" id="addHireRow">+ Add Row</button>
-</div>
-
-        {{-- Static Category-Based Budget Items --}}
-        @foreach($categories as $category => $particulars)
-            <div class="mb-4">
-                <h5>{{ $category }}</h5>
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Particular</th>
-                            <th>Unit Of Measure</th>
-                            <th>Quantity</th>
-                            <th>Unit Price</th>
-                            <th>Budgeted Cost</th>
-                            <th>Comment</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($particulars as $index => $particular)
-                            <tr>
-                                <td>
-                                    <input type="text" name="items[{{ $category }}][{{ $index }}][particular]" class="form-control" value="{{ $particular }}">
-                                </td>
-                                <td><input type="text" name="items[{{ $category }}][{{ $index }}][unit]" class="form-control"></td>
-                                <td><input type="number" step="0.01" name="items[{{ $category }}][{{ $index }}][quantity]" class="form-control"></td>
-                                <td><input type="number" step="0.01" name="items[{{ $category }}][{{ $index }}][unit_price]" class="form-control"></td>
-                                <td><input type="number" step="0.01" name="items[{{ $category }}][{{ $index }}][budgeted_cost]" class="form-control"></td>
-                                <td><input type="text" name="items[{{ $category }}][{{ $index }}][comment]" class="form-control"></td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
+                            <button type="button" class="btn btn-success btn-sm add-row" data-category="{{ $cat }}">+ Add Row</button>
             </div>
         @endforeach
 
-        {{-- Budget Summary --}}
-        <div class="row my-4">
-            <div class="col-md-4">
-                <label for="total_budget">Total Budget</label>
-                <input type="number" step="0.01" name="total_budget" id="total_budget" class="form-control" readonly>
-            </div>
-            <!-- <div class="col-md-4">
-                <label for="invoice">Invoice</label>
-                <input type="text" name="invoice" class="form-control">
-            </div>
-            <div class="col-md-4">
-                <label for="profit">Profit</label>
-                <input type="number" step="0.01" name="profit" class="form-control">
-            </div> -->
-        </div>
-
-        {{-- Approval Section --}}
         <div class="mb-4">
-            <div class="mb-3">
                 <label for="approved_by">Approved By</label>
-                <input type="text" name="approved_by" class="form-control" value="{{ auth()->user()->name }}" readonly>
-                <small class="text-muted">Auto-filled with your name</small>
-            </div>
+                        <input type="text" name="approved_by" class="form-control mb-2 required" required>
 
-            <div class="mb-3">
-                <label for="approved_departments">Department</label>
-                @php
-                    $user = auth()->user();
-                    $department = $user->department ?? 'Not assigned';
-                @endphp
-                <input type="text" name="approved_departments" class="form-control" value="{{ $department }}" readonly>
-                <small class="text-muted">Auto-filled with your department</small>
+                        <label for="approved_departments">Departments (comma-separated)</label>
+                        <input type="text" name="approved_departments" class="form-control" placeholder="Production, Finance" required>
             </div>
+                    <div class="d-flex justify-content-end mt-4">
+                        <h4 class="text-end fw-bold text-success">Total Budget: Ksh <span class="text-primary" id="grandTotal">0.00</span></h4>
         </div>
 
-        {{-- Form actions --}}
         <div class="d-flex justify-content-between mt-4 pt-3 border-top">
             <a href="{{ route('projects.files.index', $project) }}" class="btn btn-outline-secondary">
                 <i class="bi bi-x-circle"></i> Cancel
@@ -202,194 +179,154 @@
 
 @endsection
 
-@push('scripts')
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+@push('styles')
+<style>
+    .section-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .section-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+    .section-production {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-left: 4px solid #4e73df;
+    }
+</style>
+@endpush
+
 <script>
-    // Material list items from the server
-    const materialItems = @json($materialItems);
-
-    // Function to find the closest parent table for a category
-    function findTableForCategory(category) {
-        const headers = document.querySelectorAll('h5');
-        for (const header of headers) {
-            if (header.textContent.trim() === category) {
-                return header.nextElementSibling;
-            }
-        }
-        return null;
-    }
-
-    // Function to add a new row to a table
-    function addRowToTable(table, item, index) {
-        const tbody = table.querySelector('tbody');
-        const newRow = tbody.insertRow();
-        
-        // Create cells for the row
-        const cell1 = newRow.insertCell(0);
-        const cell2 = newRow.insertCell(1);
-        const cell3 = newRow.insertCell(2);
-        const cell4 = newRow.insertCell(3);
-        const cell5 = newRow.insertCell(4);
-        const cell6 = newRow.insertCell(5);
-        const cell7 = tbody.rows[0] && tbody.rows[0].cells.length > 6 ? newRow.insertCell(6) : null;
-        
-        // Add input fields to cells
-        cell1.innerHTML = `<input type="text" name="items[${item.category}][${index}][particular]" class="form-control" value="${item.particular || ''}">`;
-        cell2.innerHTML = `<input type="text" name="items[${item.category}][${index}][unit]" class="form-control" value="${item.unit || ''}">`;
-        cell3.innerHTML = `<input type="number" step="0.01" name="items[${item.category}][${index}][quantity]" class="form-control quantity" value="${item.quantity || ''}">`;
-        
-        if (cell7) {
-            // For tables with 7 columns (like Materials for Hire)
-            cell4.innerHTML = `<input type="number" step="0.01" name="items[${item.category}][${index}][unit_price]" class="form-control unit-price">`;
-            cell5.innerHTML = `<input type="number" step="0.01" name="items[${item.category}][${index}][budgeted_cost]" class="form-control budgeted-cost" readonly>`;
-            cell6.innerHTML = `<input type="text" name="items[${item.category}][${index}][comment]" class="form-control" value="${item.comment || ''}">`;
-            cell7.innerHTML = '<button type="button" class="btn btn-danger btn-sm remove-row">Remove</button>';
-        } else {
-            // For tables with 6 columns (like labor categories)
-            cell4.innerHTML = `<input type="number" step="0.01" name="items[${item.category}][${index}][unit_price]" class="form-control unit-price">`;
-            cell5.innerHTML = `<input type="number" step="0.01" name="items[${item.category}][${index}][budgeted_cost]" class="form-control budgeted-cost" readonly>`;
-            cell6.innerHTML = `<input type="text" name="items[${item.category}][${index}][comment]" class="form-control" value="${item.comment || ''}">`;
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-calculate Budgeted Cost for all editable rows
+    function updateBudgetedCost(row) {
+        const qty = parseFloat(row.querySelector('[name*="[quantity]"]').value) || 0;
+        const unitPrice = parseFloat(row.querySelector('[name*="[unit_price]"]').value) || 0;
+        const costInput = row.querySelector('[name*="[budgeted_cost]"]');
+        if (costInput) {
+            costInput.value = (qty * unitPrice).toFixed(2);
         }
     }
 
-    // Function to populate form fields
-    function populateFormFields() {
-        if (!materialItems || materialItems.length === 0) return;
-        
-        // Group items by category
-        const itemsByCategory = materialItems.reduce((acc, item) => {
-            if (!acc[item.category]) {
-                acc[item.category] = [];
-            }
-            acc[item.category].push(item);
-            return acc;
-        }, {});
-        
-        // Process each category
-        Object.entries(itemsByCategory).forEach(([category, items]) => {
-            const table = findTableForCategory(category);
-            if (!table) return;
-            
-            // Clear existing rows except the first one
-            const tbody = table.querySelector('tbody');
-            if (tbody.rows.length > 1) {
-                tbody.innerHTML = '';
-            }
-            
-            // Add rows for each item
-            items.forEach((item, index) => {
-                addRowToTable(table, item, index);
-            });
-        });
-    }
-
-    // Function to calculate budgeted cost for a row
-    function calculateBudgetedCost(row) {
-        const quantity = parseFloat(row.querySelector('.quantity').value) || 0;
-        const unitPrice = parseFloat(row.querySelector('.unit-price').value) || 0;
-        const budgetedCost = quantity * unitPrice;
-        const budgetedCostInput = row.querySelector('.budgeted-cost');
-        
-        if (budgetedCostInput) {
-            budgetedCostInput.value = budgetedCost.toFixed(2);
-        }
-        
-        // Update total budget
-        updateTotalBudget();
-        
-        return budgetedCost;
-    }
-    
-    // Function to update the total budget
-    function updateTotalBudget() {
+    function updateGrandTotal() {
         let total = 0;
-        
-        // Sum up all budgeted costs from all tables
-        document.querySelectorAll('.budgeted-cost').forEach(input => {
-            total += parseFloat(input.value) || 0;
+        document.querySelectorAll('[name*="[budgeted_cost]"]').forEach(function(input) {
+            const val = parseFloat(input.value);
+            if (!isNaN(val)) total += val;
         });
-        
-        // Update the total budget field
-        const totalBudgetInput = document.getElementById('total_budget');
-        if (totalBudgetInput) {
-            totalBudgetInput.value = total.toFixed(2);
+        document.getElementById('grandTotal').textContent = total.toFixed(2);
+    }
+
+    // Attach event listeners to all relevant tables
+    document.querySelectorAll('table').forEach(function(table) {
+        table.addEventListener('input', function(e) {
+            if (e.target.name && (e.target.name.includes('[quantity]') || e.target.name.includes('[unit_price]'))) {
+                const row = e.target.closest('tr');
+                updateBudgetedCost(row);
+                updateGrandTotal();
+            }
+        });
+    });
+
+    // Also update on page load for any pre-filled values
+    document.querySelectorAll('table tbody tr').forEach(function(row) {
+        updateBudgetedCost(row);
+    });
+    updateGrandTotal();
+
+    // Materials - Production add item/particular logic
+    let itemIndex = {{ $prodItemIdx ?? 0 }};
+    const wrapper = document.getElementById('budget-items-wrapper');
+    document.getElementById('addBudgetItemGroup').addEventListener('click', function() {
+        itemIndex++;
+        const group = document.createElement('div');
+        group.className = 'item-group border rounded p-3 mb-3';
+        group.innerHTML = `
+            <div class=\"mb-2\">
+                <label>Item Name</label>
+                <input type=\"text\" name=\"production_items[${itemIndex}][item_name]\" class=\"form-control\" placeholder=\"e.g. Table\">
+            </div>
+            <table class=\"table table-bordered\">
+                <thead>
+                    <tr>
+                        <th>Particular</th>
+                        <th>Unit Of Measure</th>
+                        <th>Quantity</th>
+                        <th>Unit Price</th>
+                        <th>Budgeted Cost</th>
+                        <th>Comment</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody class=\"particulars-body\">
+                    <tr>
+                        <td><input type=\"text\" name=\"production_items[${itemIndex}][particulars][0][particular]\" class=\"form-control\"></td>
+                        <td><input type=\"text\" name=\"production_items[${itemIndex}][particulars][0][unit]\" class=\"form-control\"></td>
+                        <td><input type=\"number\" step=\"0.01\" name=\"production_items[${itemIndex}][particulars][0][quantity]\" class=\"form-control\"></td>
+                        <td><input type=\"number\" step=\"0.01\" name=\"production_items[${itemIndex}][particulars][0][unit_price]\" class=\"form-control\"></td>
+                        <td><input type=\"number\" step=\"0.01\" name=\"production_items[${itemIndex}][particulars][0][budgeted_cost]\" class=\"form-control\"></td>
+                        <td><input type=\"text\" name=\"production_items[${itemIndex}][particulars][0][comment]\" class=\"form-control\"></td>
+                        <td><button type=\"button\" class=\"btn btn-danger btn-sm remove-particular\">Remove</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button type=\"button\" class=\"btn btn-success btn-sm add-particular\">+ Add Particular</button>
+        `;
+        wrapper.appendChild(group);
+    });
+    wrapper.addEventListener('click', function(e) {
+        if (e.target.classList.contains('add-particular')) {
+            const group = e.target.closest('.item-group');
+            const tbody = group.querySelector('.particulars-body');
+            const rows = tbody.querySelectorAll('tr');
+            const itemIdx = group.getAttribute('data-item-idx') || Array.from(wrapper.children).indexOf(group);
+            const newIdx = rows.length;
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type=\"text\" name=\"production_items[${itemIdx}][particulars][${newIdx}][particular]\" class=\"form-control\"></td>
+                <td><input type=\"text\" name=\"production_items[${itemIdx}][particulars][${newIdx}][unit]\" class=\"form-control\"></td>
+                <td><input type=\"number\" step=\"0.01\" name=\"production_items[${itemIdx}][particulars][${newIdx}][quantity]\" class=\"form-control\"></td>
+                <td><input type=\"number\" step=\"0.01\" name=\"production_items[${itemIdx}][particulars][${newIdx}][unit_price]\" class=\"form-control\"></td>
+                <td><input type=\"number\" step=\"0.01\" name=\"production_items[${itemIdx}][particulars][${newIdx}][budgeted_cost]\" class=\"form-control\"></td>
+                <td><input type=\"text\" name=\"production_items[${itemIdx}][particulars][${newIdx}][comment]\" class=\"form-control\"></td>
+                <td><button type=\"button\" class=\"btn btn-danger btn-sm remove-particular\">Remove</button></td>
+            `;
+            tbody.appendChild(row);
         }
-    }
-    
-    // Function to initialize calculation for all rows
-    function initializeCalculations() {
-        // No need to add event listeners here as they're handled by jQuery below
-        // This function is kept for future use if needed
-    }
+        if (e.target.classList.contains('remove-particular')) {
+            e.target.closest('tr').remove();
+        }
+    });
 
-    // Wait for the DOM to be fully loaded
-    document.addEventListener('DOMContentLoaded', function() {
-        let productionIndex = 1;
-        let hireIndex = 1;
-        
-        // Initialize calculations
-        initializeCalculations();
-        
-        // Populate form fields with material list items after a short delay
-        // to ensure all tables are rendered
-        setTimeout(function() {
-            populateFormFields();
-            // Re-initialize calculations after populating fields
-            initializeCalculations();
-        }, 300);
-
-        // Add row to Materials - Production
-        $(document).on('click', '#addProductionRow', function() {
-            const tbody = document.getElementById('materialsProductionBody');
-            const newRow = document.createElement('tr');
-            newRow.innerHTML = `
-                <td><input type="text" name="items[Materials - Production][${productionIndex}][particular]" class="form-control"></td>
-                <td><input type="text" name="items[Materials - Production][${productionIndex}][unit]" class="form-control"></td>
-                <td><input type="number" step="0.01" name="items[Materials - Production][${productionIndex}][quantity]" class="form-control quantity"></td>
-                <td><input type="number" step="0.01" name="items[Materials - Production][${productionIndex}][unit_price]" class="form-control unit-price"></td>
-                <td><input type="number" step="0.01" name="items[Materials - Production][${productionIndex}][budgeted_cost]" class="form-control budgeted-cost" readonly></td>
-                <td><input type="text" name="items[Materials - Production][${productionIndex}][comment]" class="form-control"></td>
-                <td><button type="button" class="btn btn-danger btn-sm remove-row">Remove</button></td>
+    // Add row logic for other categories
+    document.querySelectorAll('.add-row').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const cat = btn.getAttribute('data-category');
+            const table = document.getElementById('table_' + cat.replace(/ /g, '_').toLowerCase());
+            const tbody = table.querySelector('tbody');
+            const rowCount = tbody.querySelectorAll('tr').length;
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><input type=\"text\" name=\"items[${cat}][${rowCount}][particular]\" class=\"form-control\"></td>
+                <td><input type=\"text\" name=\"items[${cat}][${rowCount}][unit]\" class=\"form-control\"></td>
+                <td><input type=\"number\" step=\"0.01\" name=\"items[${cat}][${rowCount}][quantity]\" class=\"form-control\"></td>
+                <td><input type=\"number\" step=\"0.01\" name=\"items[${cat}][${rowCount}][unit_price]\" class=\"form-control\"></td>
+                <td><input type=\"number\" step=\"0.01\" name=\"items[${cat}][${rowCount}][budgeted_cost]\" class=\"form-control\"></td>
+                <td><input type=\"text\" name=\"items[${cat}][${rowCount}][comment]\" class=\"form-control\"></td>
+                <td><button type=\"button\" class=\"btn btn-danger btn-sm remove-row\">Remove</button></td>
             `;
-            tbody.appendChild(newRow);
-            productionIndex++;
+            tbody.appendChild(row);
         });
-
-        // Add row to Materials for Hire
-        $(document).on('click', '#addHireRow', function() {
-            const tbody = document.getElementById('materialsHireBody');
-            const newRow = document.createElement('tr');
-            newRow.innerHTML = `
-                <td><input type="text" name="items[Materials for Hire][${hireIndex}][particular]" class="form-control"></td>
-                <td><input type="text" name="items[Materials for Hire][${hireIndex}][unit]" class="form-control"></td>
-                <td><input type="number" step="0.01" name="items[Materials for Hire][${hireIndex}][quantity]" class="form-control quantity"></td>
-                <td><input type="number" step="0.01" name="items[Materials for Hire][${hireIndex}][unit_price]" class="form-control unit-price"></td>
-                <td><input type="number" step="0.01" name="items[Materials for Hire][${hireIndex}][budgeted_cost]" class="form-control budgeted-cost" readonly></td>
-                <td><input type="text" name="items[Materials for Hire][${hireIndex}][comment]" class="form-control"></td>
-                <td><button type="button" class="btn btn-danger btn-sm remove-row">Remove</button></td>
-            `;
-            tbody.appendChild(newRow);
-            hireIndex++;
+    });
+    document.querySelectorAll('tbody').forEach(function(tbody) {
+        tbody.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-row')) {
+                e.target.closest('tr').remove();
+            }
         });
-
-        // Remove row for both tables and update total
-        $(document).on('click', '.remove-row', function() {
-            $(this).closest('tr').remove();
-            updateTotalBudget();
-        });
-
-        // Calculate budgeted cost when quantity or unit price changes
-        $(document).on('input', '.quantity, .unit-price', function() {
-            const row = $(this).closest('tr');
-            const quantity = parseFloat(row.find('.quantity').val()) || 0;
-            const unitPrice = parseFloat(row.find('.unit-price').val()) || 0;
-            const budgetedCost = (quantity * unitPrice).toFixed(2);
-            row.find('.budgeted-cost').val(budgetedCost);
-            updateTotalBudget();
-        });
-        
-        // Initialize total budget on page load
-        updateTotalBudget();
+    });
     });
 </script>
-@endpush

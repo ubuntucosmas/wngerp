@@ -21,16 +21,16 @@ Route::get('/admin/dashboard', fn () => view('admin.dashboard'))
 
 // Admin Routes
 Route::middleware(['auth', 'role:admin|super-admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/users', [AdminController::class, 'users'])->name('users.index');
+    Route::get('/users/index', [AdminController::class, 'index'])->name('dashboard');
+    Route::get('/users/{user}/edit', [AdminController::class, 'edit'])->name('users.edit');
+    Route::put('/users/{user}', [AdminController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user}', [AdminController::class, 'destroy'])->name('users.destroy');
+    Route::post('/users', [AdminController::class, 'store'])->name('users.store');
+    Route::get('/users/create', [AdminController::class, 'create'])->name('users.create');
+
     Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
     Route::post('/set-department', [AdminController::class, 'setDepartment'])->name('setDepartment');
-
-    
-    Route::get('/users', [AdminController::class, 'showUsers'])->name('users');
-    Route::get('/manage-users', [AdminController::class, 'manageUsers'])->name('manage-users');
-    Route::get('/users/{user}/edit', [AdminController::class, 'showEditUser'])->name('users.edit');
-    Route::delete('/users/{user}', [AdminController::class, 'deleteUser'])->name('users.delete');
-    Route::put('/users/{user}', [AdminController::class, 'updateUser'])->name('users.update');
-    Route::post('/users', [AdminController::class, 'createUser'])->name('users.create');
     Route::get('/logs', [AdminController::class, 'viewLogs'])->name('logs');
 });
 
@@ -188,6 +188,11 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
     Route::put('/phases/tasks/{task}', [PhaseController::class, 'updateTask'])->name('phases.tasks.update');
     Route::delete('/phases/tasks/{task}', [PhaseController::class, 'deleteTask'])->name('tasks.destroy');
     Route::put('/phases/tasks/{task}/deliverables', [PhaseController::class, 'updateDeliverables'])->name('phases.updateDeliverables');
+    
+    // Project Phase Status Updates
+    Route::post('/phases/{phaseId}/update-status', [\App\Http\Controllers\projects\PhaseStatusController::class, 'updateStatus'])->name('phases.update-status');
+    Route::post('/phases/{phaseId}/update-status-simple', [\App\Http\Controllers\projects\PhaseStatusController::class, 'updateStatusSimple'])->name('phases.update-status-simple');
+    Route::get('/phases/{phaseId}/status/{status}', [\App\Http\Controllers\projects\PhaseStatusController::class, 'updateStatusDirect'])->name('phases.update-status-direct');
     Route::post('/tasks/{task}/deliverables', [DeliverableController::class, 'store'])->name('tasks.deliverables.store');
     Route::post('/phases/{phase}/attachments', [PhaseController::class, 'storeAttachment'])->name('phases.storeAttachment');
     Route::delete('/attachments/{id}', [PhaseController::class, 'deleteAttachment'])->name('attachments.delete');
@@ -325,6 +330,10 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
         Route::get('budgets/{budget}/edit', [ProjectBudgetController::class, 'edit'])->name('budget.edit');
         Route::put('budgets/{budget}', [ProjectBudgetController::class, 'update'])->name('budget.update');
         Route::delete('budgets/{budget}', [ProjectBudgetController::class, 'destroy'])->name('budget.destroy');
+        
+        Route::get('budgets/{budget}/export', [\App\Http\Controllers\Projects\ProjectBudgetController::class, 'export'])->name('budget.export');
+        
+        Route::post('budgets/{budget}/approve', [\App\Http\Controllers\Projects\ProjectBudgetController::class, 'approve'])->name('budget.approve');
         
 //francis
 

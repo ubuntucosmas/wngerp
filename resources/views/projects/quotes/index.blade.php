@@ -34,7 +34,6 @@
                                 <th>Quote #</th>
                                 <th>Customer</th>
                                 <th>Date</th>
-                                <th>Reference</th>
                                 <th>Total</th>
                                 <th>Actions</th>
                             </tr>
@@ -48,7 +47,6 @@
                                     <td>#{{ $quote->id }}</td>
                                     <td>{{ $quote->customer_name }}</td>
                                     <td>{{ $quote->quote_date->format('M d, Y') }}</td>
-                                    <td>{{ $quote->reference ?? 'N/A' }}</td>
                                     <td>KES {{ number_format($total, 2) }}</td>
                                     <td>
                                         <div class="btn-group" role="group">
@@ -59,7 +57,7 @@
                                                 <i class="bi bi-pencil"></i>
                                             </a>
                                             @if(auth()->user()->hasRole('super-admin'))
-                                            <form action="{{ route('projects.quotes.destroy', ['project' => $project->id, 'quote' => $quote->id]) }}" method="POST" class="d-inline">
+                                            <form action="{{ route('quotes.destroy', ['project' => $project->id, 'quote' => $quote->id]) }}" method="POST" class="d-inline">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-sm btn-outline-danger delete-quote" title="Delete"

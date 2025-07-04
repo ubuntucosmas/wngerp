@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('invoice')->nullable();
             $table->decimal('profit', 12, 2)->nullable();
             $table->string('approved_by')->nullable();
+            $table->timestamp('approved_at')->nullable();
             $table->string('approved_departments')->nullable();
             $table->timestamps();
         });

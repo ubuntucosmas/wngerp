@@ -200,62 +200,51 @@
                         <td class="text-info">{{ $project->projectOfficer->name ?? '—' }}</td>
                         <td>{{ $project->status }}</td>
                         @php
-                            $progress = $project->progress;
-                            $barColor = $progress < 40 ? 'danger' : ($progress < 70 ? 'warning' : 'success');
-                            $barColors = [
-                                'danger' => '#dc3545',  // Red for danger
-                                'warning' => '#ffc107', // Yellow for warning
-                                'success' => '#198754'  // Green for success
-                            ];
-                            $bgColor = $barColors[$barColor];
+                            $totalPhases = $project->phases->count();
+                            $completed = $project->phases->where('status', 'Completed')->count();
+                            $inProgress = $project->phases->where('status', 'In Progress')->count();
+                            $progress = $totalPhases > 0
+                                ? round((($completed + 0.5 * $inProgress) / $totalPhases) * 100)
+                                : 0;
+                            if ($progress >= 80) {
+                                $progressBarClass = 'bg-success'; // Green
+                                $progressTextClass = 'text-white';
+                            } elseif ($progress >= 40) {
+                                $progressBarClass = 'bg-warning'; // Orange
+                                $progressTextClass = 'text-white';
+                            } else {
+                                $progressBarClass = 'bg-danger'; // Red
+                                $progressTextClass = 'text-white';
+                            }
                         @endphp
-
-                        <td>
-                            <div class="progress position-relative" style="height: 15px; border-radius: 5px; background-color: #f8f9fa;">
-                                <div class="progress-bar" 
-                                    role="progressbar" 
-                                    style="width: {{ $progress }}%; 
-                                        border-radius: 4px;
-                                        background-color: {{ $bgColor }};"
-                                    aria-valuenow="{{ $progress }}" 
-                                    aria-valuemin="0" 
-                                    aria-valuemax="100">
+                        <td style="min-width:120px;">
+                            <div class="progress" style="height: 18px;">
+                                <div class="progress-bar {{ $progressBarClass }}" role="progressbar" style="width: {{ $progress }}%;" aria-valuenow="{{ $progress }}" aria-valuemin="0" aria-valuemax="100">
+                                    <span class="fw-bold text-white {{ $progressTextClass }}">{{ $progress }}%</span>
                                 </div>
-                                <span class="position-absolute w-100 text-center fw-bold" style="color: #000; font-size: 0.7rem; line-height: 15px;">
-                                    {{ $progress }}%
-                                </span>
                             </div>
                         </td>
-
                         <td class="text-end">
                             @if($project->status === 'closed')
                                 <span class="bg-danger mb-1" title="This project is finalized and read-only">Project Closed</span>
                             @else
-                                @hasanyrole('pm|super-admin') {{-- or replace super-admin with your actual top-level role --}}
+                                @hasanyrole('pm|super-admin')
                                     @if(auth()->user()->hasRole('super-admin') || auth()->user()->level >= 4)
                                         <button class="btn btn-sm btn-outline-secondary mb-1" data-bs-toggle="modal" data-bs-target="#assignOfficerModal{{ $project->id }}">
                                             Re-Assign
                                         </button>
-
-                                        @if(auth()->user()->level > 4)
-                                            <form action="{{ route('projects.destroy', $project->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this project?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-sm btn-outline-danger mb-1 delete-project">
-                                                    Delete
-                                                </button>
-                                            </form>
-                                        @endif
+                                        <x-delete-button :action="route('projects.destroy', $project->id)">
+                                            Delete
+                                        </x-delete-button>
                                     @endif
                                 @endhasanyrole
-
                                 <div class="btn-group" role="group">
                                     <a href="{{ route('projects.files.index', $project->id) }}" class="btn btn-sm btn-info">
                                         Project Files
                                     </a>
-                                    <button class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" data-bs-target="#phasesCollapse{{ $project->id }}">
+                                    <!-- <button class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" data-bs-target="#phasesCollapse{{ $project->id }}">
                                         Phases
-                                    </button>
+                                    </button> -->
                                 </div>
                             @endif
                         </td>
@@ -274,7 +263,11 @@
                                                 {{$phase->title}}
                                             </h6>
                                                 <p class="card-text text-light-emphasis small mb-1">
-                                                    <span>Status: <span class="text-success">{{ $phase->status }}</span></span><br>
+                                                    <span>Status: 
+                                                        <span class="badge bg-{{ $phase->status === 'Completed' ? 'success' : ($phase->status === 'In Progress' ? 'warning text-dark' : 'secondary') }}">
+                                                            {{ $phase->status }}
+                                                        </span>
+                                                    </span><br>
                                                     <span>{{ $phase->start_date }} → {{ $phase->end_date }}</span>
                                                 </p>
                                                 <div class="d-flex justify-content-between gap-1">

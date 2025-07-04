@@ -16,7 +16,26 @@
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="mb-0">Budget Details</h4>
-        <a href="{{ route('budget.index', $project) }}" class="btn btn-outline-primary btn-sm">← Back to Budgets</a>
+        <div>
+            <a href="{{ route('budget.index', $project) }}" class="btn btn-outline-primary btn-sm">← Back to Budgets</a>
+            <a href="{{ route('budget.export', [$project->id, $budget->id]) }}" class="btn btn-outline-success btn-sm ms-2">
+                <i class="bi bi-download"></i> Export to Excel
+            </a>
+            <x-delete-button :action="route('budget.destroy', [$project->id, $budget->id])" class="ms-2">
+                Delete
+            </x-delete-button>
+            @if(auth()->user()->hasRole('super-admin') && $budget->status !== 'approved')
+                <form action="{{ route('budget.approve', [$project->id, $budget->id]) }}" method="POST" style="display:inline;">
+                    @csrf
+                    <button type="submit" class="btn btn-success btn-sm ms-2">Approve Budget</button>
+                </form>
+            @endif
+        </div>
+    </div>
+    <div class="mb-3">
+        <span class="badge bg-{{ $budget->status === 'approved' ? 'success' : 'secondary' }}">
+            Status: {{ ucfirst($budget->status ?? 'draft') }}
+        </span>
     </div>
 
     <div class="card mb-4 shadow-sm">
@@ -42,30 +61,77 @@
             <div class="card-header bg-light fw-bold">{{ $category }}</div>
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-bordered mb-0">
-                        <thead class="table-secondary">
-                            <tr>
-                                <th>Particular</th>
-                                <th>Unit</th>
-                                <th>Qty</th>
-                                <th>Unit Price</th>
-                                <th>Cost</th>
-                                <th>Comment</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($items as $item)
+                    @if($category === 'Materials - Production')
+                        @php $byItem = $items->groupBy('item_name'); @endphp
+                        @foreach($byItem as $itemName => $particulars)
+                            @php $itemTotal = $particulars->sum('budgeted_cost'); @endphp
+                            <div class="mb-3">
+                                <div class="fw-bold text-primary mb-1">{{ $itemName }}</div>
+                                <table class="table table-bordered mb-0">
+                                    <thead class="table-secondary">
+                                        <tr>
+                                            <th>Particular</th>
+                                            <th>Unit</th>
+                                            <th>Qty</th>
+                                            <th>Unit Price</th>
+                                            <th>Cost</th>
+                                            <th>Comment</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($particulars as $item)
+                                            <tr>
+                                                <td>{{ $item->particular }}</td>
+                                                <td>{{ $item->unit }}</td>
+                                                <td>{{ $item->quantity }}</td>
+                                                <td>KES {{ number_format($item->unit_price, 2) }}</td>
+                                                <td>KES {{ number_format($item->budgeted_cost, 2) }}</td>
+                                                <td>{{ $item->comment }}</td>
+                                            </tr>
+                                        @endforeach
+                                        <tr class="table-info fw-bold">
+                                            <td colspan="4" class="text-end">Subtotal for {{ $itemName }}</td>
+                                            <td colspan="2">KES {{ number_format($itemTotal, 2) }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endforeach
+                        @php $catTotal = $items->sum('budgeted_cost'); @endphp
+                        <div class="text-end fw-bold mb-3">
+                            <span class="badge bg-info">Category Subtotal: KES {{ number_format($catTotal, 2) }}</span>
+                        </div>
+                    @else
+                        @php $catTotal = $items->sum('budgeted_cost'); @endphp
+                        <table class="table table-bordered mb-0">
+                            <thead class="table-secondary">
                                 <tr>
-                                    <td>{{ $item->particular }}</td>
-                                    <td>{{ $item->unit }}</td>
-                                    <td>{{ $item->quantity }}</td>
-                                    <td>KES {{ number_format($item->unit_price, 2) }}</td>
-                                    <td>KES {{ number_format($item->budgeted_cost, 2) }}</td>
-                                    <td>{{ $item->comment }}</td>
+                                    <th>Particular</th>
+                                    <th>Unit</th>
+                                    <th>Qty</th>
+                                    <th>Unit Price</th>
+                                    <th>Cost</th>
+                                    <th>Comment</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @foreach($items as $item)
+                                    <tr>
+                                        <td>{{ $item->particular }}</td>
+                                        <td>{{ $item->unit }}</td>
+                                        <td>{{ $item->quantity }}</td>
+                                        <td>KES {{ number_format($item->unit_price, 2) }}</td>
+                                        <td>KES {{ number_format($item->budgeted_cost, 2) }}</td>
+                                        <td>{{ $item->comment }}</td>
+                                    </tr>
+                                @endforeach
+                                <tr class="table-info fw-bold">
+                                    <td colspan="4" class="text-end">Subtotal for {{ $category }}</td>
+                                    <td colspan="2">KES {{ number_format($catTotal, 2) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    @endif
                 </div>
             </div>
         </div>
@@ -79,16 +145,8 @@
                 <strong>Total Budget:</strong><br>
                 <span class="text-success">KES {{ number_format($budget->budget_total, 2) }}</span>
             </div>
-            <div class="col-md-4 mb-2">
-                <strong>Invoice:</strong><br>
-                KES {{ number_format($budget->invoice ?? 0, 2) }}
-            </div>
-            <div class="col-md-4 mb-2">
-                <strong>Profit:</strong><br>
-                <span class="text-success">KES {{ number_format($budget->profit, 2) }}</span>
-            </div>
         </div>
-    </div>
+    </div> 
 
     {{-- Approval --}}
     <div class="card">
@@ -102,7 +160,30 @@
                 <strong>Departments:</strong><br>
                 {{ $budget->approved_departments ?? '-' }}
             </div>
+            <div class="col-md-6 mb-2">
+                <strong>Approved At:</strong><br>
+                {{ $budget->approved_at ? $budget->approved_at->format('d M Y H:i') : '-' }}
+            </div>
         </div>
     </div>
+
+    @php
+        $editLogs = \App\Models\BudgetEditLog::where('project_budget_id', $budget->id)->latest()->get();
+    @endphp
+    @if($budget->status === 'approved' && $editLogs->count())
+        <div class="card mt-4">
+            <div class="card-header bg-light fw-bold">Edit Logs (After Approval)</div>
+            <div class="card-body">
+                <ul class="list-group">
+                    @foreach($editLogs as $log)
+                        <li class="list-group-item">
+                            <strong>{{ $log->user->name ?? 'Unknown User' }}</strong> edited on {{ $log->created_at->format('d M Y H:i') }}<br>
+                            <small>Changes: {{ json_encode($log->changes) }}</small>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    @endif
 </div>
 @endsection

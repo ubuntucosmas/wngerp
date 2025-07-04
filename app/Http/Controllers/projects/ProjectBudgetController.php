@@ -8,6 +8,9 @@ use App\Models\Project;
 use App\Models\ProjectBudget;
 use App\Models\BudgetItem;
 use Illuminate\Support\Facades\DB;
+use App\Exports\ProjectBudgetExport;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Models\BudgetEditLog;
 
 class ProjectBudgetController extends Controller
 {
@@ -19,25 +22,16 @@ class ProjectBudgetController extends Controller
 
     public function create(Project $project)
     {
-        $categories = [
-            'Workshop labour' => ['Technicians', 'Carpenter', 'CNC', 'Welders', 'Project Officer','Meals'],
-            'Site' => ['Technicians', 'Pasters', 'Electricians','Off loaders','Project Officer','Meals'],
-            'Set down' => ['Technicians', 'Off loaders', 'Electricians', 'Meals'],
-            'Logistics' => ['Delivery to site', 'Delivery from site', 'Team transport to and from site set up', 'Team transport to and from set down','Materials Collection'],
-        ];
-
         // Get the latest material list for this project
         $materialList = $project->materialLists()->latest()->first();
-        
-        // Get all material items for auto-population
         $materialItems = [];
-        
         if ($materialList) {
             // Production Items - Only include particulars, not the parent items
             foreach ($materialList->productionItems as $item) {
                 foreach ($item->particulars as $particular) {
                     $materialItems[] = [
                         'category' => 'Materials - Production',
+                        'item_name' => $item->item_name,
                         'particular' => $particular->particular,
                         'unit' => $particular->unit,
                         'quantity' => $particular->quantity,
@@ -45,7 +39,6 @@ class ProjectBudgetController extends Controller
                     ];
                 }
             }
-            
             // Materials for Hire
             foreach ($materialList->materialsHire as $hire) {
                 $materialItems[] = [
@@ -56,7 +49,6 @@ class ProjectBudgetController extends Controller
                     'comment' => $hire->comment ?? ''
                 ];
             }
-            
             // Labour Items
             foreach ($materialList->labourItems as $labour) {
                 $materialItems[] = [
@@ -68,8 +60,9 @@ class ProjectBudgetController extends Controller
                 ];
             }
         }
-
-        return view('projects.budget.create', compact('project', 'categories', 'materialItems'));
+        // Group by category for the Blade
+        $grouped = collect($materialItems)->groupBy('category');
+        return view('projects.budget.create', compact('project', 'materialItems', 'grouped'));
     }
 
     public function show(Project $project, ProjectBudget $budget)
@@ -87,12 +80,20 @@ class ProjectBudgetController extends Controller
     
         try {
             $items = $request->input('items', []);
+            $productionItems = $request->input('production_items', []);
             $totalCost = 0;
     
-            // Calculate total from all items
+            // Calculate total from all items (other categories)
             foreach ($items as $category => $group) {
                 foreach ($group as $item) {
                     $totalCost += $item['budgeted_cost'] ?? 0;
+                }
+            }
+            // Calculate total from production items
+            foreach ($productionItems as $prod) {
+                if (!isset($prod['particulars'])) continue;
+                foreach ($prod['particulars'] as $particular) {
+                    $totalCost += $particular['budgeted_cost'] ?? 0;
                 }
             }
     
@@ -112,18 +113,37 @@ class ProjectBudgetController extends Controller
                 'status' => 'draft', // Default
             ]);
     
-            // Save each item with proper category
+            // Save each item with proper category (other categories)
             foreach ($items as $category => $group) {
                 foreach ($group as $item) {
                     BudgetItem::create([
                         'project_budget_id' => $budget->id,
                         'category' => $category,
+                        'item_name' => $item['item_name'] ?? null,
                         'particular' => $item['particular'] ?? '',
                         'unit' => $item['unit'] ?? '',
                         'quantity' => $item['quantity'] ?? 0,
-                        'unit_price' => $item['unit_price'] ?? 0, // Optional if PO can input this
+                        'unit_price' => $item['unit_price'] ?? 0,
                         'budgeted_cost' => $item['budgeted_cost'] ?? 0,
                         'comment' => $item['comment'] ?? '',
+                    ]);
+                }
+            }
+            // Save production items (grouped by item_name)
+            foreach ($productionItems as $prod) {
+                $itemName = $prod['item_name'] ?? null;
+                if (!isset($prod['particulars'])) continue;
+                foreach ($prod['particulars'] as $particular) {
+                    BudgetItem::create([
+                        'project_budget_id' => $budget->id,
+                        'category' => 'Materials - Production',
+                        'item_name' => $itemName,
+                        'particular' => $particular['particular'] ?? '',
+                        'unit' => $particular['unit'] ?? '',
+                        'quantity' => $particular['quantity'] ?? 0,
+                        'unit_price' => $particular['unit_price'] ?? 0,
+                        'budgeted_cost' => $particular['budgeted_cost'] ?? 0,
+                        'comment' => $particular['comment'] ?? '',
                     ]);
                 }
             }
@@ -142,9 +162,11 @@ public function edit(Project $project, ProjectBudget $budget)
     if (!auth()->user()->hasAnyRole(['finance', 'accounts', 'super-admin'])) {
         abort(403, 'Only Finance or Accounts can edit budgets.');
     }
-
+    if ($budget->status === 'approved') {
+        return redirect()->route('budget.show', [$project, $budget])
+            ->with('error', 'Approved budgets cannot be edited.');
+    }
     $items = $budget->items()->get()->groupBy('category');
-
     return view('projects.budget.edit', compact('project', 'budget', 'items'));
 }
 
@@ -153,6 +175,17 @@ public function update(Request $request, Project $project, ProjectBudget $budget
     if (!auth()->user()->hasAnyRole(['finance', 'accounts', 'super-admin'])) {
         abort(403, 'Not authorized.');
     }
+    if ($budget->status === 'approved') {
+        return redirect()->route('budget.show', [$project, $budget])
+            ->with('error', 'Approved budgets cannot be edited.');
+    }
+
+    // Log the edit before making changes
+    BudgetEditLog::create([
+        'project_budget_id' => $budget->id,
+        'user_id' => auth()->id(),
+        'changes' => $request->all(),
+    ]);
 
     DB::beginTransaction();
 
@@ -219,7 +252,27 @@ public function destroy(Project $project, ProjectBudget $budget)
     }
 }
 
+/**
+ * Export the specified budget to Excel.
+ */
+public function export(Project $project, ProjectBudget $budget)
+{
+    return Excel::download(new ProjectBudgetExport($budget), 'project_budget_' . $budget->id . '.xlsx');
+}
 
-
+/**
+ * Approve the specified budget.
+ */
+public function approve(Project $project, ProjectBudget $budget)
+{
+    if (!auth()->user()->hasRole('super-admin')) {
+        abort(403, 'Only Super Admins can approve budgets.');
+    }
+    $budget->status = 'approved';
+    $budget->approved_by = auth()->user()->name;
+    $budget->approved_at = now();
+    $budget->save();
+    return redirect()->back()->with('success', 'Budget approved successfully!');
+}
     
 }

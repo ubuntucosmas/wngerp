@@ -95,5 +95,8 @@ class DatabaseSeeder extends Seeder
                 'department' => 'projects',
             ])->assignRole('po');
         }
+
+        // Seed project phases for all existing projects
+        $this->call(ProjectPhasesTableSeeder::class);
     }
 }

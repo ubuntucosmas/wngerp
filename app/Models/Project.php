@@ -18,6 +18,7 @@ use App\Models\ArchivalReport;
 use App\Models\HandoverReport;
 use App\Models\SetupReport;
 use App\Models\LogisticsReport;
+use App\Models\ProjectPhase;
 
 
 
@@ -113,9 +114,9 @@ class Project extends Model
     }
 
     public function phases()
-{
-    return $this->hasMany(Phase::class);
-}
+    {
+        return $this->hasMany(\App\Models\ProjectPhase::class);
+    }
 
 
 public function getProgressAttribute()
@@ -178,5 +179,22 @@ public function archivalReports()
     return $this->hasMany(ArchivalReport::class);
 }
 
+protected static function booted()
+{
+    static::created(function ($project) {
+        foreach (config('project_process_phases') as $phase) {
+            $project->phases()->create([
+                'name' => $phase['name'],
+                'title' => $phase['name'],
+                'icon' => $phase['icon'] ?? null,
+                'summary' => $phase['summary'] ?? null,
+                'description' => $phase['summary'] ?? null,
+                'status' => $phase['status'],
+                'start_date' => null,
+                'end_date' => null,
+            ]);
+        }
+    });
+}
 
 }

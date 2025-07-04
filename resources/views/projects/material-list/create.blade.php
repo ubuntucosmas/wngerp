@@ -140,7 +140,7 @@
                                     @foreach($roles as $index => $role)
                                         <tr>
                                             <td><input type="text" name="items[{{ $category }}][{{ $index }}][particular]" class="form-control" value="{{ $role }}" readonly></td>
-                                            <td><input type="text" name="items[{{ $category }}][{{ $index }}][unit]" class="form-control"></td>
+                                            <td><input type="text" name="items[{{ $category }}][{{ $index }}][unit]" class="form-control" value="{{ old('items.'.$category.'.'.$index.'.unit', 'pax') }}"></td>
                                             <td><input type="number" step="0.01" name="items[{{ $category }}][{{ $index }}][quantity]" class="form-control"></td>
                                             <td><input type="text" name="items[{{ $category }}][{{ $index }}][comment]" class="form-control"></td>
                                         </tr>

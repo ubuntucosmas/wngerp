@@ -92,14 +92,6 @@
                 <label>Total Budget</label>
                 <input type="number" step="0.01" name="budget_total" id="totalBudget" class="form-control" value="{{ $budget->budget_total }}" readonly>
             </div>
-            <div class="col-md-4">
-                <label>Invoice</label>
-                <input type="number" step="0.01" name="invoice" id="invoiceAmount" class="form-control" value="{{ $budget->invoice }}">
-            </div>
-            <div class="col-md-4">
-                <label>Profit</label>
-                <input type="number" step="0.01" name="profit" id="profitAmount" class="form-control" value="{{ $budget->profit }}" readonly>
-            </div>
         </div>
 
         {{-- Approval --}}

@@ -10,7 +10,7 @@
         </a>
     </li>
     <li class="nav-item {{ request()->is('admin/users*') ? 'active' : '' }}">
-        <a class="nav-link" href="{{ route('admin.users') }}">
+        <a class="nav-link" href="{{ route('admin.users.index') }}">
             <i class="bi bi-people"></i> User Management
         </a>
     </li>

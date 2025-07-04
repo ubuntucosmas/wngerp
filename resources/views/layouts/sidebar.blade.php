@@ -8,13 +8,13 @@
                 </a>
             </li>
             <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="Users">
-                <a class="nav-link d-flex align-items-center {{ request()->routeIs('admin.users') ? 'active bg-cyan text-white' : 'text-dark' }}" href="{{ route('admin.users') }}">
+                <a class="nav-link d-flex align-items-center {{ request()->routeIs('admin.users.index') ? 'active bg-cyan text-white' : 'text-dark' }}" href="{{ route('admin.users.index') }}">
                     <i class="bi bi-people me-2"></i>
-                    <span class="nav-text">ADMIN USERS</span>
+                    <span class="nav-text">USERS</span>
                 </a>
             </li>
             <!-- <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="Manage Users">
-                <a class="nav-link d-flex align-items-center {{ request()->routeIs('admin.manage-users') ? 'active bg-cyan text-white' : 'text-dark' }}" href="{{ route('admin.manage-users') }}">
+                <a class="nav-link d-flex align-items-center {{ request()->routeIs('admin.manage-users') ? 'active bg-cyan text-white' : 'text-dark' }}" href="">
                     <i class="bi bi-tools me-2"></i>
                     <span class="nav-text">Manage Users</span>
                 </a>

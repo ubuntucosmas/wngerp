@@ -3,6 +3,14 @@
 
 @section('content')
 <div class="container-fluid p-2">
+    <!-- Breadcrumbs Navigation -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb bg-light p-2 rounded">
+            <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">Project Files</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Material-List</li>
+        </ol>
+    </nav>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 text-primary fw-bold">Material-List for Project: {{ $project->name }}</h1>
         <a href="{{ route('projects.material-list.create', $project) }}" class="btn btn-outline-primary">

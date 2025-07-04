@@ -34,7 +34,7 @@ class BookingOrderController extends Controller
         $this->storeTeamMembers($bookingOrder, $request);
 
         return redirect()
-            ->route('projects.booking-order.index', $project)
+            ->route('projects.logistics.booking-orders.index', $project)
             ->with('success', 'Booking Order created successfully.');
     }
 

@@ -270,78 +270,17 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
-                <form action="{{ route('admin.users.update', $user->id) }}" method="POST" id="updateUserForm">
+                <form action="{{ route('admin.users.update', 0) }}" method="POST" id="updateUserForm">
                     @csrf
                     @method('PUT')
-                    <input type="hidden" name="user_id" id="user_id">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="update-name" class="form-label fw-semibold">Name</label>
-                                <input type="text" name="name" id="update-name" class="form-control rounded-pill" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="update-email" class="form-label fw-semibold">Email</label>
-                                <input type="email" name="email" id="update-email" class="form-control rounded-pill" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="update-password" class="form-label fw-semibold">New Password (optional)</label>
-                                <input type="password" name="password" id="update-password" class="form-control rounded-pill" placeholder="Leave blank to keep current password">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="update-password_confirmation" class="form-label fw-semibold">Confirm New Password</label>
-                                <input type="password" name="password_confirmation" id="update-password_confirmation" class="form-control rounded-pill" placeholder="Confirm new password">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="update-role" class="form-label fw-semibold">Role</label>
-                                <select name="role" id="update-role" class="form-control rounded-pill" required>
-                                    @foreach($roles as $role)
-                                        <option value="{{ $role->name }}">{{ ucfirst(str_replace('-', ' ', $role->name)) }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="update-department" class="form-label fw-semibold">Department</label>
-                                <select name="department" id="update-department" class="form-control rounded-pill">
-                                    <option value="">None</option>
-                                    <option value="administration">Administration</option>
-                                    <option value="ict">IT</option>
-                                    <option value="projects">Projects</option>
-                                    <option value="hr">HR</option>
-                                    <option value="stores">Stores</option>
-                                    <option value="procurement">Procurement</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="update-level" class="form-label fw-semibold">Access Level (1-5)</label>
-                                <select name="level" id="update-level" class="form-control rounded-pill" required>
-                                    <option value="1">1 - Basic</option>
-                                    <option value="2">2 - Intermediate</option>
-                                    <option value="3">3 - Advanced</option>
-                                    <option value="4">4 - Senior</option>
-                                    <option value="5">5 - Highest</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                    <input type="hidden" name="user_id" id="modal_user_id">
+                    @include('admin.partials.user-form-fields', ['roles' => $roles, 'modal' => true])
                 <div class="modal-footer border-0 p-4 pt-0">
                     <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-gradient rounded-pill px-4">Update User</button>
                 </div>
             </form>
+            </div>
         </div>
     </div>
 </div>
@@ -362,22 +301,14 @@ document.addEventListener('DOMContentLoaded', function() {
     editButtons.forEach(button => {
         button.addEventListener('click', function(e) {
             e.preventDefault();
-            
-            const userId = this.getAttribute('data-user-id');
-            const userName = this.getAttribute('data-user-name');
-            const userEmail = this.getAttribute('data-user-email');
-            const userRole = this.getAttribute('data-user-role');
-            const userDepartment = this.getAttribute('data-user-department');
-            const userLevel = this.getAttribute('data-user-level');
-
-            // Fill update form
-            document.getElementById('user_id').value = userId;
-            document.getElementById('update-name').value = userName;
-            document.getElementById('update-email').value = userEmail;
-            document.getElementById('update-role').value = userRole;
-            document.getElementById('update-department').value = userDepartment;
-            document.getElementById('update-level').value = userLevel;
-
+            document.getElementById('modal_user_id').value = this.getAttribute('data-user-id');
+            document.getElementById('modal_name').value = this.getAttribute('data-user-name');
+            document.getElementById('modal_email').value = this.getAttribute('data-user-email');
+            document.getElementById('modal_role').value = this.getAttribute('data-user-role');
+            document.getElementById('modal_department').value = this.getAttribute('data-user-department');
+            document.getElementById('modal_level').value = this.getAttribute('data-user-level');
+            // Update form action to include user ID
+            document.getElementById('updateUserForm').action = `/admin/users/${this.getAttribute('data-user-id')}`;
             // Show update modal
             const updateModal = new bootstrap.Modal(document.getElementById('updateUserModal'));
             updateModal.show();

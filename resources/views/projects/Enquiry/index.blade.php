@@ -488,24 +488,18 @@
                                     <button type="button" class="btn btn-xs btn-outline-info" data-bs-toggle="modal" data-bs-target="#editEnquiryModal{{ $enquiry->id }}" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </button>
-                                    @if(auth()->user()->hasRole('super-admin'))
-                                        <form action="{{ route('enquiries.destroy', ['enquiry' => $enquiry->id]) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-xs btn-outline-danger" onclick="return confirm('Are you sure you want to delete this enquiry?')" title="Delete">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
-                                    @endif
+                                    <x-delete-button :action="route('enquiries.destroy', ['enquiry' => $enquiry->id])">
+                                            Delete
+                                        </x-delete-button>
                                 </div>
                             </td>
                             <td class="text-center">
                                 @if ($enquiry->converted_to_project_id)
                                     <div class="d-flex flex-column align-items-center gap-1">
-                                        <span class="bg-info border rounded px-1 py-1 d-flex align-items-center">
+                                        <!-- <span class="bg-info border rounded px-1 py-1 d-flex align-items-center">
                                             <i class="bi bi-check-circle-fill me-1"></i>
                                             Converted
-                                        </span>
+                                        </span> -->
                                         <a href="{{ route('projects.index', $enquiry->converted_to_project_id) }}" 
                                         class="btn btn-sm btn-outline-primary btn-sm"
                                         data-bs-toggle="tooltip" 

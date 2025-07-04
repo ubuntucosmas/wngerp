@@ -347,6 +347,10 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
                 ->name('job-brief');
             Route::post('job-brief', [\App\Http\Controllers\projects\ProductionController::class, 'storeJobBrief'])
                 ->name('job-brief.store');
+            Route::get('job-brief/{production}/edit', [\App\Http\Controllers\projects\ProductionController::class, 'editJobBrief'])
+                ->name('job-brief.edit');
+            Route::put('job-brief/{production}', [\App\Http\Controllers\projects\ProductionController::class, 'updateJobBrief'])
+                ->name('job-brief.update');
             
             // Status Update Route
             Route::post('status', [\App\Http\Controllers\projects\ProductionController::class, 'updateStatus'])

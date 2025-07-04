@@ -5,10 +5,14 @@ return [
     'roles' => [
         'super-admin',
         'admin',
+        'hr',
         'pm',       // Project Manager
-        'po',       // Project Officer
+        'po', 
+        'design',
+        'finance',      // Project Officer
         'store',    // Store Manager
         'user',     // General User
+        'production', // Production Manager
     ],
 
     'permissions' => [

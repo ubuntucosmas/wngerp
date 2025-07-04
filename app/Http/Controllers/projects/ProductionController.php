@@ -299,10 +299,6 @@ class ProductionController extends Controller
      */
     public function destroy(Project $project, Production $production)
     {
-        // Ensure the production record belongs to the project
-        if ($production->project_id !== $project->id) {
-            abort(403, 'Unauthorized action.');
-        }
 
         // Delete the production record
         $production->delete();

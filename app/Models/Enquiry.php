@@ -23,6 +23,7 @@ class Enquiry extends Model
         'project_id',
         'enquiry_number',
         'converted_to_project_id',
+        'venue',
     ];
 
    protected $casts = [

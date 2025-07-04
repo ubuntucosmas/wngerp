@@ -24,7 +24,7 @@
             <x-delete-button :action="route('budget.destroy', [$project->id, $budget->id])" class="ms-2">
                 Delete
             </x-delete-button>
-            @if(auth()->user()->hasRole('super-admin') && $budget->status !== 'approved')
+            @if(auth()->user()->hasRole('super-admin|finance') && $budget->status !== 'approved')
                 <form action="{{ route('budget.approve', [$project->id, $budget->id]) }}" method="POST" style="display:inline;">
                     @csrf
                     <button type="submit" class="btn btn-success btn-sm ms-2">Approve Budget</button>

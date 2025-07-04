@@ -354,8 +354,8 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="project_id" class="form-label">Project ID</label>
-                                        <input type="text" name="project_id" id="project_id" class="form-control" value="{{ old('project_id') }}">
+                                        <label for="venue" class="form-label">Venue</label>
+                                        <input type="text" name="venue" id="venue" class="form-control" value="{{ old('venue') }}">
                                     </div>
                                 </div>
                             </div>
@@ -380,12 +380,12 @@
                         <th>Setup Date</th>
                         <th>Client</th>
                         <th>Project</th>
+                        <th>Venue</th>
                         <th>Deliverables</th>
                         <th>Contact</th>
                         <th>Status</th>
                         <th>PO</th>
                         <th>Notes</th>
-                        <th>Project ID</th>
                         <th class="text-nowrap">Actions</th>
                         <th>Converted To Project</th>
                     </tr>
@@ -399,6 +399,7 @@
                             <td>{{ $enquiry->expected_delivery_date ? date('Y-m-d', strtotime($enquiry->expected_delivery_date)) : '-' }}</td>
                             <td>{{ $enquiry->client_name }}</td>
                             <td>{{ $enquiry->project_name }}</td>
+                            <td>{{ $enquiry->venue ?? '-' }}</td>
                             <td>
                                 @if($enquiry->project_deliverables)
                                     @php
@@ -482,7 +483,6 @@
                                     <span class="text-muted">-</span>
                                 @endif
                             </td>
-                            <td>{{ $enquiry->project_id ?? '-' }}</td>
                             <td class="actions">
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-xs btn-outline-info" data-bs-toggle="modal" data-bs-target="#editEnquiryModal{{ $enquiry->id }}" title="Edit">
@@ -624,8 +624,8 @@
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label for="project_id" class="form-label">Project ID</label>
-                                                        <input type="text" name="project_id" id="project_id" class="form-control" value="{{ $enquiry->project_id }}">
+                                                        <label for="venue" class="form-label">Venue</label>
+                                                        <input type="text" name="venue" id="venue" class="form-control" value="{{ $enquiry->venue }}">
                                                     </div>
                                                 </div>
                                             </div>

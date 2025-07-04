@@ -2,6 +2,7 @@
 @section('title', 'Create Project Budget')
 
 @section('content')
+@hasanyrole('finance|po|pm|super-admin')
 <div class="container-fluid p-2">
     <div class="mb-3">
         <nav aria-label="breadcrumb">
@@ -176,6 +177,9 @@
         </div>
     </div>
 </div>
+@else
+    <div class="alert alert-danger mt-5">You do not have permission to create a budget.</div>
+@endhasanyrole
 
 @endsection
 

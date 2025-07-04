@@ -46,6 +46,7 @@ class EnquiryController extends Controller
             'assigned_po' => 'nullable|string|max:255',
             'follow_up_notes' => 'nullable|string',
             'project_id' => 'nullable|string|max:255',
+            'venue' => 'nullable|string|max:255',
         ]);
     
         // Parse the datetime string into a Carbon instance
@@ -76,6 +77,7 @@ class EnquiryController extends Controller
             'assigned_po' => 'nullable|string|max:255',
             'follow_up_notes' => 'nullable|string',
             'project_id' => 'nullable|string|max:255',
+            'venue' => 'nullable|string|max:255',
         ]);
 
         $enquiry->update($validated);

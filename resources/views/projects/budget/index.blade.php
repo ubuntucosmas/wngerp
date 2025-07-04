@@ -16,7 +16,9 @@
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="mb-0">Budgets for {{ $project->name }}</h4>
+        @hasanyrole('finance|po|pm|super-admin')
         <a href="{{ route('budget.create', $project) }}" class="btn btn-primary btn-sm">+ New Budget</a>
+        @endhasanyrole
     </div>
 
     @if($budgets->count())
@@ -57,7 +59,7 @@
                         <td>
                             <a href="{{ route('budget.show', [$project, $budget]) }}" class="btn btn-info btn-sm">View</a>
 
-                            @hasanyrole('finance|accounts|super-admin')
+                            @hasanyrole('finance|po|pm|super-admin')
                                 <a href="{{ route('budget.edit', [$project, $budget]) }}" class="btn btn-warning btn-sm">Edit</a>
 
                                 @if(auth()->user()->hasRole('super-admin'))

@@ -3,6 +3,7 @@
 @section('title', 'Edit Project Budget')
 
 @section('content')
+@hasanyrole('finance|po|pm|super-admin')
 <div class="container mt-4">
     <form action="{{ route('budget.update', [$project, $budget]) }}" method="POST">
         @csrf
@@ -219,4 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 @endpush
+@else
+    <div class="alert alert-danger mt-5">You do not have permission to edit this budget.</div>
+@endhasanyrole
 @endsection

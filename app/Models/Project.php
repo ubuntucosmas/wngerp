@@ -155,6 +155,12 @@ public function setupReports()
     return $this->hasMany(SetupReport::class);
 }
 
+public function production()
+{
+    return $this->hasOne(Production::class);
+}
+
+
 /**
  * Get all of the handover reports for the project.
  */

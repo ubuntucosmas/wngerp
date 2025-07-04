@@ -4,7 +4,7 @@
 @section('navbar-title', 'Job Brief')
 
 @section('content')
-<div class="container">
+<div class="container pb-5">
     <!-- Sticky Header -->
     <div class="sticky-header bg-white mb-4">
         <div class="d-flex justify-content-between align-items-center">
@@ -12,7 +12,15 @@
                 <h2 class="mb-0">Production Log</h2>
                 <p class="mb-0 text-muted">Project: {{ $project->name }}</p>
             </div>
-            <div>
+            <div class="d-flex gap-2">
+                @if($production)
+                    <a href="{{ route('projects.production.download', $project) }}" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-file-earmark-pdf"></i> Download PDF
+                    </a>
+                    <a href="{{ route('projects.production.print', $project) }}" class="btn btn-outline-primary btn-sm" target="_blank">
+                        <i class="bi bi-printer"></i> Print
+                    </a>
+                @endif
                 <a href="{{ route('projects.files.index', $project) }}" class="btn btn-outline-secondary btn-sm">
                     <i class="bi bi-arrow-left"></i> Back to Project Files
                 </a>
@@ -27,604 +35,497 @@
                 <h5 class="mb-2">No Production Entry Found</h5>
                 <p class="text-muted mb-4">Click the button below to add your first production entry.</p>
                 <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#productionFormModal">
-                    <i class="bi bi-plus-lg"></i> Add Production Entry
+                    <i class="bi bi-plus-lg"></i> Add Job Brief
                 </button>
             </div>
         </div>
-  @else
-    
-    <div class="d-flex justify-content-end mb-3">
-        @if($production)
+    @else
+        <div class="d-flex justify-content-end mb-3">
             <form action="{{ route('projects.production.destroy', [$project, $production]) }}" method="POST" class="me-2" onsubmit="return confirm('Are you sure you want to delete this production record? This action cannot be undone.');">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="btn btn-danger btn-sm">
-                    <i class="bi bi-trash"></i> Delete Production Record
+                    <i class="bi bi-trash"></i> Delete Job Brief
                 </button>
             </form>
-        @endif
-        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#productionFormModal">
-            <i class="bi bi-plus-lg"></i> {{ $production ? 'Edit' : 'Add New' }} Job Brief
-        </button>
-    </div>
-    
-    <div class="row g-4">
-        <!-- Main Info Card -->
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom-0 py-3">
-                    <h6 class="mb-0 fw-bold">
-                        <i class="bi bi-info-circle text-primary me-2"></i>
-                        Basic Information
-                    </h6>
-                </div>
-                <div class="card-body pt-0">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item px-0 border-0 d-flex justify-content-between">
-                            <span class="text-muted">Job Number:</span>
-                            <span class="fw-medium">{{ $production ? $production->job_number : 'N/A' }}</span>
-                        </li>
-                        <li class="list-group-item px-0 border-0 d-flex justify-content-between">
-                            <span class="text-muted">Client:</span>
-                            <span class="fw-medium">{{ $production ? $production->client_name : 'N/A' }}</span>
-                        </li>
-                        <li class="list-group-item px-0 border-0">
-                            <div class="text-muted mb-1">Project Title:</div>
-                            <div class="fw-medium">{{ $production ? $production->project_title : 'N/A' }}</div>
-                        </li>
-                        <li class="list-group-item px-0 border-0 d-flex justify-content-between">
-                            <span class="text-muted">Briefed By:</span>
-                            <span class="fw-medium">{{ $production ? $production->briefed_by : 'N/A' }}</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
+            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#productionFormModal" 
+                @if(isset($production)) 
+                    data-edit-mode="true"
+                    data-production-id="{{ $production->id }}"
+                @endif>
+                <i class="bi bi-pencil"></i> Edit Job Brief
+            </button>
         </div>
 
-        <!-- Timeline Card -->
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom-0 py-3">
-                    <h6 class="mb-0 fw-bold">
-                        <i class="bi bi-calendar3 text-primary me-2"></i>
-                        Timeline & Status
-                    </h6>
-                </div>
-                <div class="card-body pt-0">
-                    <div class="timeline-wrapper">
-                        <div class="timeline-item">
-                            <div class="timeline-badge bg-primary">
-                                <i class="bi bi-calendar-check"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <div class="text-muted small">Briefing Date</div>
-                                <div class="fw-medium">{{ $production ? ($production->briefing_date ? $production->briefing_date->format('M d, Y') : 'N/A') : 'N/A' }}</div>
-                            </div>
-                        </div>
-                        <div class="timeline-divider">
-                            <div class="divider-line"></div>
-                        </div>
-                        <div class="timeline-item">
-                            <div class="timeline-badge bg-success">
-                                <i class="bi bi-truck"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <div class="text-muted small">Delivery Date</div>
-                                <div class="fw-medium">{{ $production ? ($production->delivery_date ? $production->delivery_date->format('M d, Y') : 'N/A') : 'N/A' }}</div>
-                            </div>
-                        </div>
+        <div class="row g-4">
+            <!-- Main Info Card -->
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom-0 py-3">
+                        <h6 class="mb-0 fw-bold">
+                            <i class="bi bi-info-circle text-primary me-2"></i>
+                            Basic Information
+                        </h6>
                     </div>
-                    
-                    <div class="mt-4 pt-3 border-top">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="text-muted small">Status:</span>
-                            <span class="badge bg-{{ $production && $production->status ? ($production->status === 'pending' ? 'warning' : ($production->status === 'approved' ? 'success' : 'info')) : 'secondary' }} px-3 py-2">
-                                {{ $production && $production->status ? ucfirst($production->status) : 'N/A' }}
-                            </span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-muted small">Files Received:</span>
-                            <span class="badge bg-{{ $production ? ($production->files_received ? 'success' : 'secondary') : 'secondary' }} px-3 py-2">
-                                {{ $production ? ($production->files_received ? 'Yes' : 'No') : 'N/A' }}
-                            </span>
+                    <div class="card-body pt-0">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item px-0 border-0 d-flex justify-content-between">
+                                <span class="text-muted">Job Number:</span>
+                                <span class="fw-medium">{{ $production->job_number ?? 'N/A' }}</span>
+                            </li>
+                            <li class="list-group-item px-0 border-0 d-flex justify-content-between">
+                                <span class="text-muted">Client:</span>
+                                <span class="fw-medium">{{ $production->client_name ?? 'N/A' }}</span>
+                            </li>
+                            <li class="list-group-item px-0 border-0 d-flex justify-content-between">
+                                <div class="text-muted mb-1">Project Title:</div>
+                                <div class="fw-medium">{{ $production->project_title ?? 'N/A' }}</div>
+                            </li>
+                            <li class="list-group-item px-0 border-0 d-flex justify-content-between">
+                                <span class="text-muted">Briefed By:</span>
+                                <span class="fw-medium">{{ $production->briefed_by ?? 'N/A' }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline Card -->
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom-0 py-3">
+                        <h6 class="mb-0 fw-bold">
+                            <i class="bi bi-calendar3 text-primary me-2"></i>
+                            Timeline & Status
+                        </h6>
+                    </div>
+                    <div class="card-body pt-0">
+                        <div class="timeline-wrapper">
+                            <div class="timeline-item">
+                                <div class="timeline-badge bg-primary">
+                                    <i class="bi bi-calendar-check"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="text-muted small">Briefing Date</div>
+                                    <div class="fw-medium">{{ $production->briefing_date ? $production->briefing_date->format('M d, Y') : 'N/A' }}</div>
+                                </div>
+                            </div>
+                            <div class="timeline-divider">
+                                <div class="divider-line"></div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-badge bg-success">
+                                    <i class="bi bi-truck"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="text-muted small">Delivery Date</div>
+                                    <div class="fw-medium">
+                                        @if($production->delivery_date)
+                                            {{ $production->delivery_date->format('M d, Y') }}
+                                            @if($production->delivery_time)
+                                                <span class="text-muted ms-2">{{ $production->delivery_time }}</span>
+                                            @endif
+                                        @else
+                                            N/A
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Team & Materials Card -->
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom-0 py-3">
-                    <h6 class="mb-0 fw-bold">
-                        <i class="bi bi-people text-primary me-2"></i>
-                        Team & Materials
-                    </h6>
-                </div>
-                <div class="card-body pt-0">
-                    <div class="mb-4">
-                        <label class="form-label small text-muted mb-2">Production Team</label>
-                        <div class="team-list">
-                            @if($production && !empty($production->production_team))
-                                @foreach(explode(',', $production->production_team) as $member)
-                                    @if(trim($member) !== '')
-                                        <div class="team-member d-flex align-items-center mb-2">
-                                            <div class="member-avatar bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                                                <i class="bi bi-person-fill"></i>
-                                            </div>
-                                            <span class="small">{{ trim($member) }}</span>
-                                        </div>
-                                    @endif
-                                @endforeach
+            <!-- Team & Materials Card -->
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom-0 py-3">
+                        <h6 class="mb-0 fw-bold">
+                            <i class="bi bi-people text-primary me-2"></i>
+                            Team & Materials
+                        </h6>
+                    </div>
+                    <div class="card-body pt-0">
+                        <div class="mb-3">
+                            <div class="text-muted small mb-1">Team Members</div>
+                            @if($production->production_team)
+                                <div class="bg-light p-2 rounded">
+                                    {!! nl2br(e($production->production_team)) !!}
+                                </div>
                             @else
-                                <div class="text-muted small">No team members assigned</div>
+                                <p class="text-muted mb-0">No team members assigned</p>
+                            @endif
+                        </div>
+                        <div>
+                            <div class="text-muted small mb-1">Required Materials</div>
+                            @if($production->materials_required)
+                                <div class="bg-light p-2 rounded">
+                                    {!! nl2br(e($production->materials_required)) !!}
+                                </div>
+                            @else
+                                <p class="text-muted mb-0">No materials specified</p>
                             @endif
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
 
-                    <div class="border-top pt-3">
-                        <label class="form-label small text-muted mb-2">Status Notes</label>
-                        <div class="bg-light p-3 rounded">
-                            <p class="mb-0 small">{{ $production && $production->status_notes ? $production->status_notes : 'No status notes available' }}</p>
+        <!-- Key Instructions -->
+        @if($production->key_instructions)
+        <div class="row g-4 mt-2">
+            <div class="col-12">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom-0 py-3">
+                        <h6 class="mb-0 fw-bold">
+                            <i class="bi bi-lightbulb text-warning me-2"></i>
+                            Key Instructions
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="bg-light p-3 rounded h-100">
+                            <p class="mb-0">{{ $production->key_instructions }}</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+        @endif
 
-    <!-- Notes & Materials Section -->
-    <div class="row g-4 mt-2">
-        <!-- Key Instructions Card -->
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom-0 py-3">
-                    <h6 class="mb-0 fw-bold">
-                        <i class="bi bi-chat-square-text text-primary me-2"></i>
-                        Key Instructions
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="bg-light p-3 rounded">
-                        <p class="mb-0">{{ $production && $production->key_instructions ? $production->key_instructions : 'No key instructions provided' }}</p>
+        <!-- Notes, Special Considerations & Files Section -->
+        <div class="row g-4 mt-2">
+            <!-- Additional Notes -->
+            @if($production->additional_notes)
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom-0 py-3">
+                        <h6 class="mb-0 fw-bold">
+                            <i class="bi bi-sticky text-primary me-2"></i>
+                            Additional Notes
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="bg-light p-3 rounded h-100">
+                            <p class="mb-0">{{ $production->additional_notes }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Special Considerations Card -->
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom-0 py-3">
-                    <h6 class="mb-0 fw-bold">
-                        <i class="bi bi-exclamation-triangle text-warning me-2"></i>
-                        Special Considerations
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="bg-light p-3 rounded">
-                        <p class="mb-0">{{ $production && $production->special_considerations ? $production->special_considerations : 'No special considerations' }}</p>
+            @endif
+            
+            <!-- Special Considerations -->
+            @if($production->special_considerations)
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom-0 py-3">
+                        <h6 class="mb-0 fw-bold">
+                            <i class="bi bi-exclamation-triangle text-danger me-2"></i>
+                            Special Considerations
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="bg-light p-3 rounded h-100">
+                            <p class="mb-0">{{ $production->special_considerations }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+            @endif
 
-        <!-- Materials Required Card -->
-        <div class="col-md-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom-0 py-3">
-                    <h6 class="mb-0 fw-bold">
-                        <i class="bi bi-box-seam text-primary me-2"></i>
-                        Materials Required
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="bg-light p-3 rounded">
-                        @if($production && !empty($production->materials_required))
+            <!-- Files Received Card -->
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom-0 py-3">
+                        <h6 class="mb-0 fw-bold">
+                            <i class="bi bi-folder-check text-primary me-2"></i>
+                            Files Received
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        @if(is_array($production->files_received) && count($production->files_received) > 0)
                             <ul class="list-unstyled mb-0">
-                                @foreach(explode('\n', $production->materials_required) as $material)
-                                    @if(trim($material))
-                                        <li class="mb-1">
-                                            <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                            {{ trim($material) }}
+                                @foreach($production->files_received as $file)
+                                    @if(is_array($file))
+                                        <li class="mb-2 d-flex align-items-center">
+                                            <i class="bi bi-file-earmark-text text-muted me-2"></i>
+                                            <span class="text-truncate">{{ $file['name'] ?? 'Unnamed file' }}</span>
+                                            @if(isset($file['size']) && $file['size'])
+                                                <small class="text-muted ms-auto">{{ $file['size'] }}</small>
+                                            @endif
                                         </li>
                                     @endif
                                 @endforeach
                             </ul>
                         @else
-                            <p class="mb-0">No materials specified</p>
+                            <p class="text-muted mb-0">No files received yet</p>
                         @endif
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Additional Notes Card -->
-    @if($production && $production->additional_notes)
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom-0 py-3">
-                    <h6 class="mb-0 fw-bold">
-                        <i class="bi bi-sticky text-primary me-2"></i>
-                        Additional Notes
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div class="bg-light p-3 rounded">
-                        <p class="mb-0">{{ $production->additional_notes }}</p>
+        <!-- Tasks Assigned Section -->
+        <div class="row g-4 mt-2">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom-0 py-3">
+                        <h6 class="mb-0 fw-bold">
+                            <i class="bi bi-list-check text-primary me-2"></i>
+                            Tasks Assigned
+                        </h6>
+                    </div>
+                    <div class="card-body p-0">
+                        @if($production->tasks && $production->tasks->count() > 0)
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Title</th>
+                                            <th>Description</th>
+                                            <th>Assigned To</th>
+                                            <th>Due Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($production->tasks as $task)
+                                            <tr>
+                                                <td style="min-width: 200px;" class="align-middle">
+                                                    <div class="fw-medium">{{ $task->title ?? 'Untitled Task' }}</div>
+                                                </td>
+                                                <td style="min-width: 300px;" class="align-middle">
+                                                    @if(!empty($task->description))
+                                                        {{ $task->description }}
+                                                    @else
+                                                        <span class="text-muted">No description</span>
+                                                    @endif
+                                                </td>
+                                                <td class="align-middle">
+                                                    @if(!empty($task->assigned_to))
+                                                        {{ $task->assigned_to }}
+                                                    @else
+                                                        <span class="text-muted">Unassigned</span>
+                                                    @endif
+                                                </td>
+                                                <td class="align-middle">
+                                                    @if($task->due_date)
+                                                        <span class="text-nowrap">{{ $task->due_date->format('M d, Y') }}</span>
+                                                    @else
+                                                        <span class="text-muted">-</span>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <div class="p-3 text-center">
+                                <p class="text-muted mb-0">No tasks assigned yet</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    @endif
-
 @endif
-
-<!-- Production Form Modal -->
-<div class="modal fade" id="productionFormModal" tabindex="-1" aria-labelledby="productionFormModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-scrollable">
-    <div class="modal-content" style="border: none; border-radius: 0.5rem; box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15); overflow: hidden;">
-      <div class="modal-header" style="background-color: #f8f9fa; border-bottom: 1px solid #e9ecef; padding: 1.25rem 1.5rem;">
-        <h5 class="modal-title" id="productionFormModalLabel" style="font-size: 1.25rem; font-weight: 600; color: #2c3e50; margin: 0; line-height: 1.5;">Add New Job Brief</h5>
-      </div>
-      <div class="modal-body" style="padding: 1.5rem; max-height: 70vh; overflow-y: auto;">
-        <form action="{{ route('projects.production.job-brief.store', $project) }}" method="POST" class="needs-validation" novalidate style="--bs-border-color: #ced4da; --bs-border-radius: 0.375rem; --bs-focus-ring-color: rgba(13, 110, 253, 0.25);">
-          @csrf
-          <div class="row g-3">
-            <div class="col-md-4">
-              <div class="mb-3">
-                <label for="job_number" class="form-label fw-bold" style="font-size: 0.9rem; font-weight: 500; color: #495057; margin-bottom: 0.4rem;">Job Number <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="job_number" name="job_number" value="{{ $project->project_id ?? '' }}" required style="border: 1px solid var(--bs-border-color); border-radius: var(--bs-border-radius); padding: 0.5rem 0.75rem; font-size: 0.9rem; transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out; height: auto; min-height: 38px; width: 100%;">
-              </div>
+    <!-- Production Form Modal -->
+    <div class="modal fade" id="productionFormModal" tabindex="-1" aria-labelledby="productionFormModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="modal-title mb-0" id="productionFormModalLabel">
+                                <i class="bi bi-briefcase me-2"></i>{{ isset($production) ? 'Edit' : 'Add New' }} Job Brief
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="p-4">
+                            <form id="jobBriefForm" action="{{ isset($production) ? route('projects.production.job-brief.update', [$project, $production]) : route('projects.production.job-brief.store', $project) }}" method="POST" class="needs-validation" novalidate onsubmit="return validateForm(this);">
+                                @csrf
+                                @if(isset($production))
+                                    @method('PUT')
+                                @endif
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="job_number" class="form-label fw-bold" style="font-size: 0.9rem; font-weight: 500; color: #495057; margin-bottom: 0.4rem;">Job Number <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="job_number" name="job_number" value="{{ $project->project_id ?? '' }}" required style="border: 1px solid var(--bs-border-color); border-radius: var(--bs-border-radius); padding: 0.5rem 0.75rem; font-size: 0.9rem; transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out; height: auto; min-height: 38px; width: 100%;">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="project_title" class="form-label fw-bold">Project Title <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="project_title" name="project_title" value="{{ $project->name }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="client_name" class="form-label fw-bold">Client Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="client_name" name="client_name" value="{{ $project->client->name ?? '' }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-4">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="briefing_date" class="form-label fw-bold">Briefing Date <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="briefing_date" name="briefing_date" value="{{ now()->format('Y-m-d') }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="briefed_by" class="form-label fw-bold">Briefed By <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="briefed_by" name="briefed_by" value="{{ auth()->user()->name }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="delivery_date" class="form-label fw-bold">Delivery Date <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="delivery_date" name="delivery_date" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-4">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="production_team" class="form-label fw-bold">Production Team Members <span class="text-danger">*</span></label>
+                                    <textarea class="form-control form-textarea" id="production_team" name="production_team" required></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="materials_required" class="form-label fw-bold">Materials Required</label>
+                                    <textarea class="form-control form-textarea" id="materials_required" name="materials_required"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="key_instructions" class="form-label fw-bold">Key Instructions/Notes from Design</label>
+                                    <textarea class="form-control form-textarea" id="key_instructions" name="key_instructions"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-4">
+                            <!-- Left Column: Special Considerations -->
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="special_considerations" class="form-label fw-bold">Special Considerations (Site, Safety, etc.)</label>
+                                    <textarea class="form-control form-textarea" id="special_considerations" name="special_considerations" style="min-height: 150px;"></textarea>
+                                </div>
+                            </div>
+                            
+                            <!-- Middle Column: Files Received -->
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold d-block">Files Received <span class="text-danger">*</span></label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="files_received" id="files_received_yes" value="1" required>
+                                        <label class="form-check-label" for="files_received_yes">Yes</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="files_received" id="files_received_no" value="0" required>
+                                        <label class="form-check-label" for="files_received_no">No</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Right Column: Additional Notes -->
+                            <div class="col-md-5">
+                                <div class="mb-3">
+                                    <label for="additional_notes" class="form-label fw-bold">Additional Notes</label>
+                                    <textarea class="form-control form-textarea" id="additional_notes" name="additional_notes" style="min-height: 150px;"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Tasks Table -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5 class="mb-3">Assigned Tasks & Responsibilities</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered" id="tasksTable">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th style="width: 25%;">Title</th>
+                                                <th style="width: 40%;">Description</th>
+                                                <th style="width: 20%;">Assigned To</th>
+                                                <th style="width: 15%;">Due Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <input type="text" class="form-control form-control-sm" name="tasks[0][title]" placeholder="Task title" required>
+                                                </td>
+                                                <td>
+                                                    <textarea class="form-control form-control-sm" name="tasks[0][description]" placeholder="Task description" rows="2"></textarea>
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="form-control form-control-sm" name="tasks[0][assigned_to]" placeholder="Team member">
+                                                </td>
+                                                <td>
+                                                    <input type="date" class="form-control form-control-sm" name="tasks[0][due_date]" required>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="addTask">
+                                        <i class="bi bi-plus-circle"></i> Add Task
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                       
+                    </form>
+                </div>
+                <div class="card-footer bg-white border-top py-3">
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('jobBriefForm').reset()">Reset</button>
+                        <button type="submit" form="jobBriefForm" class="btn btn-primary btn-sm">
+                            <i class="bi bi-save me-1"></i> Save Job Brief
+                        </button>
+                    </div>
+                </div>
+                </div>
             </div>
-            <div class="col-md-4">
-              <div class="mb-3">
-                <label for="project_title" class="form-label fw-bold">Project Title <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="project_title" name="project_title" value="{{ $project->name }}" required>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="mb-3">
-                <label for="client_name" class="form-label fw-bold">Client Name <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="client_name" name="client_name" value="{{ $project->client->name ?? '' }}" required>
-              </div>
-            </div>
-          </div>
-          <div class="row g-3 mt-4">
-            <div class="col-md-4">
-              <div class="mb-3">
-                <label for="briefing_date" class="form-label fw-bold">Briefing Date <span class="text-danger">*</span></label>
-                <input type="date" class="form-control" id="briefing_date" name="briefing_date" value="{{ now()->format('Y-m-d') }}" required>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="mb-3">
-                <label for="briefed_by" class="form-label fw-bold">Briefed By <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="briefed_by" name="briefed_by" value="{{ auth()->user()->name }}" required>
-              </div>
-            </div>
-            <div class="col-md-4">
-              <div class="mb-3">
-                <label for="delivery_date" class="form-label fw-bold">Delivery Date <span class="text-danger">*</span></label>
-                <input type="date" class="form-control" id="delivery_date" name="delivery_date" required>
-              </div>
-            </div>
-          </div>
-          <div class="row g-3 mt-4">
-  <div class="col-md-4">
-    <div class="mb-3">
-      <label for="production_team" class="form-label fw-bold">Production Team Members <span class="text-danger">*</span></label>
-      <textarea class="form-control form-textarea" id="production_team" name="production_team" required></textarea>
-    </div>
-  </div>
-  <div class="col-md-4">
-    <div class="mb-3">
-      <label for="materials_required" class="form-label fw-bold">Materials Required</label>
-      <textarea class="form-control form-textarea" id="materials_required" name="materials_required"></textarea>
-    </div>
-  </div>
-  <div class="col-md-4">
-    <div class="mb-3">
-      <label for="key_instructions" class="form-label fw-bold">Key Instructions/Notes from Design</label>
-      <textarea class="form-control form-textarea" id="key_instructions" name="key_instructions"></textarea>
-    </div>
-  </div>
-</div>
-<div class="row g-3 mt-4">
-  <div class="col-md-5">
-    <div class="mb-3">
-      <label for="special_considerations" class="form-label fw-bold">Special Considerations (Site, Safety, etc.)</label>
-      <textarea class="form-control form-textarea" id="special_considerations" name="special_considerations"></textarea>
-    </div>
-  </div>
-  <div class="col-md-3">
-    <div class="mb-3">
-      <label class="form-label fw-bold">Files Received? <span class="text-danger">*</span></label>
-      <div class="form-check">
-        <input class="form-check-input" type="radio" name="files_received" id="files_yes" value="1" required>
-        <label class="form-check-label" for="files_yes">Yes</label>
-      </div>
-      <div class="form-check">
-        <input class="form-check-input" type="radio" name="files_received" id="files_no" value="0" checked>
-        <label class="form-check-label" for="files_no">No</label>
-      </div>
-    </div>
-  </div>
-  <div class="col-md-4">
-    <div class="mb-3">
-      <label for="additional_notes" class="form-label fw-bold">Additional Notes</label>
-      <div class="w-100">
-        <textarea class="form-control form-textarea" id="additional_notes" name="additional_notes" style="width: 100%; resize: none;"></textarea>
-      </div>
-    </div>
-  </div>
-</div>
-          <!-- Tasks Table -->
-          <div class="row mt-4">
-            <div class="col-12">
-              <h5 class="mb-3">Assigned Tasks & Responsibilities</h5>
-              <div class="table-responsive">
-                <table class="table table-bordered" id="tasksTable">
-                  <thead class="table-light">
-                    <tr>
-                      <th style="width: 40%;">Task</th>
-                      <th style="width: 30%;">Assigned To</th>
-                      <th style="width: 20%;">Deadline</th>
-                      <th style="width: 10%;">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td><input type="text" class="form-control form-control-sm" name="tasks[0][task]" placeholder="Task description"></td>
-                      <td><input type="text" class="form-control form-control-sm" name="tasks[0][assigned_to]" placeholder="Team member"></td>
-                      <td><input type="date" class="form-control form-control-sm" name="tasks[0][deadline]"></td>
-                      <td>
-                        <select class="form-select form-select-sm" name="tasks[0][status]">
-                          <option value="pending">Pending</option>
-                          <option value="in_progress">In Progress</option>
-                          <option value="completed">Completed</option>
-                        </select>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-                <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="addTask">
-                  <i class="bi bi-plus-circle"></i> Add Task
-                </button>
-              </div>
-            </div>
-          </div>
-      
-        <!-- Additional Notes has been moved next to Files Received -->
-            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
-            <button type="reset" class="btn btn-outline-secondary btn-sm me-2">Reset</button>
-            <button type="submit" class="btn btn-primary btn-sm">Save Job Brief</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
         </div>
     </div>
+    
 </div>
-@push('styles')
-<style>
-    /* Card Styling */
-    .card {
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        border: 1px solid rgba(0,0,0,0.05);
-    }
-    
-    .card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.05) !important;
-    }
-    
-    .card-header {
-        background-color: #f8f9fa;
-    }
-    
-    /* Timeline Styling */
-    .timeline-wrapper {
-        position: relative;
-        padding-left: 30px;
-    }
-    
-    .timeline-item {
-        position: relative;
-        padding-bottom: 20px;
-    }
-    
-    .timeline-badge {
-        position: absolute;
-        left: -30px;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 12px;
-    }
-    
-    .timeline-content {
-        padding-bottom: 10px;
-    }
-    
-    .timeline-divider {
-        position: relative;
-        height: 30px;
-        margin-left: -30px;
-        display: flex;
-        align-items: center;
-    }
-    
-    .divider-line {
-        height: 100%;
-        width: 2px;
-        background: #e9ecef;
-        margin-left: 11px;
-    }
-    
-    /* Team Member List */
-    .team-member {
-        padding: 6px 0;
-        border-bottom: 1px solid #f1f1f1;
-    }
-    
-    .team-member:last-child {
-        border-bottom: none;
-    }
-    
-    /* Material List */
-    .material-item {
-        display: flex;
-        align-items: center;
-        margin-bottom: 8px;
-        padding: 6px 10px;
-        background: white;
-        border-radius: 4px;
-        border-left: 3px solid #0d6efd;
-    }
-    
-    /* Responsive Adjustments */
-    @media (max-width: 768px) {
-        .card {
-            margin-bottom: 20px;
-        }
-    }
-    
-    /* Modal Styling - Compact */
-    #productionFormModal .modal-content {
-        border: none;
-        border-radius: 0.25rem;
-        box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-    }
-    
-    #productionFormModal .modal-header {
-        background-color: #f8f9fa;
-        border-bottom: 1px solid #e9ecef;
-        padding: 0.5rem 1rem;
-    }
-    
-    #productionFormModal .modal-title {
-        font-size: 1rem;
-        font-weight: 600;
-        color: #2c3e50;
-        margin: 0;
-        line-height: 1.25;
-    }
-    
-    #productionFormModal .modal-body {
-        padding: 0.75rem;
-        max-height: 70vh;
-        overflow-y: auto;
-    }
-    
-    #productionFormModal .modal-footer {
-        background-color: #f8f9fa;
-        border-top: 1px solid #e9ecef;
-        padding: 0.5rem;
-        justify-content: flex-end;
-    }
-    
-    /* Form Elements */
-    #productionFormModal .form-label {
-        font-size: 0.8rem;
-        font-weight: 500;
-        color: #495057;
-        margin-bottom: 0.2rem;
-    }
-    
-    #productionFormModal .form-control,
-    #productionFormModal .form-select,
-    #productionFormModal textarea {
-        border: 1px solid #ced4da;
-        border-radius: 0.25rem;
-        padding: 0.3rem 0.5rem;
-        font-size: 0.85rem;
-        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-        height: auto;
-        min-height: 32px;
-    }
-    
-    #productionFormModal .form-textarea {
-        min-height: 80px;
-        height: 100px;
-        resize: vertical;
-    }
-    
-    #productionFormModal .form-control:focus,
-    #productionFormModal .form-select:focus,
-    #productionFormModal textarea:focus {
-        border-color: #80bdff;
-        box-shadow: 0 0 0 0.15rem rgba(0, 123, 255, 0.15);
-        outline: 0;
-    }
-    
-    /* Buttons */
-    #productionFormModal .btn {
-        padding: 0.3rem 0.8rem;
-        font-size: 0.8rem;
-        font-weight: 500;
-        border-radius: 0.25rem;
-        transition: all 0.2s ease-in-out;
-    }
-    
-    #productionFormModal .btn-outline-secondary {
-        border-color: #6c757d;
-        color: #6c757d;
-    }
-    
-    #productionFormModal .btn-outline-secondary:hover {
-        background-color: #6c757d;
-        color: white;
-    }
-    
-    #productionFormModal .btn-primary {
-        background-color: #0d6efd;
-        border-color: #0d6efd;
-    }
-    
-    #productionFormModal .btn-primary:hover {
-        background-color: #0b5ed7;
-        border-color: #0a58ca;
-    }
-    
-    /* Reduce spacing between form groups */
-    #productionFormModal .mb-3 {
-        margin-bottom: 0.5rem !important;
-    }
-    
-    #productionFormModal .row {
-        --bs-gutter-x: 0.75rem;
-        --bs-gutter-y: 0.5rem;
-    }
-    
-    /* Responsive Adjustments */
-    @media (max-width: 768px) {
-        #productionFormModal .modal-body {
-            padding: 0.5rem;
-        }
-        
-        #productionFormModal .col-md-4,
-        #productionFormModal .col-md-5,
-        #productionFormModal .col-md-3 {
-            margin-bottom: 0.5rem;
-        }
-    }
-</style>
-@endpush
 
     @push('scripts')
     <script>
+        // Form validation function
+        function validateForm(form) {
+            'use strict';
+            
+            // Check if the form is valid
+            if (!form.checkValidity()) {
+                // Add was-validated class to show validation messages
+                form.classList.add('was-validated');
+                
+                // Find first invalid field and focus on it
+                const firstInvalid = form.querySelector(':invalid');
+                if (firstInvalid) {
+                    firstInvalid.focus();
+                    
+                    // Scroll to the first invalid field if it's in a modal
+                    const modal = form.closest('.modal');
+                    if (modal) {
+                        const modalContent = modal.querySelector('.modal-content');
+                        modalContent.scrollTop = firstInvalid.offsetTop - 20;
+                    }
+                }
+                
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Enable Bootstrap form validation
         document.addEventListener('DOMContentLoaded', function() {
             let taskCount = 1;
             const addTaskBtn = document.getElementById('addTask');
@@ -651,6 +552,22 @@
                     }
                 });
             }
+            // Add input event listeners to clear validation state when user starts typing
+            const forms = document.querySelectorAll('.needs-validation');
+            forms.forEach(form => {
+                const inputs = form.querySelectorAll('input, textarea, select');
+                inputs.forEach(input => {
+                    input.addEventListener('input', function() {
+                        if (input.checkValidity()) {
+                            input.classList.remove('is-invalid');
+                            input.classList.add('is-valid');
+                        } else {
+                            input.classList.remove('is-valid');
+                            input.classList.add('is-invalid');
+                        }
+                    });
+                });
+            });
         });
     </script>
     @endpush
@@ -659,6 +576,176 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM fully loaded');
+            
+            // Task counter for dynamic task addition
+            let taskCounter = 1;
+            
+            // Handle edit mode when modal is shown
+            const productionFormModal = document.getElementById('productionFormModal');
+            if (productionFormModal) {
+                productionFormModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    const isEditMode = button.getAttribute('data-edit-mode') === 'true';
+                    
+                    if (isEditMode) {
+                        // Get the production data from PHP
+                        const productionData = @json($production ?? []);
+                        const tasksData = @json($production->tasks ?? []);
+                        const form = document.getElementById('jobBriefForm');
+                        
+                        if (Object.keys(productionData).length > 0) {
+                            // Update form fields with production data
+                            for (const [key, value] of Object.entries(productionData)) {
+                                const input = form.querySelector(`[name="${key}"]`);
+                                if (input) {
+                                    if (input.type === 'checkbox' || input.type === 'radio') {
+                                        input.checked = Boolean(value);
+                                    } else if (input.type === 'file') {
+                                        // Skip file inputs
+                                        continue;
+                                    } else if (input.type === 'date' && value) {
+                                        // Format date for date inputs
+                                        const date = new Date(value);
+                                        const formattedDate = date.toISOString().split('T')[0];
+                                        input.value = formattedDate;
+                                    } else {
+                                        input.value = value || '';
+                                    }
+                                }
+                                
+                                // Handle textareas
+                                const textarea = form.querySelector(`textarea[name="${key}"]`);
+                                if (textarea) {
+                                    textarea.value = value || '';
+                                }
+                                
+                                // Handle select elements
+                                const select = form.querySelector(`select[name="${key}"]`);
+                                if (select) {
+                                    const option = select.querySelector(`option[value="${value}"]`);
+                                    if (option) {
+                                        option.selected = true;
+                                    }
+                                }
+                            }
+                            
+                            // Handle tasks
+                            const tbody = document.querySelector('#tasksTable tbody');
+                            if (tbody && tasksData.length > 0) {
+                                // Clear existing rows except the first one
+                                while (tbody.firstChild) {
+                                    tbody.removeChild(tbody.firstChild);
+                                }
+                                
+                                // Add rows for each task
+                                tasksData.forEach((task, index) => {
+                                    const newRow = document.createElement('tr');
+                                    const taskId = index + 1;
+                                    const dueDate = task.due_date ? new Date(task.due_date).toISOString().split('T')[0] : '';
+                                    
+                                    newRow.innerHTML = `
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm" name="tasks[${taskId}][title]" value="${task.title || ''}" placeholder="Task title" required>
+                                        </td>
+                                        <td>
+                                            <textarea class="form-control form-control-sm" name="tasks[${taskId}][description]" placeholder="Task description" rows="2">${task.description || ''}</textarea>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control form-control-sm" name="tasks[${taskId}][assigned_to]" value="${task.assigned_to || ''}" placeholder="Team member">
+                                        </td>
+                                        <td>
+                                            <input type="date" class="form-control form-control-sm" name="tasks[${taskId}][due_date]" value="${dueDate}" required>
+                                        </td>
+                                    `;
+                                    tbody.appendChild(newRow);
+                                    taskCounter = taskId + 1; // Update counter
+                                });
+                            }
+                        }
+                    } else {
+                        // Reset form for new entry
+                        const form = document.getElementById('jobBriefForm');
+                        if (form) {
+                            form.reset();
+                            // Clear tasks table except first row
+                            const tbody = document.querySelector('#tasksTable tbody');
+                            if (tbody) {
+                                while (tbody.rows.length > 1) {
+                                    tbody.deleteRow(1);
+                                }
+                                // Reset first row
+                                if (tbody.rows[0]) {
+                                    const firstRow = tbody.rows[0];
+                                    firstRow.querySelector('input[type="text"]').value = '';
+                                    firstRow.querySelector('textarea').value = '';
+                                    firstRow.querySelector('input[type="date"]').value = '';
+                                }
+                            }
+                            taskCounter = 1;
+                        }
+                    }
+                });
+            }
+            
+            // Function to add a new task row
+            function addNewTaskRow() {
+                const tbody = document.querySelector('#tasksTable tbody');
+                
+                // Find the highest existing task index to prevent duplicates
+                const existingInputs = tbody.querySelectorAll('input[name^="tasks["]');
+                const existingIndices = Array.from(existingInputs).map(input => {
+                    const match = input.name.match(/tasks\[(\d+)\]/);
+                    return match ? parseInt(match[1]) : 0;
+                });
+                
+                const maxIndex = Math.max(0, ...existingIndices);
+                const newIndex = maxIndex + 1;
+                
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td>
+                        <input type="text" class="form-control form-control-sm" name="tasks[${newIndex}][title]" placeholder="Task title" required>
+                    </td>
+                    <td>
+                        <textarea class="form-control form-control-sm" name="tasks[${newIndex}][description]" placeholder="Task description" rows="2"></textarea>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control form-control-sm" name="tasks[${newIndex}][assigned_to]" placeholder="Team member">
+                    </td>
+                    <td>
+                        <input type="date" class="form-control form-control-sm" name="tasks[${newIndex}][due_date]" required>
+                    </td>
+                `;
+                tbody.appendChild(newRow);
+                
+                // Update the task counter to be one more than the new index
+                taskCounter = newIndex + 1;
+                
+                return false;
+            }
+            
+            // Function to initialize the Add Task button
+            function initAddTaskButton() {
+                const addTaskButton = document.getElementById('addTask');
+                if (!addTaskButton) return;
+                
+                // Remove any existing click event listeners
+                const newButton = addTaskButton.cloneNode(true);
+                addTaskButton.parentNode.replaceChild(newButton, addTaskButton);
+                
+                // Add click event listener using event delegation
+                newButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    addNewTaskRow();
+                    return false;
+                });
+                
+                return newButton;
+            }
+            
+            // Initialize the Add Task button
+            let addTaskButton = initAddTaskButton();
             
             // Check if Bootstrap is loaded
             if (typeof bootstrap === 'undefined') {
@@ -687,8 +774,18 @@
                 trigger.addEventListener('click', function(e) {
                     e.preventDefault();
                     console.log('Modal trigger clicked');
+                    
+                    // Reinitialize the Add Task button when modal is about to be shown
+                    addTaskButton = initAddTaskButton();
+                    
+                    // Show the modal
                     modal.show();
                 });
+            });
+            
+            // Also reinitialize the button when the modal is shown
+            modalElement.addEventListener('shown.bs.modal', function() {
+                addTaskButton = initAddTaskButton();
             });
             
             // Debug: Log modal events

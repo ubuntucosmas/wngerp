@@ -10,7 +10,7 @@ use App\Http\Controllers\{
     projects\ProjectController, Auth\AuthenticatedSessionController,
     projects\BookingOrderController, projects\ProjectFileController, projects\EnquiryLogController, projects\SiteSurveyController,
     FileUploadController, QuoteController, EnquiryController, projects\ProjectBudgetController, MaterialListController, projects\SetupController,
-    projects\HandoverController, projects\SetDownReturnController, projects\ArchivalReportController, projects\LogisticsController, 
+    projects\HandoverController, projects\SetDownReturnController, projects\ArchivalReportController,
 };
 
 Route::get('/', fn () => view('auth.login'));

@@ -65,10 +65,19 @@
                         <div id="items-wrapper">
                             @if($materialList->productionItems && count($materialList->productionItems))
                                 @foreach($materialList->productionItems as $piIndex => $item)
-                                    <div class="item-group border rounded p-3 mb-3">
-                                        <div class="mb-2">
-                                            <label>Item</label>
-                                            <input type="text" name="production_items[{{ $piIndex }}][item_name]" class="form-control" value="{{ old('production_items.'.$piIndex.'.item_name', $item->item_name) }}">
+                                    <div class="item-group border rounded p-3 mb-3" data-item-index="{{ $piIndex }}">
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-semibold">Select Template</label>
+                                                <select class="form-select template-select" name="production_items[{{ $piIndex }}][template_id]" data-item-index="{{ $piIndex }}">
+                                                    <option value="">-- Choose a template or enter manually --</option>
+                                                </select>
+                                                <small class="form-text text-muted">Select a template to auto-fill particulars, or leave empty to enter manually</small>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-semibold">Item Name</label>
+                                                <input type="text" name="production_items[{{ $piIndex }}][item_name]" class="form-control item-name" value="{{ old('production_items.'.$piIndex.'.item_name', $item->item_name) }}" required>
+                                            </div>
                                         </div>
                                         <table class="table table-bordered">
                                             <thead>
@@ -77,7 +86,6 @@
                                                     <th>Unit Of Measure</th>
                                                     <th>Quantity</th>
                                                     <th>Comment</th>
-                                                    <th>Design Reference</th>
                                                     <th>Action</th>
                                                 </tr>
                                             </thead>
@@ -93,20 +101,35 @@
                                                         <td><input type="text" name="production_items[{{ $piIndex }}][particulars][{{ $partIndex }}][unit]" class="form-control unit-field" value="{{ old('production_items.'.$piIndex.'.particulars.'.$partIndex.'.unit', $particular->unit) }}" readonly></td>
                                                         <td><input type="number" step="0.01" name="production_items[{{ $piIndex }}][particulars][{{ $partIndex }}][quantity]" class="form-control" value="{{ old('production_items.'.$piIndex.'.particulars.'.$partIndex.'.quantity', $particular->quantity) }}" required></td>
                                                         <td><input type="text" name="production_items[{{ $piIndex }}][particulars][{{ $partIndex }}][comment]" class="form-control" value="{{ old('production_items.'.$piIndex.'.particulars.'.$partIndex.'.comment', $particular->comment) }}"></td>
-                                                        <td><input type="text" name="production_items[{{ $piIndex }}][particulars][{{ $partIndex }}][design_reference]" class="form-control" value="{{ old('production_items.'.$piIndex.'.particulars.'.$partIndex.'.design_reference', $particular->design_reference ?? '') }}"></td>
                                                         <td><button type="button" class="btn btn-danger btn-sm remove-row">Remove</button></td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>
                                         </table>
-                                        <button type="button" class="btn btn-success btn-sm add-particular">+ Add Particular</button>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <button type="button" class="btn btn-success btn-sm add-particular">
+                                                <i class="bi bi-plus-circle me-1"></i>Add Particular
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger btn-sm remove-item-group">
+                                                <i class="bi bi-trash me-1"></i>Remove Item
+                                            </button>
+                                        </div>
                                     </div>
                                 @endforeach
                             @else
-                                <div class="item-group border rounded p-3 mb-3">
-                                    <div class="mb-2">
-                                        <label>Item</label>
-                                        <input type="text" name="production_items[0][item_name]" class="form-control" placeholder="e.g. Table">
+                                <div class="item-group border rounded p-3 mb-3" data-item-index="0">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-semibold">Select Template</label>
+                                            <select class="form-select template-select" name="production_items[0][template_id]" data-item-index="0">
+                                                <option value="">-- Choose a template or enter manually --</option>
+                                            </select>
+                                            <small class="form-text text-muted">Select a template to auto-fill particulars, or leave empty to enter manually</small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-semibold">Item Name</label>
+                                            <input type="text" name="production_items[0][item_name]" class="form-control item-name" placeholder="e.g. Table" required>
+                                        </div>
                                     </div>
                                     <table class="table table-bordered">
                                         <thead>
@@ -115,16 +138,32 @@
                                                 <th>Unit Of Measure</th>
                                                 <th>Quantity</th>
                                                 <th>Comment</th>
-                                                <th>Design Reference</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
                                         <tbody class="particulars-body">
-                                            <!-- Rows will be added dynamically -->
+                                            <tr>
+                                                <td>
+                                                    <select name="production_items[0][particulars][0][particular]" class="form-select inventory-dropdown" required>
+                                                        <option value="" selected disabled>-- Loading items --</option>
+                                                    </select>
+                                                </td>
+                                                <td><input type="text" name="production_items[0][particulars][0][unit]" class="form-control unit-field" readonly></td>
+                                                <td><input type="number" step="0.01" name="production_items[0][particulars][0][quantity]" class="form-control" required></td>
+                                                <td><input type="text" name="production_items[0][particulars][0][comment]" class="form-control"></td>
+                                                <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="bi bi-trash"></i></button></td>
+                                            </tr>
                                         </tbody>
-                                    </table>
-                                    <button type="button" class="btn btn-success btn-sm add-particular">+ Add Particular</button>
-                                </div>
+                                                                            </table>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <button type="button" class="btn btn-success btn-sm add-particular">
+                                                <i class="bi bi-plus-circle me-1"></i>Add Particular
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger btn-sm remove-item-group">
+                                                <i class="bi bi-trash me-1"></i>Remove Item
+                                            </button>
+                                        </div>
+                                    </div>
                             @endif
                         </div>
                         <button type="button" class="btn btn-primary btn-sm btn-add-item" id="addItemGroup">
@@ -272,10 +311,19 @@ $(document).ready(function() {
     // Add new item group
     $('#addItemGroup').on('click', function() {
         const newGroup = `
-        <div class="item-group border rounded p-3 mb-3">
-            <div class="mb-2">
-                <label>Item</label>
-                <input type="text" name="production_items[${itemIndex}][item_name]" class="form-control" placeholder="e.g. Table">
+        <div class="item-group border rounded p-3 mb-3" data-item-index="${itemIndex}">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Select Template</label>
+                    <select class="form-select template-select" name="production_items[${itemIndex}][template_id]" data-item-index="${itemIndex}">
+                        <option value="">-- Choose a template or enter manually --</option>
+                    </select>
+                    <small class="form-text text-muted">Select a template to auto-fill particulars, or leave empty to enter manually</small>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Item Name</label>
+                    <input type="text" name="production_items[${itemIndex}][item_name]" class="form-control item-name" placeholder="e.g. Table" required>
+                </div>
             </div>
             <table class="table table-bordered">
                 <thead>
@@ -290,10 +338,17 @@ $(document).ready(function() {
                 </thead>
                 <tbody class="particulars-body">
                     <!-- Rows will be added dynamically -->
-                </tbody>
-            </table>
-            <button type="button" class="btn btn-success btn-sm add-particular">+ Add Particular</button>
-        </div>`;
+                            </tbody>
+        </table>
+        <div class="d-flex justify-content-between align-items-center">
+            <button type="button" class="btn btn-success btn-sm add-particular">
+                <i class="bi bi-plus-circle me-1"></i>Add Particular
+            </button>
+            <button type="button" class="btn btn-outline-danger btn-sm remove-item-group">
+                <i class="bi bi-trash me-1"></i>Remove Item
+            </button>
+        </div>
+    </div>`;
         const $newGroup = $(newGroup);
         $('#items-wrapper').append($newGroup);
         particularCounters[itemIndex] = 0;
@@ -305,7 +360,7 @@ $(document).ready(function() {
     // Add particular to item group
     $(document).on('click', '.add-particular', function() {
         const $itemGroup = $(this).closest('.item-group');
-        const itemIndex = $itemGroup.index();
+        const itemIndex = $itemGroup.data('item-index');
         const particularIndex = particularCounters[itemIndex] || 0;
         const newRow = `
             <tr>
@@ -317,7 +372,6 @@ $(document).ready(function() {
                 <td><input type="text" name="production_items[${itemIndex}][particulars][${particularIndex}][unit]" class="form-control unit-field" readonly></td>
                 <td><input type="number" step="0.01" name="production_items[${itemIndex}][particulars][${particularIndex}][quantity]" class="form-control" required></td>
                 <td><input type="text" name="production_items[${itemIndex}][particulars][${particularIndex}][comment]" class="form-control"></td>
-                <td><input type="text" name="production_items[${itemIndex}][particulars][${particularIndex}][design_reference]" class="form-control"></td>
                 <td><button type="button" class="btn btn-danger btn-sm remove-row">Remove</button></td>
             </tr>`;
         const $newRow = $(newRow);
@@ -383,6 +437,13 @@ $(document).ready(function() {
     // Initialize all existing particulars dropdowns on page load
     $('.item-group .particulars-body tr').each(function() {
         initializeProductionRow($(this));
+    });
+
+    // Initialize the default particular row that's already in the HTML (for new items)
+    $('.item-group:first .particulars-body tr').each(function() {
+        if (!$(this).find('.inventory-dropdown').data('initialized')) {
+            initializeProductionRow($(this));
+        }
     });
 
     // Handle dropdown change for particulars

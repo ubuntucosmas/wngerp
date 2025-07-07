@@ -4,10 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\Quote;
 use App\Models\Project;
+use App\Models\ProductionItem;
+use App\Models\MaterialListItem;
+use App\Models\LabourItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\QuoteExport;
 
 class QuoteController extends Controller
 {
@@ -24,7 +29,19 @@ class QuoteController extends Controller
 
     public function create(Project $project)
     {
-        return view('projects.quotes.create', compact('project'));
+        // Fetch all production items and their particulars for this project
+        $productionItems = ProductionItem::whereHas('materialList', function($q) use ($project) {
+            $q->where('project_id', $project->id);
+        })->with('particulars')->get();
+        // Fetch all materials for hire for this project
+        $materialsForHire = MaterialListItem::whereHas('materialList', function($q) use ($project) {
+            $q->where('project_id', $project->id);
+        })->where('category', 'Materials for Hire')->get();
+        // Fetch all labour items for this project
+        $labourItems = LabourItem::whereHas('materialList', function($q) use ($project) {
+            $q->where('project_id', $project->id);
+        })->get();
+        return view('projects.quotes.create', compact('project', 'productionItems', 'materialsForHire', 'labourItems'));
     }
 
     public function store(Request $request, Project $project)
@@ -39,11 +56,33 @@ class QuoteController extends Controller
                 'quote_date' => 'nullable|date',
                 'project_start_date' => 'nullable|date',
                 'reference' => 'nullable|string|max:255',
-                'items' => 'required|array|min:1',
-                'items.*.description' => 'required|string',
+                'items' => 'nullable|array',
+                'items.*.description' => 'nullable|string',
                 'items.*.days' => 'nullable|integer|min:1',
-                'items.*.quantity' => 'required|numeric|min:0.01',
-                'items.*.unit_price' => 'required|numeric|min:0',
+                'items.*.quantity' => 'nullable|numeric|min:0.01',
+                'items.*.unit_price' => 'nullable|numeric|min:0',
+                'items.*.profit_margin' => 'nullable|numeric|min:0|max:100',
+                'items.*.total_cost' => 'nullable|numeric|min:0',
+                'items.*.quote_price' => 'nullable|numeric|min:0',
+                'items.*.particulars' => 'nullable|array',
+                'items.*.particulars.*.particular' => 'nullable|string',
+                'items.*.particulars.*.unit' => 'nullable|string',
+                'items.*.particulars.*.quantity' => 'nullable|numeric|min:0.01',
+                'items.*.particulars.*.unit_price' => 'nullable|numeric|min:0',
+                'items.*.particulars.*.total_cost' => 'nullable|numeric|min:0',
+                'items.*.particulars.*.profit_margin' => 'nullable|numeric|min:0|max:100',
+                'items.*.particulars.*.quote_price' => 'nullable|numeric|min:0',
+                'items.*.particulars.*.comment' => 'nullable|string',
+                // Materials for Hire
+                'hire_items' => 'nullable|array',
+                'hire_items.*.description' => 'nullable|string',
+                'hire_items.*.days' => 'nullable|integer|min:1',
+                'hire_items.*.quantity' => 'nullable|numeric|min:0.01',
+                'hire_items.*.unit_price' => 'nullable|numeric|min:0',
+                'hire_items.*.profit_margin' => 'nullable|numeric|min:0|max:100',
+                'hire_items.*.total_cost' => 'nullable|numeric|min:0',
+                'hire_items.*.quote_price' => 'nullable|numeric|min:0',
+                'hire_items.*.comment' => 'nullable|string',
             ]);
 
             $quote = $project->quotes()->create([
@@ -55,16 +94,83 @@ class QuoteController extends Controller
                 'reference' => $data['reference'] ?? null,
             ]);
 
+            // Handle regular items (flat structure)
+            if (!empty($data['items'])) {
             foreach ($data['items'] as $item) {
+                    // Skip if this is a production item with particulars
+                    if (isset($item['particulars'])) {
+                        continue;
+                    }
+                    
+                    // Only process items with description (regular items)
+                    if (!empty($item['description'])) {
+                        $profitMargin = $item['profit_margin'] ?? 0;
+                        $totalCost = $item['quantity'] * $item['unit_price'];
+                        $quotePrice = $totalCost * (1 + ($profitMargin / 100));
+                        
                 $quote->lineItems()->create([
                     'description' => $item['description'],
                     'days' => $item['days'] ?? 1,
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
-                    'total' => $item['quantity'] * $item['unit_price'],
-                ]);
+                            'profit_margin' => $profitMargin,
+                            'total_cost' => $totalCost,
+                            'quote_price' => $quotePrice,
+                            'total' => $quotePrice,
+                        ]);
+                    }
+                }
             }
 
+            // Handle production items (nested structure)
+            if (!empty($data['items'])) {
+                foreach ($data['items'] as $item) {
+                    if (isset($item['particulars']) && is_array($item['particulars'])) {
+                        foreach ($item['particulars'] as $particular) {
+                            $profitMargin = $particular['profit_margin'] ?? 0;
+                            $totalCost = $particular['quantity'] * $particular['unit_price'];
+                            $quotePrice = $totalCost * (1 + ($profitMargin / 100));
+                            $itemName = $item['item_name'] ?? 'Production Item';
+                            $comment = $particular['comment'] ?? '';
+                            $fullComment = 'Item Name: ' . $itemName;
+                            if (!empty($comment)) {
+                                $fullComment .= ' | ' . $comment;
+                            }
+                            $quote->lineItems()->create([
+                                'description' => $particular['particular'],
+                                'days' => 1,
+                                'quantity' => $particular['quantity'],
+                                'unit_price' => $particular['unit_price'],
+                                'profit_margin' => $profitMargin,
+                                'total_cost' => $totalCost,
+                                'quote_price' => $quotePrice,
+                                'total' => $quotePrice,
+                                'comment' => $fullComment,
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            // Add Materials for Hire as line items
+            if (!empty($data['hire_items'])) {
+                foreach ($data['hire_items'] as $hire) {
+                    $profitMargin = $hire['profit_margin'] ?? 0;
+                    $totalCost = ($hire['quantity'] ?? 1) * ($hire['unit_price'] ?? 0);
+                    $quotePrice = $totalCost * (1 + ($profitMargin / 100));
+                    $quote->lineItems()->create([
+                        'description' => $hire['description'] ?? '',
+                        'days' => $hire['days'] ?? 1,
+                        'quantity' => $hire['quantity'] ?? 1,
+                        'unit_price' => $hire['unit_price'] ?? 0,
+                        'profit_margin' => $profitMargin,
+                        'total_cost' => $totalCost,
+                        'quote_price' => $quotePrice,
+                        'total' => $quotePrice,
+                        'comment' => $hire['comment'] ?? '',
+                    ]);
+                }
+            }
 
             DB::commit();
             
@@ -84,9 +190,7 @@ class QuoteController extends Controller
 
     public function show(Project $project, Quote $quote)
     {
-        $subtotal = $quote->lineItems->sum(function($item) {
-            return $item->quantity * $item->unit_price;
-        });
+        $subtotal = $quote->lineItems->sum('quote_price');
     
         $vatRate = 0.16; // 16% VAT - you can make this configurable
         $vatAmount = $subtotal * $vatRate;
@@ -113,16 +217,34 @@ class QuoteController extends Controller
             'quote_date' => 'required|date',
             'project_start_date' => 'nullable|date',
             'reference' => 'nullable|string|max:255',
-            'items' => 'required|array|min:1',
-            'items.*.description' => 'required|string',
+                'items' => 'nullable|array',
+                'items.*.description' => 'nullable|string',
             'items.*.days' => 'nullable|integer|min:1',
-            'items.*.quantity' => 'required|numeric|min:0.01',
-            'items.*.unit_price' => 'required|numeric|min:0',
-        ]);
-
-        // if ($quote->project_id !== $project->id) {
-        //     abort(404, 'Quote does not belong to the given project.');
-        // }
+                'items.*.quantity' => 'nullable|numeric|min:0.01',
+                'items.*.unit_price' => 'nullable|numeric|min:0',
+                'items.*.profit_margin' => 'nullable|numeric|min:0|max:100',
+                'items.*.total_cost' => 'nullable|numeric|min:0',
+                'items.*.quote_price' => 'nullable|numeric|min:0',
+                'items.*.particulars' => 'nullable|array',
+                'items.*.particulars.*.particular' => 'nullable|string',
+                'items.*.particulars.*.unit' => 'nullable|string',
+                'items.*.particulars.*.quantity' => 'nullable|numeric|min:0.01',
+                'items.*.particulars.*.unit_price' => 'nullable|numeric|min:0',
+                'items.*.particulars.*.total_cost' => 'nullable|numeric|min:0',
+                'items.*.particulars.*.profit_margin' => 'nullable|numeric|min:0|max:100',
+                'items.*.particulars.*.quote_price' => 'nullable|numeric|min:0',
+                'items.*.particulars.*.comment' => 'nullable|string',
+                // Materials for Hire
+                'hire_items' => 'nullable|array',
+                'hire_items.*.description' => 'nullable|string',
+                'hire_items.*.days' => 'nullable|integer|min:1',
+                'hire_items.*.quantity' => 'nullable|numeric|min:0.01',
+                'hire_items.*.unit_price' => 'nullable|numeric|min:0',
+                'hire_items.*.profit_margin' => 'nullable|numeric|min:0|max:100',
+                'hire_items.*.total_cost' => 'nullable|numeric|min:0',
+                'hire_items.*.quote_price' => 'nullable|numeric|min:0',
+                'hire_items.*.comment' => 'nullable|string',
+            ]);
 
         $quote->update([
             'customer_name' => $data['customer_name'],
@@ -135,14 +257,82 @@ class QuoteController extends Controller
 
         $quote->lineItems()->delete();
 
+            // Handle regular items (flat structure)
+            if (!empty($data['items'])) {
         foreach ($data['items'] as $item) {
+                    // Skip if this is a production item with particulars
+                    if (isset($item['particulars'])) {
+                        continue;
+                    }
+                    
+                    // Only process items with description (regular items)
+                    if (!empty($item['description'])) {
+                        $profitMargin = $item['profit_margin'] ?? 0;
+                        $totalCost = $item['quantity'] * $item['unit_price'];
+                        $quotePrice = $totalCost * (1 + ($profitMargin / 100));
+                        
             $quote->lineItems()->create([
                 'description' => $item['description'],
                 'days' => $item['days'] ?? 1,
                 'quantity' => $item['quantity'],
                 'unit_price' => $item['unit_price'],
-                'total' => $item['quantity'] * $item['unit_price'],
-            ]);
+                            'profit_margin' => $profitMargin,
+                            'total_cost' => $totalCost,
+                            'quote_price' => $quotePrice,
+                            'total' => $quotePrice,
+                        ]);
+                    }
+                }
+            }
+
+            // Handle production items (nested structure)
+            if (!empty($data['items'])) {
+                foreach ($data['items'] as $item) {
+                    if (isset($item['particulars']) && is_array($item['particulars'])) {
+                        foreach ($item['particulars'] as $particular) {
+                            $profitMargin = $particular['profit_margin'] ?? 0;
+                            $totalCost = $particular['quantity'] * $particular['unit_price'];
+                            $quotePrice = $totalCost * (1 + ($profitMargin / 100));
+                            $itemName = $item['item_name'] ?? 'Production Item';
+                            $comment = $particular['comment'] ?? '';
+                            $fullComment = 'Item Name: ' . $itemName;
+                            if (!empty($comment)) {
+                                $fullComment .= ' | ' . $comment;
+                            }
+                            $quote->lineItems()->create([
+                                'description' => $particular['particular'],
+                                'days' => 1,
+                                'quantity' => $particular['quantity'],
+                                'unit_price' => $particular['unit_price'],
+                                'profit_margin' => $profitMargin,
+                                'total_cost' => $totalCost,
+                                'quote_price' => $quotePrice,
+                                'total' => $quotePrice,
+                                'comment' => $fullComment,
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            // Add Materials for Hire as line items
+            if (!empty($data['hire_items'])) {
+                foreach ($data['hire_items'] as $hire) {
+                    $profitMargin = $hire['profit_margin'] ?? 0;
+                    $totalCost = ($hire['quantity'] ?? 1) * ($hire['unit_price'] ?? 0);
+                    $quotePrice = $totalCost * (1 + ($profitMargin / 100));
+                    $quote->lineItems()->create([
+                        'description' => $hire['description'] ?? '',
+                        'days' => $hire['days'] ?? 1,
+                        'quantity' => $hire['quantity'] ?? 1,
+                        'unit_price' => $hire['unit_price'] ?? 0,
+                        'profit_margin' => $profitMargin,
+                        'total_cost' => $totalCost,
+                        'quote_price' => $quotePrice,
+                        'total' => $quotePrice,
+                        'comment' => $hire['comment'] ?? '',
+                    ]);
+                }
         }
 
         DB::commit();
@@ -154,10 +344,6 @@ class QuoteController extends Controller
     } catch (\Exception $e) {
         DB::rollBack();
 
-        // Optional: dump full error for debugging (disable in production)
-        // dd($e);
-
-        // More detailed logging
         Log::error('Quote update failed', [
             'message' => $e->getMessage(),
             'file' => $e->getFile(),
@@ -165,13 +351,11 @@ class QuoteController extends Controller
             'trace' => $e->getTraceAsString(),
         ]);
 
-        // Show full error message back to the user (optional: only in debug mode)
         return back()
             ->withInput()
             ->with('error', 'Failed to update quote: ' . $e->getMessage());
     }
 }
-
 
     public function destroy(Project $project, Quote $quote)
     {
@@ -191,8 +375,6 @@ class QuoteController extends Controller
             return back()->with('error', 'Failed to delete quote. Please try again.');
         }
     }
-
-
 
     public function downloadQuote(Project $project)
     {
@@ -215,5 +397,19 @@ class QuoteController extends Controller
 
         $pdf = Pdf::loadView('projects.templates.quote', compact('project', 'quote'));
         return $pdf->stream('quote-' . $project->id . '.pdf');
+    }
+
+    /**
+     * Export the quote to Excel.
+     */
+    public function exportExcel(Project $project, Quote $quote)
+    {
+        // Verify the quote belongs to the project
+        if ($quote->project_id !== $project->id) {
+            abort(404);
+        }
+
+        $fileName = 'quote-' . $project->project_id . '-' . $quote->id . '.xlsx';
+        return Excel::download(new QuoteExport($quote), $fileName);
     }
 }

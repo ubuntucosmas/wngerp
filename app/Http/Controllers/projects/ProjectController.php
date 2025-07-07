@@ -59,7 +59,7 @@ class ProjectController extends Controller
         }
 
         // Paginate results and preserve query strings for search/filter
-        $projects = $query->paginate(8)->withQueryString();
+        $projects = $query->paginate(10)->withQueryString();
         $active = $projects->filter(fn($p) => $p->progress < 100)->count();
 
         // Fetch all users with the 'po' role to display in a filter or assignment dropdown

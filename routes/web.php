@@ -257,6 +257,10 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
             Route::get('/{materialList}/download', [MaterialListController::class, 'downloadPdf'])
                 ->name('download');
                 
+            // Export material list to Excel
+            Route::get('/{materialList}/export-excel', [MaterialListController::class, 'exportExcel'])
+                ->name('exportExcel');
+            
             // Print material list (view in browser)
             Route::get('/{materialList}/print', [MaterialListController::class, 'printPdf'])
                 ->name('print');
@@ -283,9 +287,14 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
                 ->name('export')
                 ->where('materialList', '[0-9]+');
         });
-        
 
- 
+        // Item Templates Routes (for using templates in material lists)
+        Route::prefix('templates')->name('projects.templates.')->group(function () {
+            // Get templates for material list creation
+            Route::get('categories-all', [\App\Http\Controllers\ItemCategoryController::class, 'getAll'])->name('categories.all');
+            Route::get('templates-by-category/{categoryId}', [\App\Http\Controllers\ItemTemplateController::class, 'getTemplatesByCategory'])->name('templates.by-category');
+            Route::get('templates/{itemTemplate}', [\App\Http\Controllers\ItemTemplateController::class, 'show'])->name('templates.show');
+        });
 
         // Booking Orders Routes
         Route::get('logistics/booking-order', [BookingOrderController::class, 'index'])->name('projects.logistics.booking-orders.index');
@@ -319,6 +328,7 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
             Route::delete('/{quote}', [QuoteController::class, 'destroy'])->name('destroy');
             Route::get('/{quote}/download', [QuoteController::class, 'downloadQuote'])->name('download');
             Route::get('/{quote}/print', [QuoteController::class, 'printQuote'])->name('print');
+            Route::get('/{quote}/excel', [QuoteController::class, 'exportExcel'])->name('excel');
         });
 
         Route::get('budgets', [ProjectBudgetController::class, 'index'])->name('budget.index');
@@ -388,6 +398,30 @@ Route::get('/api/inventory/items', [\App\Http\Controllers\API\InventoryControlle
     ->middleware('auth')
     ->name('api.inventory.items');
 
+// Test route for debugging
+Route::get('/test-templates', function() {
+    return response()->json(['message' => 'Test route working']);
+})->name('test.templates');
+
+// Debug route for production items with templates
+Route::get('/debug-production-items', function() {
+    $items = App\Models\ProductionItem::with('template.category')->get();
+    return response()->json([
+        'items' => $items->map(function($item) {
+            return [
+                'id' => $item->id,
+                'item_name' => $item->item_name,
+                'template_id' => $item->template_id,
+                'template' => $item->template ? [
+                    'id' => $item->template->id,
+                    'name' => $item->template->name,
+                    'category' => $item->template->category ? $item->template->category->name : null
+                ] : null
+            ];
+        })
+    ]);
+})->name('debug.production.items');
+
 // Authenticated User Routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -399,6 +433,19 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+    
+    // Global Item Templates Management Routes
+    Route::prefix('templates')->name('templates.')->group(function () {
+        // Categories
+        Route::resource('categories', \App\Http\Controllers\ItemCategoryController::class);
+        Route::get('categories-all', [\App\Http\Controllers\ItemCategoryController::class, 'getAll'])->name('categories.all');
+        
+        // Templates
+        Route::resource('templates', \App\Http\Controllers\ItemTemplateController::class)->parameters(['templates' => 'itemTemplate']);
+        Route::get('templates-by-category/{categoryId}', [\App\Http\Controllers\ItemTemplateController::class, 'getTemplatesByCategory'])->name('templates.by-category');
+        Route::get('templates-all', [\App\Http\Controllers\ItemTemplateController::class, 'getAllTemplates'])->name('templates.all');
+        Route::post('templates/{itemTemplate}/duplicate', [\App\Http\Controllers\ItemTemplateController::class, 'duplicate'])->name('templates.duplicate');
+    });
 });
 
 use App\Models\Inventory;

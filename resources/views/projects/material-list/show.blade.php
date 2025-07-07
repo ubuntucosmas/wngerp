@@ -227,6 +227,9 @@
                 <a href="{{ route('projects.material-list.download', [$project, $materialList]) }}" class="btn btn-light me-2 no-print" data-bs-toggle="tooltip" title="Download as PDF">
                     <i class="bi bi-file-earmark-pdf"></i> <span class="d-none d-md-inline">PDF</span>
                 </a>
+                <a href="{{ route('projects.material-list.exportExcel', [$project, $materialList]) }}" class="btn btn-light me-2 no-print" data-bs-toggle="tooltip" title="Export to Excel">
+                    <i class="bi bi-file-earmark-excel"></i> <span class="d-none d-md-inline">Excel</span>
+                </a>
                 <a href="{{ route('projects.material-list.print', [$project, $materialList]) }}" class="btn btn-light me-2 no-print" data-bs-toggle="tooltip" title="Print PDF" target="_blank">
                     <i class="bi bi-printer"></i> <span class="d-none d-md-inline">Print</span>
                 </a>
@@ -297,7 +300,7 @@
                             <i class="bi bi-check-circle"></i>
                         </div>
                         <div>
-                            <h6 class="mb-1 text-muted small">Approved By</h6>
+                            <h6 class="mb-1 text-muted small">Prepared By:</h6>
                             <p class="mb-2 fw-semibold">{{ $materialList->approved_by ?? 'Pending Approval' }}</p>
                         </div>
                     </div>
@@ -323,7 +326,7 @@
                             <i class="bi bi-clock-history"></i>
                         </div>
                         <div>
-                            <h6 class="mb-1 text-muted small">Last Updated</h6>
+                            <h6 class="mb-1 text-muted small">CREATED:</h6>
                             <p class="mb-0 fw-semibold">
                                 {{ $materialList->updated_at->diffForHumans() }}
                                 <small class="text-muted ms-2">
@@ -358,16 +361,40 @@
                 @forelse ($materialList->productionItems as $item)
                     <div class="production-item border-bottom">
                         <div class="p-4 bg-light">
-                            <div class="d-flex align-items-center">
-                                <div class="me-3">
-                                    <i class="bi bi-box-seam fs-4 text-primary"></i>
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="bi bi-box-seam fs-4 text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold">{{ $item->item_name }}</h6>
+                                        @if($item->description)
+                                            <p class="text-muted small mb-0 mt-1">{{ $item->description }}</p>
+                                        @endif
+                                        
+                                        @if($item->template)
+                                            <div class="mt-2">
+                                                <span class="badge bg-info text-white">
+                                                    <i class="bi bi-file-earmark-text me-1"></i>
+                                                    Created from Template: {{ $item->template->name }}
+                                                </span>
+                                                @if($item->template->category)
+                                                    <span class="bg-secondary-soft text-secondary ms-1">
+                                                        {{ $item->template->category->name }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </div>
                                 </div>
-                                <div>
-                                    <h6 class="mb-0 fw-bold">{{ $item->item_name }}</h6>
-                                    @if($item->description)
-                                        <p class="text-muted small mb-0 mt-1">{{ $item->description }}</p>
-                                    @endif
-                                </div>
+                                @if($item->template)
+                                    <div class="text-end">
+                                        <small class="text-muted">
+                                            <i class="bi bi-clock me-1"></i>
+                                            Template created {{ $item->template->created_at->diffForHumans() }}
+                                        </small>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                         
@@ -381,7 +408,6 @@
                                             <th class="text-nowrap text-center">Unit of Measure</th>
                                             <th class="text-nowrap text-end pe-4">Quantity</th>
                                             <th class="text-nowrap">Comments</th>
-                                            <th class="text-nowrap">Design Ref</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -402,15 +428,6 @@
                                                         <span class="d-inline-block text-truncate" style="max-width: 200px;" data-bs-toggle="tooltip" title="{{ $particular->comment }}">
                                                             {{ $particular->comment }}
                                                         </span>
-                                                    @else
-                                                        <span class="text-muted">-</span>
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    @if($particular->design_reference)
-                                                        <a href="#" class="text-decoration-none" data-bs-toggle="tooltip" title="View Design">
-                                                            {{ $particular->design_reference }}
-                                                        </a>
                                                     @else
                                                         <span class="text-muted">-</span>
                                                     @endif

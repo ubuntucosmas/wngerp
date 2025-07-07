@@ -11,6 +11,8 @@ use App\Models\BudgetItem;
 use App\Models\Inventory;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\MaterialListExport;
 
 class MaterialListController extends Controller
 {
@@ -43,13 +45,14 @@ class MaterialListController extends Controller
         // Eager load all necessary relationships
         $materialList->load([
             'productionItems.particulars',
+            'productionItems.template.category',
             'materialsHire',
             'labourItems'
         ]);
         
         // Group labour items by category for the view
         $labourItemsByCategory = $materialList->labourItems->groupBy('category');
-        
+            
         return view('projects.material-list.show', [
             'project' => $project,
             'materialList' => $materialList,
@@ -91,6 +94,7 @@ class MaterialListController extends Controller
         try {
             // Log the incoming request data for debugging
             \Log::info('Material List Creation Request:', $request->all());
+            \Log::info('Production Items from request:', $request->input('production_items', []));
             
             $validated = $request->validate([
                 'start_date' => 'required|date',
@@ -103,6 +107,7 @@ class MaterialListController extends Controller
                 'materials_hire.*.quantity' => 'nullable|numeric|min:0',
                 'production_items' => 'sometimes|array',
                 'production_items.*.item_name' => 'nullable|string|max:255',
+                'production_items.*.template_id' => 'nullable|exists:item_templates,id',
                 'production_items.*.particulars' => 'sometimes|array',
                 'production_items.*.particulars.*.particular' => 'nullable|string|max:255',
                 'production_items.*.particulars.*.unit' => 'nullable|string|max:50',
@@ -190,6 +195,7 @@ class MaterialListController extends Controller
 
         $materialList->load([
             'productionItems.particulars',
+            'productionItems.template.category',
             'materialsHire',
             'labourItems' => function($query) {
                 $query->orderBy('category')->orderBy('item_name');
@@ -222,7 +228,8 @@ class MaterialListController extends Controller
             'materials_hire.*.unit' => 'nullable|string|max:50',
             'materials_hire.*.quantity' => 'nullable|numeric|min:0',
             'production_items' => 'sometimes|array',
-            'production_items.*.particular' => 'nullable|string|max:255',
+            'production_items.*.item_name' => 'nullable|string|max:255',
+            'production_items.*.template_id' => 'nullable|exists:item_templates,id',
             'production_items.*.particulars' => 'sometimes|array',
             'production_items.*.particulars.*.particular' => 'nullable|string|max:255',
             'production_items.*.particulars.*.unit' => 'nullable|string|max:50',
@@ -305,7 +312,7 @@ class MaterialListController extends Controller
                     'unit' => $item['unit'] ?? null,
                     'quantity' => $item['quantity'] ?? 0,
                     'comment' => $item['comment'] ?? null,
-                    'design_reference' => $item['design_reference'] ?? null,
+
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
@@ -323,7 +330,10 @@ class MaterialListController extends Controller
      */
     protected function saveProductionItems(MaterialList $materialList, array $productionItems)
     {
+        \Log::info('saveProductionItems called with:', $productionItems);
+        
         if (empty($productionItems)) {
+            \Log::info('No production items to save');
             return;
         }
         
@@ -338,10 +348,13 @@ class MaterialListController extends Controller
             // Create the main production item
             $productionItem = $materialList->productionItems()->create([
                 'item_name' => $itemName,
+                'template_id' => $item['template_id'] ?? null,
             ]);
             
             // Add particulars if they exist
+            \Log::info('Checking particulars for item:', $item);
             if (!empty($item['particulars'])) {
+                \Log::info('Particulars found:', $item['particulars']);
                 $particulars = [];
                 foreach ($item['particulars'] as $particular) {
                     if (!empty($particular['particular'])) {
@@ -350,7 +363,7 @@ class MaterialListController extends Controller
                             'unit' => $particular['unit'] ?? null,
                             'quantity' => $particular['quantity'] ?? 0,
                             'comment' => $particular['comment'] ?? null,
-                            'design_reference' => $particular['design_reference'] ?? null,
+
                             'created_at' => now(),
                             'updated_at' => now(),
                         ];
@@ -358,8 +371,13 @@ class MaterialListController extends Controller
                 }
                 
                 if (!empty($particulars)) {
+                    \Log::info('Creating particulars:', $particulars);
                     $productionItem->particulars()->createMany($particulars);
+                } else {
+                    \Log::info('No valid particulars to create');
                 }
+            } else {
+                \Log::info('No particulars found for this item');
             }
         }
     }
@@ -475,5 +493,15 @@ class MaterialListController extends Controller
         ]);
         
         return $pdf->stream('material-list-' . $project->id . '.pdf');
+    }
+
+    /**
+     * Export the material list to Excel.
+     */
+    public function exportExcel(Project $project, $materialList)
+    {
+        $materialList = MaterialList::with(['productionItems.particulars', 'materialsHire', 'labourItems'])->findOrFail($materialList);
+        $fileName = 'material-list-' . $materialList->id . '.xlsx';
+        return Excel::download(new MaterialListExport($materialList), $fileName);
     }
 }

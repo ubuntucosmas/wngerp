@@ -15,6 +15,7 @@ class ProductionItem extends Model
     protected $fillable = [
         'material_list_id',
         'item_name',
+        'template_id',
     ];
     public function materialList()
     {
@@ -24,6 +25,11 @@ class ProductionItem extends Model
     public function particulars()
     {
         return $this->hasMany(ProductionParticular::class);
+    }
+
+    public function template()
+    {
+        return $this->belongsTo(ItemTemplate::class, 'template_id');
     }
 
 }

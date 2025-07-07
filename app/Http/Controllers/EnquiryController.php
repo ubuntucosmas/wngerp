@@ -13,7 +13,7 @@ class EnquiryController extends Controller
 {
     public function index()
     {
-        $enquiries = Enquiry::orderBy('date_received', 'desc')->paginate(10);
+        $enquiries = Enquiry::orderBy('date_received', 'desc')->paginate(15);
         $statuses = ['Open', 'Quoted', 'Approved', 'Declined'];
         $users = User::where('role', 'po')->get();
         $clients = Client::all();

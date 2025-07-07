@@ -17,7 +17,6 @@ class MaterialListItem extends Model
         'unit',
         'quantity',
         'comment',
-        'design_reference',
     ];
 
     protected $casts = [

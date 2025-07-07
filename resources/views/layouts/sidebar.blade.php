@@ -112,10 +112,16 @@
                     <span class="nav-text">Clients</span>
                 </a>
             </li>
-            <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="Project Groups">
+            <!-- <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="Project Groups">
                 <a class="nav-link d-flex align-items-center">
                     <i class="bi bi-collection me-2"></i>
                     <span class="nav-text">Project Groups</span>
+                </a>
+            </li> -->
+            <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="Item Templates">
+                <a class="nav-link d-flex align-items-center {{ request()->routeIs('templates.*') ? 'active bg-cyan text-white' : 'text-dark' }}" href="{{ route('templates.templates.index') }}">
+                    <i class="bi bi-file-earmark-plus me-2"></i>
+                    <span class="nav-text">Setup Components</span>
                 </a>
             </li>
         @endif
@@ -224,6 +230,12 @@
                 <a class="nav-link d-flex align-items-center">
                     <i class="bi bi-collection me-2"></i>
                     <span class="nav-text">Project Groups</span>
+                </a>
+            </li>
+            <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="Item Templates">
+                <a class="nav-link d-flex align-items-center {{ request()->routeIs('templates.*') ? 'active bg-cyan text-white' : 'text-dark' }}" href="{{ route('templates.templates.index') }}">
+                    <i class="bi bi-file-earmark-plus me-2"></i>
+                    <span class="nav-text">Item Templates</span>
                 </a>
             </li>
         @endif

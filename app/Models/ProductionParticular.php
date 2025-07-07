@@ -15,7 +15,6 @@ class ProductionParticular extends Model
         'unit',
         'quantity',
         'comment',
-        'design_reference',      // If you have this field
     ];
 
     public function item()

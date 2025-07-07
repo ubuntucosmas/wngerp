@@ -3,10 +3,10 @@
 namespace App\Exports;
 
 use App\Models\ProjectBudget;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\FromView;
+use Illuminate\Contracts\View\View;
 
-class ProjectBudgetExport implements FromCollection, WithHeadings
+class ProjectBudgetExport implements FromView
 {
     protected $budget;
 
@@ -15,31 +15,14 @@ class ProjectBudgetExport implements FromCollection, WithHeadings
         $this->budget = $budget;
     }
 
-    public function collection()
+    public function view(): View
     {
-        return $this->budget->items->map(function ($item) {
-            return [
-                'Category'    => $item->category,
-                'Particular'  => $item->particular,
-                'Unit'        => $item->unit,
-                'Quantity'    => $item->quantity,
-                'Unit Price'  => $item->unit_price,
-                'Cost'        => $item->budgeted_cost,
-                'Comment'     => $item->comment,
-            ];
-        });
-    }
-
-    public function headings(): array
-    {
-        return [
-            'Category',
-            'Particular',
-            'Unit',
-            'Quantity',
-            'Unit Price',
-            'Cost',
-            'Comment',
-        ];
+        $project = $this->budget->project;
+        $grouped = $this->budget->items->groupBy('category');
+        return view('exports.project-budget', [
+            'budget' => $this->budget,
+            'project' => $project,
+            'grouped' => $grouped,
+        ]);
     }
 } 

@@ -152,17 +152,17 @@
     <div class="card">
         <div class="card-header bg-light fw-bold">Approvals</div>
         <div class="card-body row">
-            <div class="col-md-6 mb-2">
+            <!-- <div class="col-md-6 mb-2">
                 <strong>Approved By:</strong><br>
                 {{ $budget->approved_by ?? '-' }}
-            </div>
+            </div> -->
             <div class="col-md-6 mb-2">
                 <strong>Departments:</strong><br>
                 {{ $budget->approved_departments ?? '-' }}
             </div>
             <div class="col-md-6 mb-2">
                 <strong>Approved At:</strong><br>
-                {{ $budget->approved_at ? $budget->approved_at->format('d M Y H:i') : '-' }}
+                {{ $budget->approved_at ? $budget->approved_at->format('d M Y H:i') : '-' }} BY: {{ $budget->approved_by ?? '-' }}
             </div>
         </div>
     </div>

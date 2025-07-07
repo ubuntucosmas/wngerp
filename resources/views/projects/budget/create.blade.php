@@ -17,9 +17,9 @@
                 <a href="{{ route('projects.files.index', $project) }}" class="btn btn-outline-secondary me-2">
                     <i class="bi bi-arrow-left"></i> Back to Project Files
                 </a>
-                <button type="submit" class="btn btn-primary">
+                <!-- <button type="submit" class="btn btn-primary">
                     <i class="bi bi-save"></i> Save Budget
-                </button>
+                </button> -->
             </div>
         </div>
     </div>

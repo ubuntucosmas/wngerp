@@ -161,7 +161,7 @@
                 {{ $budget->approved_departments ?? '-' }}
             </div>
             <div class="col-md-6 mb-2">
-                <strong>Approved At:</strong><br>
+                <strong>Approved:</strong><br>
                 {{ $budget->approved_at ? $budget->approved_at->format('d M Y H:i') : '-' }} BY: {{ $budget->approved_by ?? '-' }}
             </div>
         </div>

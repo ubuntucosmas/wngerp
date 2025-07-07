@@ -149,11 +149,11 @@
         @endforeach
 
         <div class="mb-4">
-                <label for="approved_by">Approved By</label>
-                        <input type="text" name="approved_by" class="form-control mb-2 required" required>
+                <label for="approved_by">Prepared By:</label>
+                        <input type="text" name="approved_by" value="{{ auth()->user()->name }}" class="form-control mb-2 required" required>
 
-                        <label for="approved_departments">Departments (comma-separated)</label>
-                        <input type="text" name="approved_departments" class="form-control" placeholder="Production, Finance" required>
+                        <label for="approved_departments">Department</label>
+                        <input type="text" name="approved_departments" value="{{ auth()->user()->department }}" class="form-control" placeholder="Production, Finance" required>
             </div>
                     <div class="d-flex justify-content-end mt-4">
                         <h4 class="text-end fw-bold text-success">Total Budget: Ksh <span class="text-primary" id="grandTotal">0.00</span></h4>

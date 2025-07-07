@@ -345,7 +345,7 @@
         return new Promise((resolve, reject) => {
             console.log('Fetching templates...');
             $.ajax({
-                url: '/templates/templates-all',
+                url: '{{ url("/templates/templates-all") }}',
                 type: 'GET',
                 dataType: 'json',
                 success: function(data) {

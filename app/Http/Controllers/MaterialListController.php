@@ -442,10 +442,10 @@ class MaterialListController extends Controller
      */
     public function downloadPdf(Project $project, MaterialList $materialList)
     {
-        // Verify the material list belongs to the project
-        if ($materialList->project_id !== $project->id) {
-            abort(404);
-        }
+        // // Verify the material list belongs to the project
+        // if ($materialList->project_id !== $project->id) {
+        //     abort(404);
+        // }
         
         // Eager load all necessary relationships
         $materialList->load([
@@ -471,10 +471,10 @@ class MaterialListController extends Controller
      */
     public function printPdf(Project $project, MaterialList $materialList)
     {
-        // Verify the material list belongs to the project
-        if ($materialList->project_id !== $project->id) {
-            abort(404);
-        }
+        // // Verify the material list belongs to the project
+        // if ($materialList->project_id !== $project->id) {
+        //     abort(404);
+        // }
         
         // Eager load all necessary relationships
         $materialList->load([

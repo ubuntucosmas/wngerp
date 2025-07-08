@@ -37,7 +37,7 @@ class QuoteExport implements FromCollection, WithHeadings, WithStyles, WithColum
         $data[] = ['', '', '', '', '', '', ''];
         
         // Add table headers
-        $data[] = ['#', 'Description', 'Qty', 'Unit Price', 'Total Cost', 'Profit', 'Quote Price'];
+        $data[] = ['#', 'Item Name', 'Description', 'Qty', 'Quote Unit Price', 'Quote Price'];
         
         // Group line items by production items
         $groupedItems = [];
@@ -45,87 +45,38 @@ class QuoteExport implements FromCollection, WithHeadings, WithStyles, WithColum
         $itemCounter = 1;
 
         foreach ($this->quote->lineItems as $item) {
-            // Check if this is a production item (has item_name in comment)
+            $itemName = null;
             if (str_contains($item->comment ?? '', 'Item Name:')) {
-                // Extract item name from comment
                 preg_match('/Item Name:\s*(.+?)(?:\s*\||$)/', $item->comment, $matches);
                 $itemName = $matches[1] ?? 'Production Item';
-                
-                if ($itemName !== $currentItemName) {
-                    $currentItemName = $itemName;
-                    $groupedItems[] = [
-                        'type' => 'header',
-                        'item_name' => $itemName,
-                        'counter' => $itemCounter++
-                    ];
-                }
-                
-                // Add the particular as a sub-item
-                $groupedItems[] = [
-                    'type' => 'particular',
-                    'description' => $item->description,
-                    'quantity' => $item->quantity,
-                    'unit_price' => $item->unit_price,
-                    'total_cost' => $item->total_cost,
-                    'profit_margin' => $item->profit_margin,
-                    'quote_price' => $item->quote_price,
-                    'comment' => preg_replace('/Item Name:\s*.+?(\s*\||$)/', '', $item->comment ?? ''),
-                    'item_name' => $itemName
-                ];
-            } else {
-                // Regular item (not a production particular)
-                $groupedItems[] = [
-                    'type' => 'regular',
-                    'description' => $item->description,
-                    'quantity' => $item->quantity,
-                    'unit_price' => $item->unit_price,
-                    'total_cost' => $item->total_cost,
-                    'profit_margin' => $item->profit_margin,
-                    'quote_price' => $item->quote_price,
-                    'comment' => $item->comment
-                ];
             }
+            $quoteUnitPrice = $item->quote_price / ($item->quantity ?: 1);
+            $groupedItems[] = [
+                'item_name' => $itemName,
+                'description' => $item->description,
+                'quantity' => $item->quantity,
+                'quote_unit_price' => $quoteUnitPrice,
+                'quote_price' => $item->quote_price,
+            ];
         }
 
         $rowCounter = 1;
-        $subtotal = 0;
         $totalCost = 0;
         $totalProfit = 0;
-
+        $subtotal = 0;
         foreach ($groupedItems as $item) {
-            if ($item['type'] === 'header') {
-                $data[] = [$item['item_name'], '', '', '', '', '', ''];
-            } elseif ($item['type'] === 'particular') {
-                $itemProfit = $item['quote_price'] - $item['total_cost'];
-                $subtotal += $item['quote_price'];
-                $totalCost += $item['total_cost'];
-                $totalProfit += $itemProfit;
-                
-                $data[] = [
-                    $rowCounter++,
-                    $item['description'] . "\n" . $item['item_name'],
-                    number_format($item['quantity'], 2),
-                    number_format($item['unit_price'], 2),
-                    number_format($item['total_cost'], 2),
-                    number_format($item['profit_margin'], 2) . '%',
-                    number_format($item['quote_price'], 2)
-                ];
-            } else {
-                $itemProfit = $item['quote_price'] - $item['total_cost'];
-                $subtotal += $item['quote_price'];
-                $totalCost += $item['total_cost'];
-                $totalProfit += $itemProfit;
-                
-                $data[] = [
-                    $rowCounter++,
-                    $item['description'],
-                    number_format($item['quantity'], 2),
-                    number_format($item['unit_price'], 2),
-                    number_format($item['total_cost'], 2),
-                    number_format($item['profit_margin'], 2) . '%',
-                    number_format($item['quote_price'], 2)
-                ];
-            }
+            $data[] = [
+                $rowCounter++,
+                $item['item_name'] ?? '-',
+                $item['description'],
+                number_format($item['quantity'], 2),
+                number_format($item['quote_unit_price'], 2),
+                number_format($item['quote_price'], 2)
+            ];
+            $itemCost = $item['quote_unit_price'] * $item['quantity'];
+            $totalCost += $itemCost;
+            $subtotal += $item['quote_price'];
+            $totalProfit += $item['quote_price'] - $itemCost;
         }
 
         // Add totals row

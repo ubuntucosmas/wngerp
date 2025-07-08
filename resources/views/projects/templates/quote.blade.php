@@ -145,22 +145,40 @@
     <div class="section">
       <div class="section-title">QUOTE INFORMATION</div>
       <div class="two-col">
-        <div><strong>Date:</strong> {{ $quote->quote_date->format('Y-m-d') }}</div>
+        <div><strong>Date:</strong> {{ $quote->quote_date ? $quote->quote_date->format('Y-m-d') : 'N/A' }}</div>
         <div><strong>Quote #:</strong> Q-{{ str_pad($quote->id, 4, '0', STR_PAD_LEFT) }}</div>
         <div><strong>Ref:</strong> {{ $quote->reference }}</div>
-        <div><strong>Start:</strong> {{ $quote->project_start_date->format('Y-m-d') }}</div>
+        <div><strong>Start:</strong> {{ $quote->project_start_date ? $quote->project_start_date->format('Y-m-d') : 'N/A' }}</div>
       </div>
     </div>
 
-    <!-- Client Info -->
+    <!-- Client & Project Info (Redesigned) -->
     <div class="section">
-      <div class="section-title">CLIENT & PROJECT</div>
-      <div class="two-col">
-        <div><strong>Client:</strong> {{ $quote->project->client_name }}</div>
-        <div><strong>Contact:</strong> {{ $quote->attention }}</div>
-        <div><strong>Project:</strong> {{ $project->name }}</div>
-        <div><strong>Venue:</strong> {{ $project->venue ?? 'N/A' }}</div>
-      </div>
+      <div class="section-title">CLIENT & PROJECT INFORMATION</div>
+      <table style="width:100%; background:#f8f9fa; border-radius:6px; margin-bottom:8px;">
+        <tr>
+          <td style="width:50%; vertical-align:top; padding:8px 12px;">
+            <div style="font-weight:bold; color:#198754; font-size:12px;">Customer</div>
+            <div style="font-size:11px; font-weight:bold;">{{ $quote->customer_name }}</div>
+            @if($quote->customer_location)
+              <div style="color:#555; font-size:10px; margin-bottom:2px;">Location: {{ $quote->customer_location }}</div>
+            @endif
+            <div style="color:#888; font-size:10px;">Project ID: {{ $quote->project->project_id }}</div>
+            <div style="color:#888; font-size:10px;">Project Name: {{ $quote->project->name }}</div>
+          </td>
+          <td style="width:50%; vertical-align:top; padding:8px 12px;">
+            @if($quote->attention)
+              <div style="font-size:10px;"><strong>Attn:</strong> {{ $quote->attention }}</div>
+            @endif
+            @if($quote->reference)
+              <div style="font-size:10px;"><strong>Ref:</strong> {{ $quote->reference }}</div>
+            @endif
+            @if($quote->project_start_date)
+              <div style="font-size:10px;"><strong>Project Start:</strong> {{ $quote->project_start_date ? $quote->project_start_date->format('M d, Y') : 'N/A' }}</div>
+            @endif
+          </td>
+        </tr>
+      </table>
     </div>
 
     <!-- Items -->
@@ -169,19 +187,29 @@
       <table>
         <thead>
           <tr>
+            <th>Item Name</th>
             <th>Description</th>
             <th>Qty</th>
-            <th>Unit Price (KES)</th>
-            <th>Total (KES)</th>
+            <th>Quote Unit Price (KES)</th>
+            <th>Quote Price (KES)</th>
           </tr>
         </thead>
         <tbody>
           @foreach($quote->lineItems as $item)
+            @php
+              $itemName = null;
+              if (str_contains($item->comment ?? '', 'Item Name:')) {
+                preg_match('/Item Name:\s*(.+?)(?:\s*\||$)/', $item->comment, $matches);
+                $itemName = $matches[1] ?? 'Production Item';
+              }
+              $quoteUnitPrice = $item->quote_price / ($item->quantity ?: 1);
+            @endphp
           <tr>
+            <td>{{ $itemName ?? '-' }}</td>
             <td>{{ $item->description }}</td>
             <td>{{ $item->quantity }}</td>
-            <td>{{ number_format($item->unit_price, 2) }}</td>
-            <td>{{ number_format($item->total, 2) }}</td>
+            <td>{{ number_format($quoteUnitPrice, 2) }}</td>
+            <td>{{ number_format($item->quote_price, 2) }}</td>
           </tr>
           @endforeach
         </tbody>

@@ -58,9 +58,17 @@ class Project extends Model
     {
         return $this->hasMany(SiteSurvey::class);
     }
+    public function loadingSheets()
+    {
+        return $this->hasMany(LoadingSheet::class);
+    }
     public function bookingOrder()
     {
         return $this->hasOne(BookingOrder::class);
+    }
+    public function bookingOrders()
+    {
+        return $this->hasMany(BookingOrder::class);
     }
     public function enquiryLog()
     {

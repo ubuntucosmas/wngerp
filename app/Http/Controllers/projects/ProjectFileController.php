@@ -117,6 +117,34 @@ class ProjectFileController extends Controller
             ]
         ];
 
+        // LOGISTICS
+        $loadingSheets = $project->loadingSheets ?? collect();
+        $bookingOrders = $project->bookingOrders ?? collect();
+        $completions['Logistics'] = [
+            'loading_sheet' => [
+                'completed' => $loadingSheets->count() > 0,
+                'title' => 'Loading Sheet',
+                'status' => $loadingSheets->count() > 0 ? 'Completed (' . $loadingSheets->count() . ' sheets)' : 'Not Started',
+                'date' => $loadingSheets->count() > 0 ? $loadingSheets->first()->created_at->format('M d, Y') : null,
+                'details' => $loadingSheets->count() > 0 ? [
+                    'Total Sheets: ' . $loadingSheets->count(),
+                    'Latest Sheet: ' . ($loadingSheets->sortByDesc('created_at')->first()->vehicle_number ?? 'N/A'),
+                    'Status: ' . ucfirst($loadingSheets->sortByDesc('created_at')->first()->status ?? 'draft')
+                ] : ['No loading sheets found']
+                ],
+            'booking_order' => [
+                'completed' => $bookingOrders->count() > 0,
+                'title' => 'Booking Order',
+                'status' => $bookingOrders->count() > 0 ? 'Completed (' . $bookingOrders->count() . ' orders)' : 'Not Started',
+                'date' => $bookingOrders->count() > 0 ? $bookingOrders->first()->created_at->format('M d, Y') : null,
+                'details' => $bookingOrders->count() > 0 ? [
+                    'Total Orders: ' . $bookingOrders->count(),
+                    'Latest Order: ' . ($bookingOrders->sortByDesc('created_at')->first()->order_number ?? 'N/A'),
+                    'Status: ' . ucfirst($bookingOrders->sortByDesc('created_at')->first()->status ?? 'draft')
+                ] : ['No booking orders found']
+            ]
+        ];
+
         // Budget & Quotation
         $budgets = \App\Models\ProjectBudget::where('project_id', $project->id)->get();
         $quotes = $project->quotes;

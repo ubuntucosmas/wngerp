@@ -306,6 +306,19 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
         Route::get('booking-order-download', [BookingOrderController::class, 'downloadBookingOrder'])->name('projects.booking-order.download');
         Route::get('booking-order-print', [BookingOrderController::class, 'printBookingOrder'])->name('projects.booking-order.print');
 
+
+
+        // Logistics Routes
+        Route::prefix('logistics')->name('projects.logistics.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\projects\LogisticsController::class, 'index'])->name('index');
+            Route::get('/loading-sheet', [\App\Http\Controllers\projects\LoadingSheetController::class, 'index'])->name('loading-sheet');
+            Route::post('/loading-sheet', [\App\Http\Controllers\projects\LoadingSheetController::class, 'store'])->name('loading-sheet.store');
+            Route::get('/loading-sheet/{id}', [\App\Http\Controllers\projects\LoadingSheetController::class, 'show'])->name('loading-sheet.show');
+            Route::get('/loading-sheet/print', [\App\Http\Controllers\projects\LoadingSheetController::class, 'print'])->name('loading-sheet.print');
+            Route::get('/loading-sheet/download', [\App\Http\Controllers\projects\LoadingSheetController::class, 'download'])->name('loading-sheet.download');
+            Route::get('/booking-sheet', [\App\Http\Controllers\projects\LogisticsController::class, 'showBookingSheet'])->name('booking-sheet');
+        });
+
         // Show inquiry log for a specific project 
         Route::get('enquiry-log/{enquiryLog}/edit', [EnquiryLogController::class, 'edit'])->name('projects.enquiry-log.edit');
         Route::get('enquiry-log', [EnquiryLogController::class, 'show'])->name('projects.enquiry-log.show');

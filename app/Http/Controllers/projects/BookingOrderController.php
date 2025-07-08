@@ -13,8 +13,11 @@ class BookingOrderController extends Controller
 {
     public function index(Project $project)
     {
-        $bookingOrders = BookingOrder::where('project_id', $project->id)->get();
-        return view('projects.bookingOrder.index', compact('project', 'bookingOrders'));
+        $bookingOrder = BookingOrder::where('project_id', $project->id)
+            ->with('teams')
+            ->latest()
+            ->first();
+        return view('projects.bookingOrder.index', compact('project', 'bookingOrder'));
     }
 
     public function create(Project $project)

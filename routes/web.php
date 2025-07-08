@@ -341,9 +341,9 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
         Route::put('budgets/{budget}', [ProjectBudgetController::class, 'update'])->name('budget.update');
         Route::delete('budgets/{budget}', [ProjectBudgetController::class, 'destroy'])->name('budget.destroy');
         
-        Route::get('budgets/{budget}/export', [\App\Http\Controllers\Projects\ProjectBudgetController::class, 'export'])->name('budget.export');
+        Route::get('budgets/{budget}/export', [\App\Http\Controllers\projects\ProjectBudgetController::class, 'export'])->name('budget.export');
         
-        Route::post('budgets/{budget}/approve', [\App\Http\Controllers\Projects\ProjectBudgetController::class, 'approve'])->name('budget.approve');
+        Route::post('budgets/{budget}/approve', [\App\Http\Controllers\projects\ProjectBudgetController::class, 'approve'])->name('budget.approve');
         
 //francis
 

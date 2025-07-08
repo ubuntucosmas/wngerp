@@ -71,20 +71,20 @@
                                 <div class="item-group border rounded p-3 mb-3" data-item-idx="{{ $prodItemIdx }}">
                                     <div class="mb-2">
                                         <label>Item Name</label>
-                                        <input type="text" name="production_items[{{ $prodItemIdx }}][item_name]" class="form-control" value="{{ $itemName }}">
+                                        <input type="text" name="production_items[{{ $prodItemIdx }}][item_name]" class="form-control" value="{{ $itemName }}" placeholder="e.g. Stage Truss" required>
                                     </div>
                                     <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Particular</th>
-                <th>Unit Of Measure</th>
-                <th>Quantity</th>
-                <th>Unit Price</th>
-                <th>Budgeted Cost</th>
-                <th>Comment</th>
-                <th>Action</th>
-            </tr>
-        </thead>
+                                        <thead>
+                                            <tr>
+                                                <th>Particular</th>
+                                                <th>Unit Of Measure</th>
+                                                <th>Quantity</th>
+                                                <th>Unit Price</th>
+                                                <th>Budgeted Cost</th>
+                                                <th>Comment</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
                                         <tbody class="particulars-body">
                                             @foreach($particulars as $pIdx => $particular)
                                                 <tr>

@@ -367,7 +367,12 @@
                                         <i class="bi bi-box-seam fs-4 text-primary"></i>
                                     </div>
                                     <div>
-                                        <h6 class="mb-0 fw-bold">{{ $item->item_name }}</h6>
+                                        <h6 class="mb-0 fw-bold">
+                                            <span class="badge bg-secondary me-2">
+                                                {{ isset($item->template) && $item->template ? 'Template Item Name' : 'Item Name' }}
+                                            </span>
+                                            {{ $item->item_name }}
+                                        </h6>
                                         @if($item->description)
                                             <p class="text-muted small mb-0 mt-1">{{ $item->description }}</p>
                                         @endif
@@ -464,7 +469,7 @@
     <div class="card mb-4 animate-fade-in" style="animation-delay: 0.3s">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">
-                <i class="bi bi-tools me-2 text-warning"></i>
+                <!-- <i class="bi bi-tools me-2 text-warning"></i> -->
                 Materials for Hire
             </h5>
             <div class="d-flex align-items-center">
@@ -553,25 +558,25 @@
             @php
                 $labourCategories = [
                     'Workshop labour' => [
-                        'icon' => 'bi-tools',
+                        
                         'color' => 'primary',
                         'bg' => 'bg-primary-soft',
                         'description' => 'Workshop labor and fabrication work'
                     ],
                     'Site' => [
-                        'icon' => 'bi-building',
+                        
                         'color' => 'success',
                         'bg' => 'bg-success-soft',
                         'description' => 'On-site installation and construction'
                     ],
                     'Set down' => [
-                        'icon' => 'bi-box-arrow-down',
+                       
                         'color' => 'warning',
                         'bg' => 'bg-warning-soft',
                         'description' => 'Material setup and arrangement'
                     ],
                     'Logistics' => [
-                        'icon' => 'bi-truck',
+                        
                         'color' => 'info',
                         'bg' => 'bg-info-soft',
                         'description' => 'Transportation and material handling'
@@ -593,7 +598,7 @@
                             <button class="btn btn-link text-decoration-none text-start w-100 p-4" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $collapseId }}" aria-expanded="true" aria-controls="{{ $collapseId }}">
                                 <div class="d-flex align-items-center">
                                     <div class="icon-shape icon-lg rounded-3 {{ $categoryData['bg'] }} text-{{ $categoryData['color'] }} me-3">
-                                        <i class="bi {{ $categoryData['icon'] }} fs-4"></i>
+                                    
                                     </div>
                                     <div class="flex-grow-1">
                                         <div class="d-flex align-items-center justify-content-between">
@@ -632,10 +637,15 @@
                                                         <td>
                                                             <div class="d-flex align-items-center">
                                                                 <div class="icon-shape icon-sm rounded-3 {{ $categoryData['bg'] }} text-{{ $categoryData['color'] }} me-3">
-                                                                    <i class="bi {{ $categoryData['icon'] }}"></i>
+                                                                    
                                                                 </div>
                                                                 <div>
-                                                                    <h6 class="mb-0 fw-semibold">{{ $item->item_name ?? $item->particular }}</h6>
+                                                                    <h6 class="mb-0 fw-semibold">
+                                                                        <span class="badge bg-secondary me-2">
+                                                                            {{ isset($item->template) && $item->template ? 'Template Item Name' : 'Item Name' }}
+                                                                        </span>
+                                                                        {{ $item->item_name ?? $item->particular }}
+                                                                    </h6>
                                                                     @if($item->particular && $item->particular !== ($item->item_name ?? ''))
                                                                         <small class="text-muted">{{ $item->particular }}</small>
                                                                     @endif

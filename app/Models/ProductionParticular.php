@@ -11,7 +11,7 @@ class ProductionParticular extends Model
 
     protected $fillable = [
         'production_item_id',    // FK to ProductionItem
-        'particular',            // 👈 Add this
+        'particular',            //  Add this
         'unit',
         'quantity',
         'comment',

@@ -19,7 +19,7 @@ use App\Models\HandoverReport;
 use App\Models\SetupReport;
 use App\Models\LogisticsReport;
 use App\Models\ProjectPhase;
-
+use App\Models\ProjectBudget;
 
 
 class Project extends Model
@@ -81,9 +81,6 @@ class Project extends Model
         return $this->hasMany(MaterialList::class);
     }
 
-
-
-
     public function client()
     {
         return $this->belongsTo(Client::class, 'client_id', 'ClientID');
@@ -111,6 +108,11 @@ class Project extends Model
     public function quotes()
     {
         return $this->hasMany(Quote::class);
+    }
+
+    public function budgets()
+    {
+        return $this->hasMany(ProjectBudget::class);
     }
 
     public function phases()

@@ -25,6 +25,11 @@ class ItemTemplate extends Model
         'is_active' => 'boolean',
     ];
 
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class, 'project_id');
+    }
+
     /**
      * Get the category that owns this template.
      */

@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Models\ProductionItem;
 use App\Models\MaterialListItem;
 use App\Models\LabourItem;
+use App\Models\ProjectBudget;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -29,18 +30,64 @@ class QuoteController extends Controller
 
     public function create(Project $project)
     {
-        // Fetch all production items and their particulars for this project
-        $productionItems = ProductionItem::whereHas('materialList', function($q) use ($project) {
-            $q->where('project_id', $project->id);
-        })->with('particulars')->get();
-        // Fetch all materials for hire for this project
-        $materialsForHire = MaterialListItem::whereHas('materialList', function($q) use ($project) {
-            $q->where('project_id', $project->id);
-        })->where('category', 'Materials for Hire')->get();
-        // Fetch all labour items for this project
-        $labourItems = LabourItem::whereHas('materialList', function($q) use ($project) {
-            $q->where('project_id', $project->id);
-        })->get();
+        // Fetch the latest budget for this project
+        $budget = $project->budgets()->latest()->with('items')->first();
+        
+        if (!$budget) {
+            return back()->with('error', 'No budget found for this project. Please create a budget first.');
+        }
+        
+        // Group budget items by category
+        $budgetItems = $budget->items->groupBy('category');
+        
+        // Organize items for the view
+        $productionItems = collect();
+        $materialsForHire = collect();
+        $labourItems = collect();
+        
+        foreach ($budgetItems as $category => $items) {
+            if (str_contains(strtolower($category), 'production')) {
+                // Group production items by item_name
+                $groupedByItem = $items->groupBy('item_name');
+                foreach ($groupedByItem as $itemName => $particulars) {
+                    $productionItems->push([
+                        'item_name' => $itemName,
+                        'particulars' => $particulars->map(function($item) {
+                            return [
+                                'particular' => $item->particular,
+                                'unit' => $item->unit,
+                                'quantity' => $item->quantity,
+                                'unit_price' => $item->unit_price,
+                                'comment' => $item->comment,
+                                'template_id' => $item->template_id
+                            ];
+                        })
+                    ]);
+                }
+            } elseif (str_contains(strtolower($category), 'hire')) {
+                $materialsForHire = $items->map(function($item) {
+                    return [
+                        'particular' => $item->particular,
+                        'unit' => $item->unit,
+                        'quantity' => $item->quantity,
+                        'unit_price' => $item->unit_price,
+                        'comment' => $item->comment
+                    ];
+                });
+            } else {
+                // Other categories (labour, etc.)
+                $labourItems = $items->map(function($item) {
+                    return [
+                        'particular' => $item->particular,
+                        'unit' => $item->unit,
+                        'quantity' => $item->quantity,
+                        'unit_price' => $item->unit_price,
+                        'comment' => $item->comment
+                    ];
+                });
+            }
+        }
+        
         return view('projects.quotes.create', compact('project', 'productionItems', 'materialsForHire', 'labourItems'));
     }
 

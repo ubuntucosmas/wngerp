@@ -20,7 +20,7 @@
                     <div class="col-md-6">
                         <label for="customer_name" class="form-label small fw-semibold">Customer Name <span class="text-danger">*</span></label>
                         <input type="text" class="form-control form-control-sm @error('customer_name') is-invalid @enderror" id="customer_name" name="customer_name" 
-                               value="{{ old('customer_name') }}" required autocomplete="off" autofocus>
+                               value="{{ old('customer_name') }}{{$project->client_name}}" required autocomplete="off" autofocus>
                         @error('customer_name')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -33,11 +33,11 @@
                 </div>
 
                 <div class="row g-3 mb-4">
-                    <div class="col-md-4">
+                    <!-- <div class="col-md-4">
                         <label for="attention" class="form-label small fw-semibold">Attention</label>
                         <input type="text" class="form-control form-control-sm" id="attention" name="attention" 
                                value="{{ old('attention') }}" autocomplete="off">
-                    </div>
+                    </div> -->
                     <div class="col-md-4">
                         <label for="quote_date" class="form-label small fw-semibold">Quote Date <span class="text-danger">*</span></label>
                         <input type="date" class="form-control form-control-sm" id="quote_date" name="quote_date" 
@@ -46,7 +46,7 @@
                     <div class="col-md-4">
                         <label for="project_start_date" class="form-label small fw-semibold">Project Start Date <span class="text-danger">*</span></label>
                         <input type="date" class="form-control form-control-sm" id="project_start_date" name="project_start_date" 
-                               value="{{ old('project_start_date', now()->format('Y-m-d')) }}" required>
+                               value="{{ old('project_start_date') }}" required>
                     </div>
                 </div>
 
@@ -70,12 +70,12 @@
                             @if(isset($productionItems) && $productionItems->count())
                                 @foreach($productionItems as $itemIndex => $item)
                                     <div class="item-row mb-2 p-2 rounded bg-light border">
-                                        <div class="fw-bold mb-1">{{ $item->item_name }}</div>
-                                        <div class="mb-2">
+                                        <div class="fw-bold mb-1">{{ $item['item_name'] }}</div>
+                                        <!-- <div class="mb-2">
                                             <label class="form-label small">Profit Margin (%) for this Item</label>
                                             <input type="number" min="0" max="100" step="0.01" class="form-control form-control-sm item-profit-margin" name="items[{{ $itemIndex }}][item_profit_margin]" value="{{ old('items.'.$itemIndex.'.item_profit_margin', 0) }}">
-                                        </div>
-                                        @if($item->particulars->count())
+                                        </div> -->
+                                        @if(count($item['particulars']))
                                             <table class="table table-bordered table-sm mb-2">
                                                 <thead>
                                                     <tr>
@@ -90,22 +90,22 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    @foreach($item->particulars as $particularIndex => $particular)
+                                                    @foreach($item['particulars'] as $particularIndex => $particular)
                                                         <tr>
                                                             <td>
-                                                                <input type="text" class="form-control form-control-sm" name="items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][particular]" value="{{ $particular->particular }}" readonly>
+                                                                <input type="text" class="form-control form-control-sm" name="items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][particular]" value="{{ $particular['particular'] }}" readonly>
                                                             </td>
                                                             <td>
-                                                                <input type="text" class="form-control form-control-sm" name="items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][unit]" value="{{ $particular->unit }}" readonly>
+                                                                <input type="text" class="form-control form-control-sm" name="items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][unit]" value="{{ $particular['unit'] }}" readonly>
                                                             </td>
                                                             <td>
-                                                                <input type="number" step="0.01" class="form-control form-control-sm quantity-input" name="items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][quantity]" value="{{ $particular->quantity }}">
+                                                                <input type="number" step="0.01" class="form-control form-control-sm quantity-input" name="items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][quantity]" value="{{ $particular['quantity'] }}">
                                                             </td>
                                                             <td>
-                                                                <input type="number" step="0.01" class="form-control form-control-sm unit-price-input" name="items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][unit_price]" value="{{ $particular->unit_price ?? 0 }}">
+                                                                <input type="number" step="0.01" class="form-control form-control-sm unit-price-input" name="items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][unit_price]" value="{{ $particular['unit_price'] ?? 0 }}">
                                                             </td>
                                                             <td>
-                                                                <input type="number" step="0.01" class="form-control form-control-sm total-cost" name="items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][total_cost]" value="{{ ($particular->quantity ?? 0) * ($particular->unit_price ?? 0) }}" readonly>
+                                                                <input type="number" step="0.01" class="form-control form-control-sm total-cost" name="items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][total_cost]" value="{{ ($particular['quantity'] ?? 0) * ($particular['unit_price'] ?? 0) }}" readonly>
                                                             </td>
                                                             <td>
                                                                 <input type="number" min="0" max="100" step="0.01" class="form-control form-control-sm profit-margin-input" name="items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][profit_margin]" value="{{ old('items.'.$itemIndex.'.particulars.'.$particularIndex.'.profit_margin', 0) }}">
@@ -114,7 +114,7 @@
                                                                 <input type="number" step="0.01" class="form-control form-control-sm quote-price" name="items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][quote_price]" readonly>
                                                             </td>
                                                             <td>
-                                                                <input type="text" class="form-control form-control-sm" name="items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][comment]" value="{{ $particular->comment }}">
+                                                                <input type="text" class="form-control form-control-sm" name="items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][comment]" value="{{ $particular['comment'] }}">
                                                             </td>
                                                         </tr>
                                                     @endforeach
@@ -181,7 +181,7 @@
                                             <div class="row g-2">
                                                 <div class="col-md-3">
                                                     <label class="form-label small">Description</label>
-                                                    <input type="text" class="form-control form-control-sm" name="hire_items[{{ $hireIndex }}][description]" value="{{ $hireItem->particular }}" readonly>
+                                                    <input type="text" class="form-control form-control-sm" name="hire_items[{{ $hireIndex }}][description]" value="{{ $hireItem['particular'] }}" readonly>
                                                 </div>
                                                 <div class="col-md-1">
                                                     <label class="form-label small">Days</label>
@@ -189,20 +189,20 @@
                                                 </div>
                                                 <div class="col-md-1">
                                                     <label class="form-label small">Qty</label>
-                                                    <input type="number" min="0.01" step="0.01" class="form-control form-control-sm quantity" name="hire_items[{{ $hireIndex }}][quantity]" value="{{ $hireItem->quantity ?? 1 }}" required>
+                                                    <input type="number" min="0.01" step="0.01" class="form-control form-control-sm quantity" name="hire_items[{{ $hireIndex }}][quantity]" value="{{ $hireItem['quantity'] ?? 1 }}" required>
                                                 </div>
                                                 <div class="col-md-2">
                                                     <label class="form-label small">Unit Price</label>
                                                     <div class="input-group input-group-sm">
                                                         <span class="input-group-text">KES</span>
-                                                        <input type="number" min="0" step="0.01" class="form-control unit-price" name="hire_items[{{ $hireIndex }}][unit_price]" value="{{ $hireItem->unit_price ?? 0 }}" required>
+                                                        <input type="number" min="0" step="0.01" class="form-control unit-price" name="hire_items[{{ $hireIndex }}][unit_price]" value="{{ $hireItem['unit_price'] ?? 0 }}" required>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-2">
                                                     <label class="form-label small">Total Cost</label>
                                                     <div class="input-group input-group-sm">
                                                         <span class="input-group-text">KES</span>
-                                                        <input type="number" step="0.01" class="form-control total-cost" name="hire_items[{{ $hireIndex }}][total_cost]" value="{{ ($hireItem->quantity ?? 1) * ($hireItem->unit_price ?? 0) }}" readonly>
+                                                        <input type="number" step="0.01" class="form-control total-cost" name="hire_items[{{ $hireIndex }}][total_cost]" value="{{ ($hireItem['quantity'] ?? 1) * ($hireItem['unit_price'] ?? 0) }}" readonly>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-1">
@@ -218,7 +218,7 @@
                                                 </div>
                                                 <div class="col-md-12">
                                                     <label class="form-label small">Comment</label>
-                                                    <input type="text" class="form-control form-control-sm" name="hire_items[{{ $hireIndex }}][comment]" value="{{ $hireItem->comment ?? '' }}">
+                                                    <input type="text" class="form-control form-control-sm" name="hire_items[{{ $hireIndex }}][comment]" value="{{ $hireItem['comment'] ?? '' }}">
                                                 </div>
                                             </div>
                                         </div>

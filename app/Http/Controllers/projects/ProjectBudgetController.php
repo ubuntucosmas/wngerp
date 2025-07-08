@@ -67,6 +67,11 @@ class ProjectBudgetController extends Controller
 
     public function show(Project $project, ProjectBudget $budget)
     {
+        $budget->load([
+            'items.template.name',
+            'items.template.particulars',
+            'items.template.category'
+        ]);
         return view('projects.budget.show', compact('project', 'budget'));
     }
 
@@ -74,6 +79,13 @@ class ProjectBudgetController extends Controller
     {
         if (!auth()->user()->hasRole('po|pm|super-admin')) {
             alert()->error('Only Project Officers, Project Managers and Super Admins can submit budgets.');
+        }
+    
+        $productionItems = $request->input('production_items', []);
+        foreach ($productionItems as $idx => $prod) {
+            if (empty($prod['item_name'])) {
+                return back()->with('error', 'Each production item must have an Item Name.')->withInput();
+            }
         }
     
         DB::beginTransaction();
@@ -89,7 +101,8 @@ class ProjectBudgetController extends Controller
                     $totalCost += $item['budgeted_cost'] ?? 0;
                 }
             }
-            // Calculate total from production items
+    
+            // Add production items to totalCost
             foreach ($productionItems as $prod) {
                 if (!isset($prod['particulars'])) continue;
                 foreach ($prod['particulars'] as $particular) {
@@ -105,7 +118,7 @@ class ProjectBudgetController extends Controller
                 'project_id' => $project->id,
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date,
-                'budget_total' => $totalCost,
+                'budget_total' => (float) $totalCost,
                 'invoice' => $invoice,
                 'profit' => $profit,
                 'approved_by' => $request->approved_by,
@@ -129,15 +142,18 @@ class ProjectBudgetController extends Controller
                     ]);
                 }
             }
+    
             // Save production items (grouped by item_name)
             foreach ($productionItems as $prod) {
                 $itemName = $prod['item_name'] ?? null;
+                $templateId = $prod['template_id'] ?? null;
                 if (!isset($prod['particulars'])) continue;
                 foreach ($prod['particulars'] as $particular) {
                     BudgetItem::create([
                         'project_budget_id' => $budget->id,
                         'category' => 'Materials - Production',
                         'item_name' => $itemName,
+                        'template_id' => $templateId,
                         'particular' => $particular['particular'] ?? '',
                         'unit' => $particular['unit'] ?? '',
                         'quantity' => $particular['quantity'] ?? 0,
@@ -226,7 +242,7 @@ public function update(Request $request, Project $project, ProjectBudget $budget
         $budget->update([
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
-            'budget_total' => $total,
+            'budget_total' => (float) $total,
             'invoice' => $invoice,
             'profit' => $profit,
             'approved_by' => $request->approved_by,

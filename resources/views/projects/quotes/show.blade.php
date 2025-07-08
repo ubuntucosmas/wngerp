@@ -137,61 +137,159 @@
                         <h6 class="fw-semibold mb-0 text-uppercase small">Itemized Breakdown with Profit Margins</h6>
                     </div>
                     <div class="table-responsive">
-                        <table class="table table-sm table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="border-0 py-2 px-2 text-center" style="width: 40px; font-size: 0.8rem;">#</th>
-                                    <th class="border-0 py-2 px-2" style="font-size: 0.8rem;">Description</th>
-                                    <th class="border-0 py-2 px-2 text-end" style="width: 80px; font-size: 0.8rem;">Qty</th>
-                                    <th class="border-0 py-2 px-2 text-end" style="width: 100px; font-size: 0.8rem;">Unit Price</th>
-                                    <th class="border-0 py-2 px-2 text-end" style="width: 100px; font-size: 0.8rem;">Total Cost</th>
-                                    <th class="border-0 py-2 px-2 text-center" style="width: 100px; font-size: 0.8rem;">Profit</th>
-                                    <th class="border-0 py-2 px-2 text-end" style="width: 100px; font-size: 0.8rem;">Quote Price</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @php 
-                                    $subtotal = 0; 
-                                    $totalCost = 0;
-                                    $totalProfit = 0;
-                                @endphp
-                                @foreach($quote->lineItems as $i => $item)
-                                    @php
-                                        $itemTotalCost = $item->quantity * $item->unit_price;
-                                        $itemQuotePrice = $item->quote_price ?? $itemTotalCost * (1 + ($item->profit_margin / 100));
-                                        $itemProfit = $itemQuotePrice - $itemTotalCost;
-                                        $subtotal += $itemQuotePrice;
-                                        $totalCost += $itemTotalCost;
-                                        $totalProfit += $itemProfit;
-                                    @endphp
-                                    <tr class="border-bottom">
-                                        <td class="py-2 px-2 text-center">
-                                            <span class="badge bg-light text-dark" style="font-size: 0.75rem;">{{ $i + 1 }}</span>
-                                        </td>
-                                        <td class="py-2 px-2">
-                                            <div>
-                                                <div class="fw-semibold" style="font-size: 0.85rem; line-height: 1.2;">{{ $item->description }}</div>
-                                                @if($item->comment)
-                                                    <small class="text-muted" style="font-size: 0.75rem;">{{ $item->comment }}</small>
-                                                @endif
-                                            </div>
-                                        </td>
-                                        <td class="py-2 px-2 text-end fw-semibold" style="font-size: 0.85rem;">{{ number_format($item->quantity, 2) }}</td>
-                                        <td class="py-2 px-2 text-end fw-monospace" style="font-size: 0.85rem;">{{ number_format($item->unit_price, 2) }}</td>
-                                        <td class="py-2 px-2 text-end fw-monospace text-muted" style="font-size: 0.85rem;">{{ number_format($itemTotalCost, 2) }}</td>
-                                        <td class="py-2 px-2 text-center">
-                                            <div class="d-flex flex-column align-items-center">
-                                                <small class="text-success fw-semibold" style="font-size: 0.75rem;">+{{ number_format($itemProfit, 2) }}</small>
-                                                <small class="text-muted" style="font-size: 0.7rem;">{{ number_format($item->profit_margin, 2) }}%</small>
-                                            </div>
-                                        </td>
-                                        <td class="py-2 px-2 text-end fw-bold fw-monospace text-success" style="font-size: 0.85rem;">{{ number_format($itemQuotePrice, 2) }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
+                        @php 
+                            $subtotal = 0; 
+                            $totalCost = 0;
+                            $totalProfit = 0;
+                            
+                            // Group items by item name (for production items)
+                            $groupedItems = $quote->lineItems->groupBy(function($item) {
+                                if (str_contains($item->comment, 'Item Name:')) {
+                                    return str_replace('Item Name: ', '', explode(' | ', $item->comment)[0]);
+                                }
+                                return 'Other Items';
+                            });
+                        @endphp
+                        
+                        @foreach($groupedItems as $itemName => $items)
+                            @if($itemName !== 'Other Items')
+                                <!-- Production Item Group -->
+                                <div class="mb-4">
+                                    <div class="bg-light p-3 rounded-top">
+                                        <h6 class="fw-bold text-primary mb-0">
+                                            <i class="bi bi-box-seam me-2"></i>{{ $itemName }}
+                                        </h6>
+                                    </div>
+                                    <table class="table table-sm table-hover mb-0">
+                                        <thead class="table-secondary">
+                                            <tr>
+                                                <th class="border-0 py-2 px-2 text-center" style="width: 40px; font-size: 0.8rem;">#</th>
+                                                <th class="border-0 py-2 px-2" style="font-size: 0.8rem;">Description</th>
+                                                <th class="border-0 py-2 px-2 text-end" style="width: 80px; font-size: 0.8rem;">Qty</th>
+                                                <th class="border-0 py-2 px-2 text-end" style="width: 100px; font-size: 0.8rem;">Unit Price</th>
+                                                <!-- <th class="border-0 py-2 px-2 text-end" style="width: 100px; font-size: 0.8rem;">Quote Unit Price</th> -->
+                                                <th class="border-0 py-2 px-2 text-end" style="width: 100px; font-size: 0.8rem;">Total Cost</th>
+                                                <th class="border-0 py-2 px-2 text-center" style="width: 100px; font-size: 0.8rem;">Profit</th>
+                                                <th class="border-0 py-2 px-2 text-end" style="width: 100px; font-size: 0.8rem;">Quote Price</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @php $itemSubtotal = 0; $itemTotalCost = 0; $itemTotalProfit = 0; @endphp
+                                            @foreach($items as $i => $item)
+                                                @php
+                                                    $itemTotalCostCalc = $item->quantity * $item->unit_price;
+                                                    $itemQuotePrice = $item->quote_price ?? $itemTotalCostCalc * (1 + ($item->profit_margin / 100));
+                                                    $itemProfit = $itemQuotePrice - $itemTotalCostCalc;
+                                                    $quoteUnitPrice = $itemQuotePrice / $item->quantity;
+                                                    $itemSubtotal += $itemQuotePrice;
+                                                    $itemTotalCost += $itemTotalCostCalc;
+                                                    $itemTotalProfit += $itemProfit;
+                                                    $subtotal += $itemQuotePrice;
+                                                    $totalCost += $itemTotalCostCalc;
+                                                    $totalProfit += $itemProfit;
+                                                @endphp
+                                                <tr class="border-bottom">
+                                                    <td class="py-2 px-2 text-center">
+                                                        <span class="badge bg-light text-dark" style="font-size: 0.75rem;">{{ $i + 1 }}</span>
+                                                    </td>
+                                                    <td class="py-2 px-2">
+                                                        <div>
+                                                            <div class="fw-semibold" style="font-size: 0.85rem; line-height: 1.2;">{{ $item->description }}</div>
+                                                            @if($item->comment && !str_contains($item->comment, 'Item Name:'))
+                                                                <small class="text-muted" style="font-size: 0.75rem;">{{ $item->comment }}</small>
+                                                            @endif
+                                                        </div>
+                                                    </td>
+                                                    <td class="py-2 px-2 text-end fw-semibold" style="font-size: 0.85rem;">{{ number_format($item->quantity, 2) }}</td>
+                                                    <td class="py-2 px-2 text-end fw-monospace" style="font-size: 0.85rem;">{{ number_format($item->unit_price, 2) }}</td>
+                                                    <!-- <td class="py-2 px-2 text-end fw-monospace text-success" style="font-size: 0.85rem;">{{ number_format($quoteUnitPrice, 2) }}</td> -->
+                                                    <td class="py-2 px-2 text-end fw-monospace text-muted" style="font-size: 0.85rem;">{{ number_format($itemTotalCostCalc, 2) }}</td>
+                                                    <td class="py-2 px-2 text-center">
+                                                        <div class="d-flex flex-column align-items-center">
+                                                            <small class="text-success fw-semibold" style="font-size: 0.75rem;">+{{ number_format($itemProfit, 2) }}</small>
+                                                            <small class="text-muted" style="font-size: 0.7rem;">{{ number_format($item->profit_margin, 2) }}%</small>
+                                                        </div>
+                                                    </td>
+                                                    <td class="py-2 px-2 text-end fw-bold fw-monospace text-success" style="font-size: 0.85rem;">{{ number_format($itemQuotePrice, 2) }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                        <tfoot class="table-info">
+                                            <tr class="border-top">
+                                                <th colspan="5" class="text-end py-2 px-2" style="font-size: 0.85rem;">Subtotal for {{ $itemName }}:</th>
+                                                <th class="text-end py-2 px-2 fw-semibold text-muted" style="font-size: 0.85rem;">{{ number_format($itemTotalCost, 2) }}</th>
+                                                <th class="text-center py-2 px-2">
+                                                    <div class="d-flex flex-column align-items-center">
+                                                        <small class="text-success fw-semibold" style="font-size: 0.75rem;">+{{ number_format($itemTotalProfit, 2) }}</small>
+                                                        <small class="text-muted" style="font-size: 0.7rem;">{{ number_format(($itemTotalProfit / $itemTotalCost) * 100, 2) }}%</small>
+                                                    </div>
+                                                </th>
+                                                <th class="text-end py-2 px-2 fw-bold text-success" style="font-size: 0.9rem;">{{ number_format($itemSubtotal, 2) }}</th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            @else
+                                <!-- Other Items (non-production) -->
+                                <table class="table table-sm table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="border-0 py-2 px-2 text-center" style="width: 40px; font-size: 0.8rem;">#</th>
+                                            <th class="border-0 py-2 px-2" style="font-size: 0.8rem;">Description</th>
+                                            <th class="border-0 py-2 px-2 text-end" style="width: 80px; font-size: 0.8rem;">Qty</th>
+                                            <th class="border-0 py-2 px-2 text-end" style="width: 100px; font-size: 0.8rem;">Unit Price</th>
+                                            <th class="border-0 py-2 px-2 text-end" style="width: 100px; font-size: 0.8rem;">Quote Unit Price</th>
+                                            <th class="border-0 py-2 px-2 text-end" style="width: 100px; font-size: 0.8rem;">Total Cost</th>
+                                            <th class="border-0 py-2 px-2 text-center" style="width: 100px; font-size: 0.8rem;">Profit</th>
+                                            <th class="border-0 py-2 px-2 text-end" style="width: 100px; font-size: 0.8rem;">Quote Price</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($items as $i => $item)
+                                            @php
+                                                $itemTotalCost = $item->quantity * $item->unit_price;
+                                                $itemQuotePrice = $item->quote_price ?? $itemTotalCost * (1 + ($item->profit_margin / 100));
+                                                $itemProfit = $itemQuotePrice - $itemTotalCost;
+                                                $quoteUnitPrice = $itemQuotePrice / $item->quantity;
+                                                $subtotal += $itemQuotePrice;
+                                                $totalCost += $itemTotalCost;
+                                                $totalProfit += $itemProfit;
+                                            @endphp
+                                            <tr class="border-bottom">
+                                                <td class="py-2 px-2 text-center">
+                                                    <span class="badge bg-light text-dark" style="font-size: 0.75rem;">{{ $i + 1 }}</span>
+                                                </td>
+                                                <td class="py-2 px-2">
+                                                    <div>
+                                                        <div class="fw-semibold" style="font-size: 0.85rem; line-height: 1.2;">{{ $item->description }}</div>
+                                                        @if($item->comment)
+                                                            <small class="text-muted" style="font-size: 0.75rem;">{{ $item->comment }}</small>
+                                                        @endif
+                                                    </div>
+                                                </td>
+                                                <td class="py-2 px-2 text-end fw-semibold" style="font-size: 0.85rem;">{{ number_format($item->quantity, 2) }}</td>
+                                                <td class="py-2 px-2 text-end fw-monospace" style="font-size: 0.85rem;">{{ number_format($item->unit_price, 2) }}</td>
+                                                <td class="py-2 px-2 text-end fw-monospace text-success" style="font-size: 0.85rem;">{{ number_format($quoteUnitPrice, 2) }}</td>
+                                                <td class="py-2 px-2 text-end fw-monospace text-muted" style="font-size: 0.85rem;">{{ number_format($itemTotalCost, 2) }}</td>
+                                                <td class="py-2 px-2 text-center">
+                                                    <div class="d-flex flex-column align-items-center">
+                                                        <small class="text-success fw-semibold" style="font-size: 0.75rem;">+{{ number_format($itemProfit, 2) }}</small>
+                                                        <small class="text-muted" style="font-size: 0.7rem;">{{ number_format($item->profit_margin, 2) }}%</small>
+                                                    </div>
+                                                </td>
+                                                <td class="py-2 px-2 text-end fw-bold fw-monospace text-success" style="font-size: 0.85rem;">{{ number_format($itemQuotePrice, 2) }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            @endif
+                        @endforeach
+                        
+                        <!-- Grand Total -->
+                        <table class="table table-sm mb-0">
                             <tfoot class="table-light">
                                 <tr class="border-top">
-                                    <th colspan="4" class="text-end py-2 px-2" style="font-size: 0.85rem;">Totals:</th>
+                                    <th colspan="5" class="text-end py-2 px-2" style="font-size: 0.85rem;">Grand Total:</th>
                                     <th class="text-end py-2 px-2 fw-semibold text-muted" style="font-size: 0.85rem;">{{ number_format($totalCost, 2) }}</th>
                                     <th class="text-center py-2 px-2">
                                         <div class="d-flex flex-column align-items-center">

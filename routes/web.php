@@ -452,6 +452,9 @@ Route::middleware(['auth'])->group(function () {
         // Categories
         Route::resource('categories', \App\Http\Controllers\ItemCategoryController::class);
         Route::get('categories-all', [\App\Http\Controllers\ItemCategoryController::class, 'getAll'])->name('categories.all');
+
+
+
         
         // Templates
         Route::resource('templates', \App\Http\Controllers\ItemTemplateController::class)->parameters(['templates' => 'itemTemplate']);

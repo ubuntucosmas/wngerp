@@ -112,13 +112,14 @@ class ItemCategoryController extends Controller
                 return back()->withErrors(['error' => 'Cannot delete category that has templates. Please delete or move the templates first.']);
             }
 
-            $itemCategory->delete();
+            $result = $itemCategory->delete();
 
             return redirect()
                 ->route('templates.categories.index')
                 ->with('success', 'Category deleted successfully!');
 
         } catch (\Exception $e) {
+            \Log::error('Failed to delete category', ['error' => $e->getMessage()]);
             return back()->withErrors(['error' => 'Failed to delete category. ' . $e->getMessage()]);
         }
     }

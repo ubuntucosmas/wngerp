@@ -79,7 +79,7 @@
         @endif
 
         <!-- Projects Sidebar Links -->
-        @if(Auth::check() && $currentDepartment === 'projects|finance|production|hr|design|adminstration' && (Auth::user()->hasAnyRole([]) || Auth::user()->hasRole('super-admin')))
+        @if(Auth::check() && $currentDepartment === 'projects|finance|production|hr|design|adminstration|it' && (Auth::user()->hasAnyRole([]) || Auth::user()->hasRole('super-admin')))
             <!-- Projects menu items here -->
             <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="View All Projects">
                 <a class="nav-link d-flex align-items-center {{ request()->routeIs('projects.overview') ? 'active bg-cyan text-white' : 'text-dark' }}" href="{{ route('projects.overview') }}">

@@ -79,7 +79,7 @@
         @endif
 
         <!-- Projects Sidebar Links -->
-        @if(Auth::check() &&  in_array($currentDepartment, ['projects', 'finance', 'production', 'hr', 'design', 'adminstration', 'ict']) && (Auth::user()->hasAnyRole([]) || Auth::user()->hasRole('super-admin')))
+        @if(Auth::check() && $currentDepartment === 'projects' && (Auth::user()->hasAnyRole([]) || Auth::user()->hasRole('super-admin')))
             <!-- Projects menu items here -->
             <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="View All Projects">
                 <a class="nav-link d-flex align-items-center {{ request()->routeIs('projects.overview') ? 'active bg-cyan text-white' : 'text-dark' }}" href="{{ route('projects.overview') }}">
@@ -194,7 +194,10 @@
         @endif
 
         <!-- Projects Sidebar Links -->
-        @if(Auth::check() && Auth::user()->department === 'projects' && Auth::user()->hasAnyRole(['pm', 'po']))
+    @if(Auth::check() 
+    && in_array(Auth::user()->department, ['projects', 'finance', 'production', 'hr', 'design', 'administration', 'ict']) 
+    && Auth::user()->hasAnyRole(['pm', 'po', 'super-admin']))
+
             <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="View All Projects">
                 <a class="nav-link d-flex align-items-center {{ request()->routeIs('projects.overview') ? 'active bg-cyan text-white' : 'text-dark' }}" href="{{ route('projects.overview') }}">
                     <i class="bi bi-bar-chart me-2"></i>
@@ -226,12 +229,12 @@
                     <span class="nav-text">Clients</span>
                 </a>
             </li>
-            <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="Project Groups">
+            <!-- <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="Project Groups">
                 <a class="nav-link d-flex align-items-center">
                     <i class="bi bi-collection me-2"></i>
                     <span class="nav-text">Project Groups</span>
                 </a>
-            </li>
+            </li> -->
             <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="Item Templates">
                 <a class="nav-link d-flex align-items-center {{ request()->routeIs('templates.*') ? 'active bg-cyan text-white' : 'text-dark' }}" href="{{ route('templates.templates.index') }}">
                     <i class="bi bi-file-earmark-plus me-2"></i>

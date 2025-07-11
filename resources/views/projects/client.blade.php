@@ -29,22 +29,34 @@
         animation: fadeIn 0.3s ease-out;
     }
 
-    .form-control, .form-select {
-        border-radius: 8px;
-        font-size: 0.85rem;
+    .form-control {
+        border: 1px solid #ced4da;
+        border-radius: 4px;
         padding: 0.375rem 0.75rem;
         transition: border-color 0.3s ease;
         height: 35px;
+        min-height: 35px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .form-select {
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        padding: 0.375rem 0.75rem;
+        transition: border-color 0.3s ease;
+        height: 35px;
+        min-height: 35px;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .form-control:focus, .form-select:focus {
-        border-color: #2E8BC0;
-        box-shadow: 0 0 0 0.2rem rgba(46, 139, 192, 0.25);
+        border-color: #0C2D48;
+        box-shadow: 0 0 0 0.25rem rgba(12, 45, 72, 0.15);
     }
 
     .form-label {
-        font-size: 0.7rem;
-        color: #333;
         font-weight: 500;
         margin-bottom: 0.3rem;
     }
@@ -88,19 +100,6 @@
     .btn-outline-info:hover {
         background-color: #2E8BC0;
         color: white;
-    }
-
-    .modal-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #0C2D48;
-    }
-
-    .modal-footer .btn {
-        border-radius: 8px;
-        font-size: 0.8rem;
-        padding: 5px 14px;
-        transition: all 0.2s ease;
     }
 
     .container {
@@ -241,107 +240,173 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
 
-                <div class="modal-body pt-0 px-3">
-                    <div class="row g-2">
-                        @php
-                            $fields = [
-                                ['FullName', 'Full Name'], ['ContactPerson', 'Contact Person'],
-                                ['Email', 'Email', 'email'], ['Phone', 'Phone'],
-                                ['AltContact', 'Alt Contact'], ['Address', 'Address'],
-                                ['City', 'City'], ['County', 'County'],
-                                ['PostalAddress', 'Postal Address'], ['LeadSource', 'Lead Source'],
-                                ['Industry', 'Industry']
-                            ];
-                        @endphp
-
-                        <!-- Personal Information -->
-                        <div class="col-12 compact-section">
-                            <h6 class="text-primary">Personal Info</h6>
-                            <hr style="border-color: rgba(46, 139, 192, 0.2);">
+                <div class="modal-body">
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <strong>There were some problems with your input.</strong>
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
                         </div>
-                        @foreach($fields as $field)
-                            @if(in_array($field[0], ['FullName', 'ContactPerson', 'Email', 'Phone', 'AltContact']))
-                                <div class="col-md-{{ in_array($field[0], ['FullName', 'Email']) ? '6' : '4' }}">
-                                    <label class="form-label">{{ $field[1] }} {{ in_array($field[0], ['FullName', 'Email']) ?  : '' }}
-                                        @if($field[0] == 'Email')
-                                            <i class="bi bi-info-circle text-info ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="This email will be used for communication"></i>
-                                        @endif
-                                    </label>
-                                    <input type="{{ $field[2] ?? 'text' }}" name="{{ $field[0] }}" class="form-control" {{ in_array($field[0], ['FullName', 'Email']) ? 'required' : '' }}>
-                                    @error('{{ $field[0] }}')
+                    @endif
+
+                    <!-- Company Information Section -->
+                    <div class="mb-4">
+                        <h6 class="text-primary">Company Information</h6>
+                        <hr style="border-color: rgba(46, 139, 192, 0.2);">
+                        <div class="row g-3 mx-0">
+                            <div class="col-6 px-2">
+                                <div class="form-group">
+                                    <label class="form-label">Company Name <span class="text-danger">*</span></label>
+                                    <input type="text" name="FullName" class="form-control" required>
+                                    @error('FullName')
                                         <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
                                 </div>
-                            @endif
-                        @endforeach
-
-                        <!-- Address Information -->
-                        <div class="col-12 compact-section">
-                            <h6 class="text-primary">Address</h6>
-                            <hr style="border-color: rgba(46, 139, 192, 0.2);">
-                        </div>
-                        @foreach($fields as $field)
-                            @if(in_array($field[0], ['Address', 'City', 'County', 'PostalAddress']))
-                                <div class="col-md-{{ in_array($field[0], ['City', 'County', 'PostalAddress']) ? '3' : '6' }}">
-                                    <label class="form-label">{{ $field[1] }}
-                                        @if($field[0] == 'PostalAddress')
-                                            <i class="bi bi-info-circle text-info ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Include postal code"></i>
-                                        @endif
-                                    </label>
-                                    <input type="{{ $field[2] ?? 'text' }}" name="{{ $field[0] }}" class="form-control">
-                                    @error('{{ $field[0] }}')
+                            </div>
+                            <div class="col-6 px-2">
+                                <div class="form-group">
+                                    <label class="form-label">Contact Person <span class="text-danger">*</span></label>
+                                    <input type="text" name="ContactPerson" class="form-control" required>
+                                    @error('ContactPerson')
                                         <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
                                 </div>
-                            @endif
-                        @endforeach
-
-                        <!-- Additional Information -->
-                        <div class="col-12 compact-section">
-                            <h6 class="text-primary">Additional</h6>
-                            <hr style="border-color: rgba(46, 139, 192, 0.2);">
-                        </div>
-                        @foreach($fields as $field)
-                            @if(in_array($field[0], ['LeadSource', 'Industry']))
-                                <div class="col-md-6">
-                                    <label class="form-label">{{ $field[1] }}</label>
-                                    <input type="{{ $field[2] ?? 'text' }}" name="{{ $field[0] }}" class="form-control">
-                                    @error('{{ $field[0] }}')
+                            </div>
+                            <div class="col-6 px-2">
+                                <div class="form-group">
+                                    <label class="form-label">Email <span class="text-danger">*</span></label>
+                                    <input type="email" name="Email" class="form-control" required>
+                                    <small class="form-text text-muted">This email will be used for communication</small>
+                                    @error('Email')
                                         <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
                                 </div>
-                            @endif
-                        @endforeach
-
-                        <div class="col-md-3">
-                            <label class="form-label">Customer Type <span class="text-danger">*</span></label>
-                            <select name="CustomerType" class="form-select" required>
-                                <option value="">Select</option>
-                                <option value="Individual">Individual</option>
-                                <option value="Business">Business</option>
-                                <option value="Organization">Organization</option>
-                            </select>
-                            @error('CustomerType')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
+                            </div>
+                            <div class="col-6 px-2">
+                                <div class="form-group">
+                                    <label class="form-label">Phone <span class="text-danger">*</span></label>
+                                    <input type="text" name="Phone" class="form-control" required>
+                                    @error('Phone')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-6 px-2">
+                                <div class="form-group">
+                                    <label class="form-label">Alt Contact</label>
+                                    <input type="text" name="AltContact" class="form-control" placeholder="Optional">
+                                    @error('AltContact')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
                         </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label">Pref. Contact <span class="text-danger">*</span></label>
-                            <select name="PreferredContact" class="form-select" required>
-                                <option value="">Select</option>
-                                <option value="Email">Email</option>
-                                <option value="Phone">Phone</option>
-                                <option value="WhatsApp">WhatsApp</option>
-                            </select>
-                            @error('PreferredContact')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <input type="hidden" name="CreatedBy" value="{{ auth()->id() }}">
                     </div>
+
+                    <!-- Address Section -->
+                    <div class="mb-4">
+                        <h6 class="text-primary">Address</h6>
+                        <hr style="border-color: rgba(46, 139, 192, 0.2);">
+                        <div class="row g-3 mx-0">
+                            <div class="col-6 px-2">
+                                <div class="form-group">
+                                    <label class="form-label">Address</label>
+                                    <input type="text" name="Address" class="form-control">
+                                    @error('Address')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-6 px-2">
+                                <div class="form-group">
+                                    <label class="form-label">Postal Address</label>
+                                    <input type="text" name="PostalAddress" class="form-control" placeholder="Include postal code">
+                                    @error('PostalAddress')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-6 px-2">
+                                <div class="form-group">
+                                    <label class="form-label">City</label>
+                                    <input type="text" name="City" class="form-control">
+                                    @error('City')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-6 px-2">
+                                <div class="form-group">
+                                    <label class="form-label">County</label>
+                                    <input type="text" name="County" class="form-control">
+                                    @error('County')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Information Section -->
+                    <div class="mb-4">
+                        <h6 class="text-primary">Additional Information</h6>
+                        <hr style="border-color: rgba(46, 139, 192, 0.2);">
+                        <div class="row g-3 mx-0">
+                            <div class="col-6 px-2">
+                                <div class="form-group">
+                                    <label class="form-label">Customer Type <span class="text-danger">*</span></label>
+                                    <select name="CustomerType" class="form-select" style="width: 80%" required>
+                                        <option value="">Select</option>
+                                        <option value="Individual">Individual</option>
+                                        <option value="Business">Business</option>
+                                        <option value="Organization">Organization</option>
+                                    </select>
+                                    @error('CustomerType')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-6 px-2">
+                                <div class="form-group">
+                                    <label class="form-label">Preferred Contact <span class="text-danger">*</span></label>
+                                    <select name="PreferredContact" class="form-select" style="width: 80%" required>
+                                        <option value="">Select</option>
+                                        <option value="Email">Email</option>
+                                        <option value="Phone">Phone</option>
+                                        <option value="WhatsApp">WhatsApp</option>
+                                    </select>
+                                    @error('PreferredContact')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-6 px-2">
+                                <div class="form-group">
+                                    <label class="form-label">Lead Source</label>
+                                    <input type="text" name="LeadSource" class="form-control" placeholder="Optional">
+                                    @error('LeadSource')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-6 px-2">
+                                <div class="form-group">
+                                    <label class="form-label">Industry</label>
+                                    <input type="text" name="Industry" class="form-control" placeholder="Optional">
+                                    @error('Industry')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="CreatedBy" value="{{ auth()->id() }}">
                 </div>
+            </div>
 
                 <div class="modal-footer border-top-0 pt-2">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>

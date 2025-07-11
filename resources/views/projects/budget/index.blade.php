@@ -81,6 +81,15 @@
     @else
         <div class="alert alert-warning">No budgets have been created yet for this project.</div>
     @endif
+
+    @if($budgets->count() > 0)
+        <!-- Continue Button -->
+        <div class="d-flex justify-content-end mt-4">
+            <a href="{{ route('quotes.index', $project) }}" class="btn btn-primary">
+                Continue to Quotation <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+        </div>
+    @endif
 </div>
     @push('scripts')
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

@@ -276,8 +276,8 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="expected_delivery_date" class="form-label">Expected Delivery Date</label>
-                                        <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="form-control" value="{{ old('expected_delivery_date') }}">
+                                        <label for="expected_delivery_date" class="form-label">Expected Delivery Date<span class="text-danger">*</span></label>
+                                        <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="form-control" value="{{ old('expected_delivery_date') }}" required>
                                     </div>
                                 </div>
                             </div>
@@ -298,24 +298,14 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="project_name" class="form-label text-muted">Project Name</label>
-                                        <input type="text" name="project_name" id="project_name" list="projectNameSuggestions" class="form-control" value="{{ old('project_name') }}">
+                                        <label for="project_name" class="form-label">Project Name<span class="text-danger">*</span></label>
+                                        <input type="text" name="project_name" id="project_name" list="projectNameSuggestions" class="form-control" value="{{ old('project_name') }}" required>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="row g-3">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="status" class="form-label">Status<span class="text-danger">*</span></label>
-                                        <select name="status" id="status" class="form-select" required>
-                                            @foreach($statuses as $status)
-                                                <option value="{{ $status }}" {{ old('status') == $status ? 'selected' : '' }}>{{ $status }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
+                                <div class="col-md-12">
                                     <div class="form-group">
                                         <label for="assigned_po" class="form-label">Project Officer<span class="text-danger">*</span></label>
                                         <select name="assigned_po" id="assigned_po" class="form-select" required>
@@ -333,14 +323,14 @@
                             <div class="row g-3">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="project_deliverables" class="form-label">Project Deliverables</label>
-                                        <textarea name="project_deliverables" id="project_deliverables" class="form-control" rows="4">{{ old('project_deliverables') }}</textarea>
+                                        <label for="project_deliverables" class="form-label">Project Deliverables<span class="text-danger">*</span></label>
+                                        <textarea name="project_deliverables" id="project_deliverables" class="form-control" rows="4" required>{{ old('project_deliverables') }}</textarea>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="follow_up_notes" class="form-label">Follow-Up Notes</label>
-                                        <textarea name="follow_up_notes" id="follow_up_notes" class="form-control" rows="4">{{ old('follow_up_notes') }}</textarea>
+                                        <textarea name="follow_up_notes" id="follow_up_notes" class="form-control" rows="4" placeholder="Optional">{{ old('follow_up_notes') }}</textarea>
                                     </div>
                                 </div>
                             </div>
@@ -349,13 +339,13 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="contact_person" class="form-label">Contact Person</label>
-                                        <input type="text" name="contact_person" id="contact_person" class="form-control" value="{{ old('contact_person') }}">
+                                        <input type="text" name="contact_person" id="contact_person" class="form-control" value="{{ old('contact_person') }}" placeholder="Optional">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="venue" class="form-label">Venue</label>
-                                        <input type="text" name="venue" id="venue" class="form-control" value="{{ old('venue') }}">
+                                        <label for="venue" class="form-label">Venue<span class="text-danger">*</span></label>
+                                        <input type="text" name="venue" id="venue" class="form-control" value="{{ old('venue') }}" required>
                                     </div>
                                 </div>
                             </div>
@@ -383,7 +373,6 @@
                         <th>Venue</th>
                         <th>Deliverables</th>
                         <th>Contact</th>
-                        <th>Status</th>
                         <th>PO</th>
                         <th>Notes</th>
                         <th class="text-nowrap">Actions</th>
@@ -449,7 +438,6 @@
                                 @endif
                             </td>
                             <td>{{ $enquiry->contact_person ?? '-' }}</td>
-                            <td>{{ $enquiry->status }}</td>
                             <td>{{ $enquiry->assigned_po ?? '-' }}</td>
                             <td>
                                 @if($enquiry->follow_up_notes)
@@ -577,17 +565,7 @@
                                             </div>
 
                                             <div class="row g-3">
-                                                <div class="col-md-6">
-                                                    <div class="form-group">
-                                                        <label for="status" class="form-label">Status<span class="text-danger">*</span></label>
-                                                        <select name="status" id="status" class="form-select" required>
-                                                            @foreach(['Open', 'Quoted', 'Approved', 'Declined'] as $status)
-                                                                <option value="{{ $status }}" {{ $enquiry->status == $status ? 'selected' : '' }}>{{ $status }}</option>
-                                                            @endforeach
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
+                                                <div class="col-md-12">
                                                     <label for="project_officer_id" class="form-label">Project Officer<span class="text-danger">*</span></label>
                                                     <select name="assigned_po" class="form-select" required>
                                                         <option value="">-- Select Officer --</option>

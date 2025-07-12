@@ -303,5 +303,14 @@
             </div>
         </div>
     @endif
+
+    <!-- Continue Button -->
+    @if ($enquiryLog)
+        <div class="d-flex justify-content-end mt-4">
+            <a href="{{ route('projects.site-survey.create', $project) }}" class="btn btn-primary">
+                Continue to Site Survey <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+        </div>
+    @endif
 </div>
 @endsection

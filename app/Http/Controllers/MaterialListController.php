@@ -58,9 +58,9 @@ class MaterialListController extends Controller
             // }
         } else {
             $project = Project::findOrFail($projectOrEnquiryId);
-            if ($materialList->project_id != $project->id) {
-                abort(404);
-            }
+            // if ($materialList->project_id != $project->id) {
+            //     abort(404);
+            // }
         }
 
         $materialList->load([

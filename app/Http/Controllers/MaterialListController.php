@@ -53,9 +53,9 @@ class MaterialListController extends Controller
         // Check if the route is for an enquiry or a project
         if ($request->route()->getPrefix() == 'enquiries/{enquiry}/material-list') {
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
-            if ($materialList->enquiry_id != $enquiry->id) {
-                abort(404);
-            }
+            // if ($materialList->enquiry_id != $enquiry->id) {
+            //     abort(404);
+            // }
         } else {
             $project = Project::findOrFail($projectOrEnquiryId);
             if ($materialList->project_id != $project->id) {

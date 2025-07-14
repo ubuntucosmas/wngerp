@@ -207,7 +207,7 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
     Route::get('/projects/enquiry/{enquiry}/files/quotation', [EnquiryController::class, 'showQuotation'])->name('enquiries.files.quotation');
     
     
-    // Placeholder routes for enquiry functionality (coming soon)
+    // Placeholder routes for enquiry functionality
     Route::get('/projects/enquiry/{enquiry}/material-list', [EnquiryController::class, 'materialList'])->name('enquiries.material-list.index');
     Route::get('/projects/enquiry/{enquiry}/material-list/{materialList}', [EnquiryController::class, 'showMaterialList'])->name('enquiries.material-list.show');
     Route::get('/projects/enquiry/{enquiry}/logistics', [EnquiryController::class, 'logistics'])->name('enquiries.logistics.index');

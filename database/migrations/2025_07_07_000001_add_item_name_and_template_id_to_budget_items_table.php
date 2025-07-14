@@ -9,15 +9,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('budget_items', function (Blueprint $table) {
-            $table->string('item_name')->nullable()->after('category');
+            if (!Schema::hasColumn('budget_items', 'item_name')) {
+                $table->string('item_name')->nullable()->after('category');
+            }
             $table->unsignedBigInteger('template_id')->nullable()->after('item_name');
+
+
         });
     }
 
     public function down(): void
     {
         Schema::table('budget_items', function (Blueprint $table) {
-            $table->dropColumn('item_name');
+            if (Schema::hasColumn('budget_items', 'item_name')) {
+                $table->dropColumn('item_name');
+            }
             $table->dropColumn('template_id');
         });
     }

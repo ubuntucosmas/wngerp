@@ -3,24 +3,28 @@
 
 @section('content')
 <div class="container-fluid p-2">
-    <div class="mb-3">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Create Material-List</li>
-            </ol>
-        </nav>
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h1 class="h3 m-0">Create Project Material-List</h1>
-            <div>
-                <a href="{{ route('projects.files.index', $project) }}" class="btn btn-outline-secondary me-2">
-                    <i class="bi bi-arrow-left"></i> Back to Project Files
-                </a>
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-save"></i> Save Material-List
-                </button>
-            </div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    @if(isset($enquiry))
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.files', $enquiry) }}">{{ $enquiry->project_name }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.material-list.index', $enquiry) }}">Project Material List</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Create Material List</li>
+                    @else
+                        <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">{{ $project->name }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('projects.material-list.index', $project) }}">Project Material List</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Create Material List</li>
+                    @endif
+                </ol>
+            </nav>
+            <h2 class="mb-0">Create Material List</h2>
         </div>
+        <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.material-list.index', $enquiry) : route('projects.material-list.index', $project) }}" class="btn btn-primary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Material Lists
+        </a>
     </div>
 
     @error('start_date')
@@ -30,37 +34,59 @@
         <div class="alert alert-danger">{{ $message }}</div>
     @enderror
 
-    <div class="card">
-        <div class="card-body">
-            <form action="{{ route('projects.material-list.store', $project) }}" method="POST">
-                @csrf
-                <div class="container">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="project_name">Project Name</label>
-                            <input type="text" class="form-control" name="project_name" value="{{ $project->name }}" readonly>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="client">Client</label>
-                            <input type="text" class="form-control" name="client" value="{{ $project->client_name }}" readonly>
-                        </div>
-                    </div>
+    <form action="{{ isset($enquiry) ? route('enquiries.material-list.store', $enquiry) : route('projects.material-list.store', $project) }}" method="POST">
+        @csrf
+        <div class="form-container">
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="#basic-details" class="active">Basic Details</a></li>
+                    <li><a href="#materials-production">Materials - Production</a></li>
+                    <li><a href="#materials-hire">Itens for Hire</a></li>
+                    <li><a href="#labour-workshop">Workshop Labour</a></li>
+                    <li><a href="#labour-site">Site Labour</a></li>
+                    <li><a href="#labour-setdown">Set Down Labour</a></li>
+                    <li><a href="#logistics">Logistics</a></li>
+                    <li><a href="#approval">Approval</a></li>
+                </ul>
+            </nav>
 
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label for="start_date">Start Date</label>
-                            <input type="date" class="form-control" name="start_date" value="{{ old('start_date', $project->start_date) }}">
+            <div class="form-content">
+                <!-- Basic Details -->
+                <div id="basic-details" class="form-section-card">
+                    <div class="form-section-card-header">
+                        <h5><i class="fas fa-info-circle me-2"></i>Basic Details</h5>
+                    </div>
+                    <div class="form-section-card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="project_name">{{ isset($enquiry) ? 'Enquiry' : 'Project' }} Name</label>
+                                <input type="text" class="form-control" name="project_name" value="{{ isset($enquiry) ? $enquiry->project_name : (isset($project) && $project->exists ? $project->name : '') }}" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="client">Client</label>
+                                <input type="text" class="form-control" name="client" value="{{ isset($enquiry) ? $enquiry->client_name : (isset($project) && $project->exists ? $project->client_name : '') }}" readonly>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label for="end_date">End Date</label>
-                            <input type="date" class="form-control" name="end_date" value="{{ old('end_date', $project->end_date) }}">
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label for="start_date">Start Date</label>
+                                <input type="date" class="form-control" name="start_date" value="{{ old('start_date', $materialList->start_date ? $materialList->start_date->format('Y-m-d') : '') }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="end_date">End Date</label>
+                                <input type="date" class="form-control" name="end_date" value="{{ old('end_date', $materialList->end_date ? $materialList->end_date->format('Y-m-d') : '') }}">
+                            </div>
                         </div>
                     </div>
-                    <hr class="my-4">
-                    <div class="section-card section-production">
-                        <h5 class="section-header">
-                            <i class="bi bi-box-seam me-2"></i>Materials - Production
-                        </h5>
+                </div>
+
+                <!-- Materials - Production -->
+                <div id="materials-production" class="form-section-card section-production">
+                    <div class="form-section-card-header">
+                        <h5><i class="bi bi-box-seam me-2"></i>Materials - Production</h5>
+                    </div>
+                    <div class="form-section-card-body">
                         <div id="items-wrapper">
                             <div class="item-group border rounded p-3 mb-3" data-item-index="0">
                                 <div class="row mb-3">
@@ -82,6 +108,7 @@
                                             <th>Particular</th>
                                             <th>Unit Of Measure</th>
                                             <th>Quantity</th>
+                                            <th>Unit Price</th>
                                             <th>Comment</th>
                                             <th width="80">Action</th>
                                         </tr>
@@ -95,6 +122,7 @@
                                             </td>
                                             <td><input type="text" name="production_items[0][particulars][0][unit]" class="form-control unit-field" readonly></td>
                                             <td><input type="number" step="0.01" name="production_items[0][particulars][0][quantity]" class="form-control" required></td>
+                                            <td><input type="number" step="0.01" name="production_items[0][particulars][0][unit_price]" class="form-control" required></td>
                                             <td><input type="text" name="production_items[0][particulars][0][comment]" class="form-control"></td>
                                             <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="bi bi-trash"></i></button></td>
                                         </tr>
@@ -114,22 +142,26 @@
                             <button type="button" class="btn btn-primary btn-sm btn-add-item" id="addItemGroup">
                                 <i class="bi bi-plus-circle me-1"></i>Add Item
                             </button>
-                            <!-- <button type="button" class="btn btn-outline-primary btn-sm" id="addFromTemplate" data-bs-toggle="modal" data-bs-target="#templateModal">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="addFromTemplate" data-bs-toggle="modal" data-bs-target="#templateModal">
                                 <i class="bi bi-file-earmark-plus me-1"></i>Add from Template
-                            </button> -->
+                            </button>
                         </div>
                     </div>
-                    <hr class="my-4">
-                    <div class="section-card section-hire">
-                        <h5 class="section-header">
-                            <i class="bi bi-tools me-2"></i>Materials for Hire
-                        </h5>
+                </div>
+
+                <!-- Materials for Hire -->
+                <div id="materials-hire" class="form-section-card section-hire">
+                    <div class="form-section-card-header">
+                        <h5><i class="bi bi-tools me-2"></i>Items for Hire</h5>
+                    </div>
+                    <div class="form-section-card-body">
                         <table class="table table-bordered" id="materialsHireTable">
                             <thead>
                                 <tr>
                                     <th>Particular</th>
                                     <th>Unit Of Measure</th>
                                     <th>Quantity</th>
+                                    <th>Unit Price</th>
                                     <th>Comment</th>
                                     <th>Action</th>
                                 </tr>
@@ -142,27 +174,30 @@
                             <i class="bi bi-plus-circle"></i> Add Row
                         </button>
                     </div>
+                </div>
 
-                    @php
-                        $subCategories = [
-                            'Workshop labour' => ['Technicians', 'Carpenter', 'CNC', 'Welders', 'Project Officer','Meals'],
-                            'Site' => ['Technicians', 'Pasters', 'Electricians','Off loaders','Project Officer','Meals'],
-                            'Set down' => ['Technicians', 'Off loaders', 'Electricians', 'Meals'],
-                            'Logistics' => ['Delivery to site', 'Delivery from site', 'Team transport to and from site set up', 'Team transport to and from set down','Materials Collection'],
-                        ];
-                    @endphp
+                @php
+                    $subCategories = [
+                        'Workshop labour' => ['Technicians', 'Carpenter', 'CNC', 'Welders', 'Project Officer','Meals'],
+                        'Site' => ['Technicians', 'Pasters', 'Electricians','Off loaders','Project Officer','Meals'],
+                        'Set down' => ['Technicians', 'Off loaders', 'Electricians', 'Meals'],
+                        'Logistics' => ['Delivery to site', 'Delivery from site', 'Team transport to and from site set up', 'Team transport to and from set down','Materials Collection'],
+                    ];
+                @endphp
 
-                    @foreach($subCategories as $category => $roles)
-                        <div class="section-card section-labor">
-                            <h5 class="section-header">
-                                <i class="bi bi-people me-2"></i>{{ $category }}
-                            </h5>
+                @foreach($subCategories as $category => $roles)
+                    <div id="labour-{{ Str::slug($category) }}" class="form-section-card section-labor">
+                        <div class="form-section-card-header">
+                            <h5><i class="bi bi-people me-2"></i>{{ $category }}</h5>
+                        </div>
+                        <div class="form-section-card-body">
                             <table class="table table-bordered">
                                 <thead>
                                     <tr>
                                         <th>Particular</th>
                                         <th>Unit Of Measure</th>
                                         <th>Quantity</th>
+                                        <th>Unit Price</th>
                                         <th>Comment</th>
                                     </tr>
                                 </thead>
@@ -172,39 +207,48 @@
                                             <td><input type="text" name="items[{{ $category }}][{{ $index }}][particular]" class="form-control" value="{{ $role }}" readonly></td>
                                             <td><input type="text" name="items[{{ $category }}][{{ $index }}][unit]" class="form-control" value="{{ old('items.'.$category.'.'.$index.'.unit', 'pax') }}"></td>
                                             <td><input type="number" step="0.01" name="items[{{ $category }}][{{ $index }}][quantity]" class="form-control"></td>
+                                            <td><input type="number" step="0.01" name="items[{{ $category }}][{{ $index }}][unit_price]" class="form-control"></td>
                                             <td><input type="text" name="items[{{ $category }}][{{ $index }}][comment]" class="form-control"></td>
                                         </tr>
                                     @endforeach
                                 </tbody>
                             </table>
                         </div>
-                    @endforeach
-
-                    <div class="mb-4">
-                        <label for="approved_by">Prepared By:</label>
-                        <input type="text" name="approved_by" value="{{ auth()->user()->name }}" class="form-control mb-2 required" required>
-
-                        <label for="approved_departments">Departments (comma-separated)</label>
-                        <input type="text" name="approved_departments" value="{{ auth()->user()->department }}" class="form-control" placeholder="Production, Finance" required>
                     </div>
+                @endforeach
 
-                    <div class="d-flex justify-content-between mt-4 pt-3 border-top">
-                        <a href="{{ route('projects.files.index', $project) }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-x-circle"></i> Cancel
-                        </a>
-                        <div>
-                            <button type="reset" class="btn btn-outline-secondary me-2">
-                                <i class="bi bi-arrow-counterclockwise"></i> Reset
-                            </button>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-save"></i> Save Material-List
-                            </button>
+                <!-- Approval -->
+                <div id="approval" class="form-section-card">
+                    <div class="form-section-card-header">
+                        <h5><i class="bi bi-check-circle me-2"></i>Approval</h5>
+                    </div>
+                    <div class="form-section-card-body">
+                        <div class="mb-4">
+                            <label for="approved_by">Prepared By:</label>
+                            <input type="text" name="approved_by" value="{{ auth()->user()->name }}" class="form-control mb-2 required" required>
+
+                            <label for="approved_departments">Departments (comma-separated)</label>
+                            <input type="text" name="approved_departments" value="{{ auth()->user()->department }}" class="form-control" placeholder="Production, Finance" required>
                         </div>
                     </div>
                 </div>
-            </form>
+
+                <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+                    <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.material-list.index', $enquiry) : route('projects.material-list.index', $project) }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </a>
+                    <div>
+                        <button type="reset" class="btn btn-outline-secondary me-2">
+                            <i class="bi bi-arrow-counterclockwise"></i> Reset
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Save Material-List
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+    </form>
 
     <!-- Template Selection Modal -->
     <div class="modal fade" id="templateModal" tabindex="-1" aria-labelledby="templateModalLabel" aria-hidden="true">
@@ -419,6 +463,7 @@
                                 <td><input type="text" name="production_items[${$itemGroup.data('item-index')}][particulars][${index}][particular]" class="form-control" value="${particular.particular}" required></td>
                                 <td><input type="text" name="production_items[${$itemGroup.data('item-index')}][particulars][${index}][unit]" class="form-control" value="${particular.unit || ''}"></td>
                                 <td><input type="number" step="0.01" name="production_items[${$itemGroup.data('item-index')}][particulars][${index}][quantity]" class="form-control" value="${particular.default_quantity}" required></td>
+                                <td><input type="number" step="0.01" name="production_items[${$itemGroup.data('item-index')}][particulars][${index}][unit_price]" class="form-control" value="${particular.unit_price || '0.00'}" required></td>
                                 <td><input type="text" name="production_items[${$itemGroup.data('item-index')}][particulars][${index}][comment]" class="form-control" value="${particular.comment || ''}"></td>
                                 <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="bi bi-trash"></i></button></td>
                             </tr>
@@ -683,6 +728,7 @@
                                     <th>Particular</th>
                                     <th>Unit Of Measure</th>
                                     <th>Quantity</th>
+                                    <th>Unit Price</th>
                                     <th>Comment</th>
                                     <th width="80">Action</th>
                                 </tr>
@@ -693,6 +739,7 @@
                                         <td><input type="text" name="production_items[${itemIndex}][particulars][${index}][particular]" class="form-control" value="${particular.particular}" required></td>
                                         <td><input type="text" name="production_items[${itemIndex}][particulars][${index}][unit]" class="form-control" value="${particular.unit || ''}"></td>
                                         <td><input type="number" step="0.01" name="production_items[${itemIndex}][particulars][${index}][quantity]" class="form-control" value="${particular.default_quantity}" required></td>
+                                        <td><input type="number" step="0.01" name="production_items[${itemIndex}][particulars][${index}][unit_price]" class="form-control" value="${particular.unit_price || '0.00'}" required></td>
                                         <td><input type="text" name="production_items[${itemIndex}][particulars][${index}][comment]" class="form-control" value="${particular.comment || ''}"></td>
                                         <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="bi bi-trash"></i></button></td>
                                     </tr>
@@ -765,6 +812,7 @@
                                 <th>Particular</th>
                                 <th>Unit Of Measure</th>
                                 <th>Quantity</th>
+                                <th>Unit Price</th>
                                 <th>Comment</th>
                                 <th width="80">Action</th>
                             </tr>
@@ -816,6 +864,7 @@
                     </td>
                     <td><input type="text" name="production_items[${itemIndex}][particulars][${particularIndex}][unit]" class="form-control unit-field" readonly></td>
                     <td><input type="number" step="0.01" name="production_items[${itemIndex}][particulars][${particularIndex}][quantity]" class="form-control" required></td>
+                    <td><input type="number" step="0.01" name="production_items[${itemIndex}][particulars][${particularIndex}][unit_price]" class="form-control" required></td>
                     <td><input type="text" name="production_items[${itemIndex}][particulars][${particularIndex}][comment]" class="form-control"></td>
                     <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="bi bi-trash"></i></button></td>
                 </tr>`;
@@ -839,6 +888,7 @@
                     </td>
                     <td><input type="text" name="materials_hire[${hireIndex}][unit]" class="form-control unit-field" readonly></td>
                     <td><input type="number" step="0.01" name="materials_hire[${hireIndex}][quantity]" class="form-control"></td>
+                    <td><input type="number" step="0.01" name="materials_hire[${hireIndex}][unit_price]" class="form-control"></td>
                     <td><input type="text" name="materials_hire[${hireIndex}][comment]" class="form-control"></td>
                     <td><button type="button" class="btn btn-danger btn-sm remove-row">Remove</button></td>
                 </tr>`;
@@ -990,6 +1040,7 @@
                                     <th>Particular</th>
                                     <th>Unit Of Measure</th>
                                     <th>Quantity</th>
+                                    <th>Unit Price</th>
                                     <th>Comment</th>
                                     <th width="80">Action</th>
                                 </tr>
@@ -1000,6 +1051,7 @@
                                         <td><input type="text" name="production_items[${itemIndex}][particulars][${index}][particular]" class="form-control" value="${particular.particular}" required></td>
                                         <td><input type="text" name="production_items[${itemIndex}][particulars][${index}][unit]" class="form-control" value="${particular.unit || ''}"></td>
                                         <td><input type="number" step="0.01" name="production_items[${itemIndex}][particulars][${index}][quantity]" class="form-control" value="${particular.default_quantity}" required></td>
+                                        <td><input type="number" step="0.01" name="production_items[${itemIndex}][particulars][${index}][unit_price]" class="form-control" value="${particular.unit_price || '0.00'}" required></td>
                                         <td><input type="text" name="production_items[${itemIndex}][particulars][${index}][comment]" class="form-control" value="${particular.comment || ''}"></td>
                                         <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="bi bi-trash"></i></button></td>
                                     </tr>

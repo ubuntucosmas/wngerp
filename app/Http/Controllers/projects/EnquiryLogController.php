@@ -15,7 +15,16 @@ class EnquiryLogController extends Controller
      */
     public function show(Project $project)
     {
+        // Check if this project was converted from an enquiry
+        $enquirySource = $project->enquirySource;
+        
+        if ($enquirySource) {
+            // For converted projects, get data from enquiry source
+            $enquiryLog = EnquiryLog::where('enquiry_id', $enquirySource->id)->first();
+        } else {
+            // For regular projects, get data from project
         $enquiryLog = EnquiryLog::where('project_id', $project->id)->first();
+        }
 
         return view('projects.enquiry-log.show', compact('project', 'enquiryLog'));
     }
@@ -119,7 +128,16 @@ class EnquiryLogController extends Controller
 
     public function downloadEnquiryLog(Project $project)
     {
+        // Check if this project was converted from an enquiry
+        $enquirySource = $project->enquirySource;
+        
+        if ($enquirySource) {
+            // For converted projects, get data from enquiry source
+            $enquiryLog = EnquiryLog::where('enquiry_id', $enquirySource->id)->firstOrFail();
+        } else {
+            // For regular projects, get data from project
         $enquiryLog = EnquiryLog::where('project_id', $project->id)->firstOrFail();
+        }
 
         $data = [
             'project' => $project,
@@ -133,7 +151,16 @@ class EnquiryLogController extends Controller
 
     public function printEnquiryLog(Project $project)
     {
+        // Check if this project was converted from an enquiry
+        $enquirySource = $project->enquirySource;
+        
+        if ($enquirySource) {
+            // For converted projects, get data from enquiry source
+            $enquiryLog = EnquiryLog::where('enquiry_id', $enquirySource->id)->firstOrFail();
+        } else {
+            // For regular projects, get data from project
         $enquiryLog = EnquiryLog::where('project_id', $project->id)->firstOrFail();
+        }
 
          $data = [
             'project' => $project,

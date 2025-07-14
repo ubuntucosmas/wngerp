@@ -12,6 +12,7 @@ class MaterialList extends Model
 {
     protected $fillable = [
         'project_id',
+        'enquiry_id',
         'start_date',
         'end_date',
         'approved_by',
@@ -49,6 +50,15 @@ class MaterialList extends Model
     }
 
     /**
+     * Get the enquiry that owns the material list.
+     */
+    public function enquiry(): BelongsTo
+    {
+        return $this->belongsTo(Enquiry::class)->withDefault();
+    }
+
+
+    /**
      * Get the production items for the material list.
      */
     public function productionItems(): HasMany
@@ -72,6 +82,11 @@ class MaterialList extends Model
     public function labourItems(): HasMany
     {
         return $this->hasMany(LabourItem::class)->orderBy('category')->orderBy('item_name');
+    }
+
+    public function projectBudget()
+    {
+        return $this->hasOne(ProjectBudget::class);
     }
 
     /**
@@ -117,6 +132,14 @@ class MaterialList extends Model
     public function scopeForProject(Builder $query, $projectId): Builder
     {
         return $query->where('project_id', $projectId);
+    }
+
+    /**
+     * Scope a query to only include material lists for a specific enquiry.
+     */
+    public function scopeForEnquiry(Builder $query, $enquiryId): Builder
+    {
+        return $query->where('enquiry_id', $enquiryId);
     }
 
     // Alias for materialsHire to maintain backward compatibility

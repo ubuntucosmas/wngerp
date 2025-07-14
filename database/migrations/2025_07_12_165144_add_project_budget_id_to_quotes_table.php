@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('phase_logs', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('phase_id')->constrained()->onDelete('cascade');
-            $table->string('action');
-            $table->text('details')->nullable();
-            $table->timestamps();
+        Schema::table('quotes', function (Blueprint $table) {
+            $table->foreignId('project_budget_id')->nullable()->constrained()->onDelete('set null');
         });
     }
 
@@ -25,6 +21,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('phase_logs');
+        Schema::table('quotes', function (Blueprint $table) {
+            $table->dropForeign(['project_budget_id']);
+            $table->dropColumn('project_budget_id');
+        });
     }
 };

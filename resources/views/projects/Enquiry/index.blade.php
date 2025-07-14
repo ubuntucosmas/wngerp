@@ -237,9 +237,17 @@
 
     <div class="px-3 mx-10 mt-2 w-100">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h1>Enquiries</h1>
-            <button type="button" class="btn btn-xs btn-outline-info" data-bs-toggle="modal" data-bs-target="#createEnquiryModal">
-                New Enquiry
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Enquiries Log</li>
+                    </ol>
+                </nav>
+                <h1 class="mb-0">Enquiries Log</h1>
+            </div>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createEnquiryModal">
+                <i class="bi bi-plus-circle me-2"></i>New Enquiry
             </button>
         </div>
     <hr class="mb-4">
@@ -395,8 +403,8 @@
                     @forelse($enquiries as $enquiry)
                         <tr>
                             <td>{{ $enquiry->formatted_id }}</td>
-                            <td>{{ $enquiry->date_received ? \Carbon\Carbon::parse($enquiry->date_received)->format('M d, Y \a\t h:i A') : '-' }}</td>
-                            <td>{{ $enquiry->expected_delivery_date ? date('Y-m-d', strtotime($enquiry->expected_delivery_date)) : '-' }}</td>
+                            <td>{{ $enquiry->date_received ? \Carbon\Carbon::parse($enquiry->date_received)->format('M d, Y') : '-' }}</td>
+                            <td>{{ $enquiry->expected_delivery_date ? \Carbon\Carbon::parse($enquiry->expected_delivery_date)->format('M d, Y') : '-' }}</td>
                             <td>{{ $enquiry->client_name }}</td>
                             <td>{{ $enquiry->project_name }}</td>
                             <td>{{ $enquiry->venue ?? '-' }}</td>
@@ -485,6 +493,9 @@
                             </td>
                             <td class="actions">
                                 <div class="btn-group">
+                                    <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.files', $enquiry) : '#' }}" class="btn btn-xs btn-outline-primary" title="Files & Phases">
+                                        <i class="bi bi-folder"></i>
+                                    </a>
                                     <button type="button" class="btn btn-xs btn-outline-info" data-bs-toggle="modal" data-bs-target="#editEnquiryModal{{ $enquiry->id }}" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </button>
@@ -508,16 +519,23 @@
                                         </a>
                                     </div>
                                 @else
-                                    <form action="{{ route('projects.convertFromEnquiry', $enquiry->id) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        <button type="submit" 
-                                                class="btn btn-sm btn-success px-3" 
-                                                onclick="return confirm('Convert this enquiry to a project?')" 
-                                                data-bs-toggle="tooltip" 
-                                                title="Convert to Project">
-                                            <i class="bi bi-arrow-right-circle me-1"></i> Convert
-                                        </button>
-                                    </form>
+                                    @if($enquiry->areFirstFourPhasesCompleted())
+                                        <div class="d-flex flex-column align-items-center gap-1">
+                                            <span class="badge bg-success">Ready to Convert</span>
+                                            <small class="text-muted">All phases completed</small>
+                                            <form action="{{ route('enquiries.convert', $enquiry) }}" method="POST" class="d-inline" onsubmit="return confirm('Convert this enquiry to a project? This action cannot be undone.');">
+                                                @csrf
+                                                <button type="submit" class="btn btn-xs btn-success">
+                                                    <i class="bi bi-arrow-up-circle me-1"></i>Convert to Project
+                                                </button>
+                                            </form>
+                                        </div>
+                                    @else
+                                        <div class="d-flex flex-column align-items-center gap-1">
+                                            <span class="badge bg-warning">In Progress</span>
+                                            <small class="text-muted">Complete phases first</small>
+                                        </div>
+                                    @endif
                                 @endif
                                 </td>
                             </tr>
@@ -550,13 +568,13 @@
                                                 <div class="col-md-6">
                                                     <div class="form-group">
                                                         <label for="date_received" class="form-label">Date Received<span class="text-danger">*</span></label>
-                                                        <input type="date" name="date_received" id="date_received" class="form-control" required value="{{ $enquiry->date_received ? date('Y-m-d', strtotime($enquiry->date_received)) : '' }}">
+                                                        <input type="datetime-local" name="date_received" id="date_received" class="form-control" required value="{{ $enquiry->date_received ? \Carbon\Carbon::parse($enquiry->date_received)->format('Y-m-d\TH:i') : '' }}">
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label for="expected_delivery_date" class="form-label">Expected Delivery Date<span class="text-danger">*</span></label>
-                                                        <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="form-control" required value="{{ $enquiry->expected_delivery_date ? date('Y-m-d', strtotime($enquiry->expected_delivery_date)) : '' }}">
+                                                        <label for="expected_delivery_date" class="form-label">Expected Delivery Date</label>
+                                                        <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="form-control" value="{{ $enquiry->expected_delivery_date ? \Carbon\Carbon::parse($enquiry->expected_delivery_date)->format('Y-m-d') : '' }}">
                                                     </div>
                                                 </div>
                                             </div>
@@ -565,13 +583,20 @@
                                                 <div class="col-md-6">
                                                     <div class="form-group">
                                                         <label for="client_name" class="form-label">Client Name<span class="text-danger">*</span></label>
-                                                        <input type="text" name="client_name" id="client_name" class="form-control" required value="{{ $enquiry->client_name }}">
+                                                        <select name="client_name" id="client_name" class="form-select" required>
+                                                            <option value="">-- Select Client --</option>
+                                                            @foreach($clients as $client)
+                                                                <option value="{{ $client->FullName }}" {{ $enquiry->client_name == $client->FullName ? 'selected' : '' }}>
+                                                                    {{ $client->FullName }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label for="project_name" class="form-label">Project Name<span class="text-danger">*</span></label>
-                                                        <input type="text" name="project_name" id="project_name" class="form-control" required value="{{ $enquiry->project_name }}">
+                                                        <label for="project_name" class="form-label">Project Name</label>
+                                                        <input type="text" name="project_name" id="project_name" class="form-control" value="{{ $enquiry->project_name }}">
                                                     </div>
                                                 </div>
                                             </div>
@@ -603,14 +628,14 @@
                                             <div class="row g-3">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label for="project_deliverables" class="form-label">Project Deliverables<span class="text-danger">*</span></label>
-                                                        <textarea name="project_deliverables" id="project_deliverables" class="form-control" rows="4" required>{{ $enquiry->project_deliverables }}</textarea>
+                                                        <label for="project_deliverables" class="form-label">Project Deliverables</label>
+                                                        <textarea name="project_deliverables" id="project_deliverables" class="form-control" rows="4">{{ $enquiry->project_deliverables }}</textarea>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label for="follow_up_notes" class="form-label">Follow-Up Notes<span class="text-danger">*</span></label>
-                                                        <textarea name="follow_up_notes" id="follow_up_notes" class="form-control" rows="4" required>{{ $enquiry->follow_up_notes }}</textarea>
+                                                        <label for="follow_up_notes" class="form-label">Follow-Up Notes</label>
+                                                        <textarea name="follow_up_notes" id="follow_up_notes" class="form-control" rows="4">{{ $enquiry->follow_up_notes }}</textarea>
                                                     </div>
                                                 </div>
                                             </div>
@@ -618,8 +643,8 @@
                                             <div class="row g-3">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label for="contact_person" class="form-label">Contact Person<span class="text-danger">*</span></label>
-                                                        <input type="text" name="contact_person" id="contact_person" class="form-control" required value="{{ $enquiry->contact_person }}">
+                                                        <label for="contact_person" class="form-label">Contact Person</label>
+                                                        <input type="text" name="contact_person" id="contact_person" class="form-control" value="{{ $enquiry->contact_person }}">
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
@@ -660,10 +685,6 @@
 
 <script>
     $(document).ready(function() {
-        $(document).on('table:updated', function() {
-            animateTableRows();
-        });
-        
         // Add CSRF token to all AJAX requests
         $.ajaxSetup({
             headers: {
@@ -671,8 +692,14 @@
             }
         });
 
-        // Handle form submissions using event delegation
+        // Handle form submissions
         $(document).on('submit', '#createEnquiryForm, form[id^="editEnquiryForm"]', function(e) {
+            alert('Form submit event triggered!');
+            console.log('=== FORM SUBMIT EVENT TRIGGERED ===');
+            console.log('Form ID:', this.id);
+            console.log('Form action:', this.action);
+            console.log('Form method:', this.method);
+            
             e.preventDefault();
             
             const $form = $(this);
@@ -681,26 +708,36 @@
             const url = $form.attr('action');
             const method = $form.find('input[name="_method"]').val() || 'POST';
             
-            // Show loading state
-            const $submitBtn = $form.find('button[type="submit"]');
+            console.log('Form details:', { url, method, formData });
+            
+            // Find the submit button
+            const $submitBtn = $modal.find('button[type="submit"]');
             const originalBtnText = $submitBtn.html();
+            
+            // Show loading state
             $submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...');
             
             // Clear previous errors
             $form.find('.alert').remove();
+            
+            console.log('Submitting form:', { url, method, formData });
             
             // Handle form submission
             $.ajax({
                 url: url,
                 type: method,
                 data: formData,
-                dataType: 'json',
                 success: function(response) {
-                    $modal.one('hidden.bs.modal', function() {
+                    console.log('Success response:', response);
+                    // Hide modal and reload page
+                    $modal.modal('hide');
+                    setTimeout(function() {
                         window.location.reload();
-                    }).modal('hide');
+                    }, 500);
                 },
                 error: function(xhr, status, error) {
+                    console.log('Error response:', { xhr, status, error });
+                    
                     let errorHtml = '<div class="alert alert-danger"><ul>';
                     
                     if (xhr.responseJSON && xhr.responseJSON.errors) {
@@ -727,65 +764,8 @@
             const $form = $(this).find('form');
             $form[0].reset();
             $form.find('.alert').remove();
-            
-            // Reset any select2 elements if they exist
-            if ($.fn.select2) {
-                $form.find('select.select2').val(null).trigger('change');
-            }
         });
-        
-        // Initialize modals with proper backdrop handling
-        $('.modal').modal({
-            backdrop: 'static',
-            keyboard: true,
-            show: false
-        });
-
-        // Initialize tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
-
-        function animateTableRows() {
-            const rows = document.querySelectorAll('#enquiryTableBody tr');
-            anime({
-                targets: rows,
-                translateY: [20, 0],
-                opacity: [0, 1],
-                duration: 600,
-                delay: anime.stagger(50, {start: 100}),
-                easing: 'easeOutQuad'
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initial animation
-            animateTableRows();
-            
-            const searchInput = document.getElementById('enquirySearch');
-            
-            // Store original rows for search functionality
-            const originalRows = Array.from(document.querySelectorAll('#enquiryTableBody tr'));
-            
-            // Add animation class to new rows when they're added (for pagination)
-            document.addEventListener('DOMNodeInserted', function(e) {
-                if (e.target.matches('#enquiryTableBody tr')) {
-                    e.target.style.opacity = '0';
-                    e.target.style.transform = 'translateY(20px)';
-                    anime({
-                        targets: e.target,
-                        translateY: 0,
-                        opacity: 1,
-                        duration: 400,
-                        easing: 'easeOutQuad'
-                    });
-                }
-            });
     });
-    
-
-
 </script>
 
 @endsection

@@ -80,7 +80,7 @@ class QuoteExport implements FromCollection, WithHeadings, WithStyles, WithColum
         }
 
         // Add totals row
-        $data[] = ['', '', '', 'Totals:', number_format($totalCost, 2), number_format(($totalProfit / $totalCost) * 100, 2) . '%', number_format($subtotal, 2)];
+        $data[] = ['', '', '', 'Totals:', number_format($totalCost, 2), number_format($totalCost > 0 ? ($totalProfit / $totalCost) * 100 : 0, 2) . '%', number_format($subtotal, 2)];
         
         // Add VAT and final total
         $vatRate = 0.16;

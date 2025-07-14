@@ -11,7 +11,7 @@
        <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb bg-light p-2 rounded">
             <li class="breadcrumb-item"><a href="{{ route('projects.index') }}"><i class="fas fa-home"></i> Projects</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">Project Files</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project)}}">Project Files</a></li>
             <li class="breadcrumb-item active" aria-current="page">Production Log</li>
         </ol>
     </nav>
@@ -373,7 +373,7 @@
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label for="client_name" class="form-label fw-bold">Client Name <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="client_name" name="client_name" value="{{ $project->client->name ?? '' }}" required>
+                                    <input type="text" class="form-control" id="client_name" name="client_name" value="{{ $project->client_name ?? '' }}" required>
                                 </div>
                             </div>
                         </div>

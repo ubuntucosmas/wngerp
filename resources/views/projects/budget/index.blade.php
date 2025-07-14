@@ -1,24 +1,40 @@
 @extends('layouts.master')
 
-@section('title', 'Project Budgets')
+@section('title', '{{ isset($enquiry) ? "Enquiry" : "Project" }} Budgets')
 
 @section('content')
 <div class="container mt-4">
 
-    {{-- Breadcrumbs --}}
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb bg-light p-2 rounded">
-            <li class="breadcrumb-item"><a href="{{ route('projects.index') }}"><i class="fas fa-home"></i>Projects</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project->id) }}">Projects Files</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Project Budgets</li>
-        </ol>
-    </nav>
-
+    <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">Budgets for {{ $project->name }}</h4>
-        @hasanyrole('finance|po|pm|super-admin')
-        <a href="{{ route('budget.create', $project) }}" class="btn btn-primary btn-sm">+ New Budget</a>
-        @endhasanyrole
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    @if(isset($enquiry))
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.files', $enquiry) }}">{{ $enquiry->project_name }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.files.quotation', $enquiry) }}">Budget & Quotation</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Budgets</li>
+                    @else
+                        <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">{{ $project->name }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('projects.quotation.index', $project) }}">Budget & Quotation</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Budgets</li>
+                    @endif
+                </ol>
+            </nav>
+            <h2 class="mb-0">Budgets</h2>
+        </div>
+        <div class="page-actions">
+            <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.files.quotation', $enquiry) : route('projects.quotation.index', $project) }}" class="btn btn-primary me-2">
+                <i class="bi bi-arrow-left me-2"></i>Back to Budget & Quotation
+            </a>
+            @hasanyrole('finance|po|pm|super-admin')
+            <a href="{{ isset($enquiry) ? route('enquiries.budget.create', $enquiry) : (isset($project) ? route('budget.create', $project) : '#') }}" class="btn btn-success">
+                <i class="bi bi-plus-circle me-1"></i> New Budget
+            </a>
+            @endhasanyrole
+        </div>
     </div>
 
     @if($budgets->count())
@@ -57,13 +73,13 @@
                         <td>{{ $budget->approved_departments ?? '-' }}</td>
                         <td>{{ $budget->created_at->format('d M Y H:i') }}</td>
                         <td>
-                            <a href="{{ route('budget.show', [$project, $budget]) }}" class="btn btn-info btn-sm">View</a>
+                            <a href="{{ isset($enquiry) ? route('enquiries.budget.show', [$enquiry, $budget]) : (isset($project) ? route('budget.show', [$project, $budget]) : '#') }}" class="btn btn-info btn-sm">View</a>
 
                             @hasanyrole('finance|po|pm|super-admin')
-                                <a href="{{ route('budget.edit', [$project, $budget]) }}" class="btn btn-warning btn-sm">Edit</a>
+                                <a href="{{ isset($enquiry) ? route('enquiries.budget.edit', [$enquiry, $budget]) : (isset($project) ? route('budget.edit', [$project, $budget]) : '#') }}" class="btn btn-warning btn-sm">Edit</a>
 
                                 @if(auth()->user()->hasRole('super-admin'))
-                                    <form action="{{ route('budget.destroy', ['project' => $project->id, 'budget' => $budget->id]) }}" method="POST" class="d-inline">
+                                    <form action="{{ isset($enquiry) ? route('enquiries.budget.destroy', ['enquiry' => $enquiry->id, 'budget' => $budget->id]) : (isset($project) ? route('budget.destroy', ['project' => $project->id, 'budget' => $budget->id]) : '#') }}" method="POST" class="d-inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-danger btn-sm delete-budget" onclick="return confirm('Are you sure you want to delete this budget? This action cannot be undone.')">
@@ -79,8 +95,8 @@
         </table>
     </div>
     @else
-        <div class="alert alert-warning">No budgets have been created yet for this project.</div>
-    @endif
+        <div class="alert alert-warning">No budgets have been created yet for this {{ isset($enquiry) ? 'enquiry' : 'project' }}.</div>
+        @endif
 </div>
     @push('scripts')
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

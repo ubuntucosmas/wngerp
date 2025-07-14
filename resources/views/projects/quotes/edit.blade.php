@@ -4,29 +4,42 @@
 
 @section('content')
 <div class="container py-3">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 gap-2">
+    <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h4 class="fw-semibold mb-0">Edit Quote #{{ $quote->id }}</h4>
-            <nav aria-label="breadcrumb" class="mb-1">
-                <ol class="breadcrumb bg-transparent p-0 small mb-0">
-                    <li class="breadcrumb-item">
-                        <a href="{{ route('quotes.index', $project) }}" class="text-decoration-none text-primary">Quotes</a>
-                    </li>
-                    <li class="breadcrumb-item">
-                        <a href="{{ route('quotes.show', ['project' => $project->id, 'quote' => $quote->id]) }}" class="text-decoration-none text-primary">#{{ $quote->id }}</a>
-                    </li>
-                    <li class="breadcrumb-item active text-secondary" aria-current="page">Edit</li>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    @if(isset($enquiry))
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.files', $enquiry) }}">{{ $enquiry->project_name }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.files.quotation', $enquiry) }}">Budget & Quotation</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.quotes.index', $enquiry) }}">Quotes</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Edit Quote #{{ $quote->id }}</li>
+                    @else
+                        <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">{{ $project->name }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('projects.quotation.index', $project) }}">Budget & Quotation</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('quotes.index', $project) }}">Quotes</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Edit Quote #{{ $quote->id }}</li>
+                    @endif
                 </ol>
             </nav>
+            <h2 class="mb-0">Edit Quote #{{ $quote->id }}</h2>
         </div>
+        <a href="{{ isset($enquiry) ? route('enquiries.quotes.show', ['enquiry' => $enquiry->id, 'quote' => $quote->id]) : route('quotes.show', ['project' => $project->id, 'quote' => $quote->id]) }}" class="btn btn-primary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Quote
+        </a>
     </div>
 
     <div class="card shadow-sm rounded-3">
         <div class="card-body px-3 py-4">
-            <form action="{{ route('quotes.update', ['project' => $project->id, 'quote' => $quote->id]) }}" method="POST" id="quoteForm" autocomplete="off">
+            <form action="{{ isset($enquiry) ? route('enquiries.quotes.update', ['enquiry' => $enquiry->id, 'quote' => $quote->id]) : route('quotes.update', ['project' => $project->id, 'quote' => $quote->id]) }}" method="POST" id="quoteForm" autocomplete="off">
                 @csrf
                 @method('PUT')
+                @if(isset($project))
                 <input type="hidden" name="project_id" value="{{ $project->id }}">
+                @elseif(isset($enquiry))
+                <input type="hidden" name="enquiry_id" value="{{ $enquiry->id }}">
+                @endif
                 
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
@@ -243,7 +256,7 @@
                 </div>
 
                 <div class="d-flex justify-content-between">
-                    <a href="{{ route('quotes.show', ['project' => $project->id, 'quote' => $quote->id]) }}"
+                    <a href="{{ isset($enquiry) ? route('enquiries.quotes.show', ['enquiry' => $enquiry->id, 'quote' => $quote->id]) : route('quotes.show', ['project' => $project->id, 'quote' => $quote->id]) }}"
                        class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
                         <i class="fas fa-times"></i> Cancel
                     </a>

@@ -109,8 +109,8 @@
                                                 </span>
                                             </td>
                                             <td>
-                                                @if($template->estimated_cost)
-                                                    <span class="text-success fw-semibold">KSh {{ number_format($template->estimated_cost, 0) }}</span>
+                                                @if($template->total_estimated_cost)
+                                                    <span class="text-success fw-semibold">KSh {{ number_format($template->total_estimated_cost, 0) }}</span>
                                                 @else
                                                     <span class="text-muted">-</span>
                                                 @endif
@@ -195,10 +195,10 @@
                         </div>
                     </div>
                     
-                    @if($itemCategory->templates->sum('estimated_cost') > 0)
+                    @if($itemCategory->templates->sum('total_estimated_cost') > 0)
                         <hr>
                         <div class="text-center">
-                            <h5 class="text-info mb-1">KSh {{ number_format($itemCategory->templates->sum('estimated_cost'), 0) }}</h5>
+                            <h5 class="text-info mb-1">KSh {{ number_format($itemCategory->templates->sum('total_estimated_cost'), 0) }}</h5>
                             <small class="text-muted">Total Estimated Cost</small>
                         </div>
                     @endif

@@ -46,11 +46,11 @@ class ItemTemplateController extends Controller
             'category_id' => 'required|exists:item_categories,id',
             'name' => 'required|string|max:255|unique:item_templates,name,NULL,id,category_id,' . $request->category_id,
             'description' => 'nullable|string',
-            'estimated_cost' => 'nullable|numeric|min:0',
             'particulars' => 'required|array|min:1',
             'particulars.*.particular' => 'required|string|max:255',
             'particulars.*.unit' => 'nullable|string|max:50',
             'particulars.*.default_quantity' => 'required|numeric|min:0',
+            'particulars.*.unit_price' => 'required|numeric|min:0',
             'particulars.*.comment' => 'nullable|string',
         ], [
             'name.unique' => 'A template with this name already exists in the selected category.',
@@ -64,7 +64,6 @@ class ItemTemplateController extends Controller
                 'category_id' => $validated['category_id'],
                 'name' => $validated['name'],
                 'description' => $validated['description'],
-                'estimated_cost' => $validated['estimated_cost'],
                 'created_by' => Auth::id(),
                 'is_active' => true,
             ]);
@@ -75,6 +74,7 @@ class ItemTemplateController extends Controller
                     'particular' => $particular['particular'],
                     'unit' => $particular['unit'],
                     'default_quantity' => $particular['default_quantity'],
+                    'unit_price' => $particular['unit_price'],
                     'comment' => $particular['comment'],
                 ]);
             }
@@ -121,12 +121,12 @@ class ItemTemplateController extends Controller
             'category_id' => 'required|exists:item_categories,id',
             'name' => 'required|string|max:255|unique:item_templates,name,' . $itemTemplate->id . ',id,category_id,' . $request->category_id,
             'description' => 'nullable|string',
-            'estimated_cost' => 'nullable|numeric|min:0',
             'is_active' => 'boolean',
             'particulars' => 'required|array|min:1',
             'particulars.*.particular' => 'required|string|max:255',
             'particulars.*.unit' => 'nullable|string|max:50',
             'particulars.*.default_quantity' => 'required|numeric|min:0',
+            'particulars.*.unit_price' => 'required|numeric|min:0',
             'particulars.*.comment' => 'nullable|string',
         ], [
             'name.unique' => 'A template with this name already exists in the selected category.',
@@ -140,7 +140,6 @@ class ItemTemplateController extends Controller
                 'category_id' => $validated['category_id'],
                 'name' => $validated['name'],
                 'description' => $validated['description'],
-                'estimated_cost' => $validated['estimated_cost'],
                 'is_active' => $validated['is_active'] ?? true,
             ]);
 
@@ -153,6 +152,7 @@ class ItemTemplateController extends Controller
                     'particular' => $particular['particular'],
                     'unit' => $particular['unit'],
                     'default_quantity' => $particular['default_quantity'],
+                    'unit_price' => $particular['unit_price'],
                     'comment' => $particular['comment'],
                 ]);
             }

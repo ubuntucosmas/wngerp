@@ -11,12 +11,12 @@
 </table>
 <table>
     <tr>
-        <th align="left">Project Name:</th>
-        <td>{{ $materialList->project->name ?? '' }}</td>
+        <th align="left">{{ isset($enquiry) ? 'Enquiry' : 'Project' }} Name:</th>
+        <td>{{ isset($enquiry) ? ($enquiry->project_name ?? 'N/A') : ($materialList->project->name ?? '') }}</td>
         <th align="left">Client:</th>
-        <td>{{ $materialList->project->client_name ?? '' }}</td>
+        <td>{{ isset($enquiry) ? ($enquiry->client_name ?? 'N/A') : ($materialList->project->client_name ?? '') }}</td>
         <th align="left">Venue:</th>
-        <td>{{ $materialList->project->venue ?? '' }}</td>
+        <td>{{ isset($enquiry) ? ($enquiry->venue ?? 'N/A') : ($materialList->project->venue ?? '') }}</td>
     </tr>
     <tr>
         <th align="left">Approved By:</th>

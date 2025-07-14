@@ -1,6 +1,6 @@
 <table>
     <tr>
-        <td colspan="8" align="center" style="font-size:22px;font-weight:bold;padding:10px 0;">Project Budget Export</td>
+        <td colspan="8" align="center" style="font-size:22px;font-weight:bold;padding:10px 0;">{{ isset($enquiry) ? 'Enquiry' : 'Project' }} Budget Export</td>
     </tr>
     <tr>
         <td colspan="8" align="center" style="padding-bottom:10px;">
@@ -11,18 +11,18 @@
 </table>
 <table>
     <tr>
-        <th align="left">Project Name:</th>
-        <td>{{ $project->name ?? '' }}</td>
+        <th align="left">{{ isset($enquiry) ? 'Enquiry' : 'Project' }} Name:</th>
+        <td>{{ isset($enquiry) ? ($enquiry->project_name ?? 'N/A') : ($project->name ?? '') }}</td>
         <th align="left">Client:</th>
-        <td>{{ $project->client_name ?? '' }}</td>
+        <td>{{ isset($enquiry) ? ($enquiry->client_name ?? 'N/A') : ($project->client_name ?? '') }}</td>
         <th align="left">Venue:</th>
-        <td>{{ $project->venue ?? '' }}</td>
+        <td>{{ isset($enquiry) ? ($enquiry->venue ?? 'N/A') : ($project->venue ?? '') }}</td>
     </tr>
     <tr>
         <th align="left">Start Date:</th>
-        <td>{{ $project->start_date }}</td>
+        <td>{{ isset($enquiry) ? ($enquiry->date_received ?? 'N/A') : ($project->start_date ?? '') }}</td>
         <th align="left">End Date:</th>
-        <td>{{ $project->end_date }}</td>
+        <td>{{ isset($enquiry) ? ($enquiry->expected_delivery_date ?? 'N/A') : ($project->end_date ?? '') }}</td>
         <th align="left">Status:</th>
         <td>{{ ucfirst($budget->status) }}</td>
     </tr>

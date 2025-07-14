@@ -11,30 +11,40 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Create Site Survey - {{ $project->name }}</h5>
-                    <a href="{{ route('projects.files.index', $project) }}" class="btn btn-sm btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Back to Project Files
-                    </a>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            @if(isset($enquiry))
+                                <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('enquiries.files', $enquiry) }}">{{ $enquiry->project_name }}</a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('enquiries.files.client-engagement', $enquiry) }}">Client Engagement</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Create Site Survey</li>
+                            @else
+                                <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">{{ $project->name }}</a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('projects.files.client-engagement', $project) }}">Client Engagement</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Create Site Survey</li>
+                            @endif
+                        </ol>
+                    </nav>
+                    <h2 class="mb-0">Create Site Survey</h2>
                 </div>
-
-                <div class="card-body">
-                    <form action="{{ route('projects.site-survey.store', $project) }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        
-                        @include('projects.site-survey.partials.form', ['project' => $project])
-                        
-                        <div class="form-group row mb-0">
-                            <div class="col-md-12 text-right">
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save"></i> Save Site Survey
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+                <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.files.client-engagement', $enquiry) : route('projects.files.client-engagement', $project) }}" class="btn btn-primary">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Client Engagement
+                </a>
             </div>
+            <form action="{{ isset($enquiry) ? route('enquiries.site-survey.store', $enquiry) : route('projects.site-survey.store', $project) }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                
+                @include('projects.site-survey.partials.form', ['project' => isset($enquiry) ? $enquiry : $project])
+                
+                <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Site Survey
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

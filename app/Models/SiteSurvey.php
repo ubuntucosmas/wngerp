@@ -9,8 +9,10 @@ class SiteSurvey extends Model
 {
     protected $fillable = [
         'project_id',
+        'enquiry_id',
         'site_visit_date',
         'project_manager',
+        'other_project_manager',
         'client_name',
         'location',
         'attendees',
@@ -67,5 +69,10 @@ class SiteSurvey extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function enquiry(): BelongsTo
+    {
+        return $this->belongsTo(Enquiry::class);
     }
 }

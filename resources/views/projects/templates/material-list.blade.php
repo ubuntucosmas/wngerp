@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Material List - {{ $project->name }}</title>
+    <title>Material List - {{ isset($enquiry) && $enquiry->project_name ? $enquiry->project_name : ($project->name ?? '') }}</title>
     <style>
         @page { margin: 0.5cm; }
         body {
@@ -116,21 +116,20 @@
 
     <table class="excel-table">
         <tr>
-            <td colspan="4" class="title">MATERIAL LIST - {{ strtoupper($project->name) }}</td>
+            <td colspan="4" class="title">MATERIAL LIST - {{ strtoupper(isset($enquiry) && $enquiry->project_name ? $enquiry->project_name : ($project->name ?? '')) }}</td>
         </tr>
         <tr>
             <td>Reference:</td>
-            <td>ML-{{ str_pad($project->project_id, 5, '0', STR_PAD_LEFT) }}</td>
+            <td>ML-{{ isset($project) && $project ? str_pad($project->project_id, 5, '0', STR_PAD_LEFT) : 'N/A' }}</td>
             <td>Date:</td>
             <td>{{ $materialList->created_at->format('M d, Y') }}</td>
         </tr>
         <tr>
-            <td>Project:</td>
-            <td colspan="3">{{ $project->name }}</td>
+            <td>Project:</td><td colspan="3">{{ isset($enquiry) && $enquiry->project_name ? $enquiry->project_name : ($project->name ?? '') }}</td>
         </tr>
         <tr>
             <td>Client:</td>
-            <td colspan="3">{{ $project->client_name ?? 'N/A' }}</td>
+            <td>Client:</td><td colspan="3">{{ isset($enquiry) && $enquiry->client_name ? $enquiry->client_name : ($project->client_name ?? 'N/A') }}</td>
         </tr>
         <tr>
             <td>Start Date:</td>

@@ -1,25 +1,22 @@
 @extends('layouts.master')
-@section('title', 'Create Project Budget')
+
+@section('title', 'Create {{ isset($enquiry) ? "Enquiry" : "Project" }} Budget')
 
 @section('content')
 @hasanyrole('finance|po|pm|super-admin')
-<div class="container-fluid p-2">
-    <div class="mb-3">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Create Budget</li>
-            </ol>
-        </nav>
+<div class="container mt-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb bg-light p-2 rounded">
+            <li class="breadcrumb-item"><a href="{{ isset($enquiry) ? route('enquiries.index') : route('projects.index') }}">{{ isset($enquiry) ? 'Enquiries' : 'Projects' }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Create Budget</li>
+        </ol>
+    </nav>
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h1 class="h3 m-0">Create Project Budget</h1>
+            <h1 class="h3 m-0">Create {{ isset($enquiry) ? 'Enquiry' : 'Project' }} Budget</h1>
             <div>
-                <a href="{{ route('projects.files.index', $project) }}" class="btn btn-outline-secondary me-2">
-                    <i class="bi bi-arrow-left"></i> Back to Project Files
+                <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.files', $enquiry) : (isset($project) && is_object($project) && isset($project->id) ? route('projects.files.index', $project->id) : '#') }}" class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-arrow-left"></i> Back to {{ isset($enquiry) ? 'Enquiry' : 'Project' }} Files
                 </a>
-                <!-- <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-save"></i> Save Budget
-                </button> -->
             </div>
         </div>
     </div>
@@ -33,28 +30,31 @@
 
     <div class="card">
         <div class="card-body">
-            <form action="{{ route('budget.store', $project) }}" method="POST">
+            <form action="{{ isset($enquiry) ? route('enquiries.budget.store', $enquiry) : (isset($project) ? route('budget.store', $project) : '#') }}" method="POST">
                 @csrf
+                @if(isset($materialList))
+                    <input type="hidden" name="material_list_id" value="{{ $materialList->id }}">
+                @endif
                 <div class="container">
         <div class="row mb-3">
             <div class="col-md-6">
-                <label for="project_name">Project Name</label>
-                <input type="text" class="form-control" name="project_name" value="{{ $project->name }}" readonly>
+                <label for="project_name">{{ isset($enquiry) ? 'Enquiry' : 'Project' }} Name</label>
+                <input type="text" class="form-control" name="project_name" value="{{ isset($enquiry) ? $enquiry->project_name : (isset($project) ? $project->name : 'Unknown') }}" readonly>
             </div>
             <div class="col-md-6">
                 <label for="client">Client</label>
-                <input type="text" class="form-control" name="client" value="{{ $project->client_name }}" readonly>
+                <input type="text" class="form-control" name="client" value="{{ isset($enquiry) ? $enquiry->client_name : (isset($project) ? $project->client_name : 'N/A') }}" readonly>
             </div>
         </div>
 
         <div class="row mb-4">
             <div class="col-md-6">
                 <label for="start_date">Start Date</label>
-                <input type="date" class="form-control" name="start_date" value="{{ old('start_date', $project->start_date) }}">
+                <input type="date" class="form-control" name="start_date" value="{{ old('start_date', isset($project) ? ($project->start_date ?? '') : (isset($enquiry) ? ($enquiry->start_date ?? '') : '')) }}">
             </div>
             <div class="col-md-6">
                 <label for="end_date">End Date</label>
-                <input type="date" class="form-control" name="end_date" value="{{ old('end_date', $project->end_date) }}">
+                <input type="date" class="form-control" name="end_date" value="{{ old('end_date', isset($project) ? ($project->end_date ?? '') : (isset($enquiry) ? ($enquiry->end_date ?? '') : '')) }}">
             </div>
         </div>
                     <hr class="my-4">
@@ -160,7 +160,7 @@
         </div>
 
         <div class="d-flex justify-content-between mt-4 pt-3 border-top">
-            <a href="{{ route('projects.files.index', $project) }}" class="btn btn-outline-secondary">
+            <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.files', $enquiry) : (isset($project) && is_object($project) && isset($project->id) ? route('projects.files.index', $project->id) : '#') }}" class="btn btn-outline-secondary">
                 <i class="bi bi-x-circle"></i> Cancel
             </a>
             <div>

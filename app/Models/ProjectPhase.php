@@ -9,7 +9,8 @@ class ProjectPhase extends Model
     protected $table = 'project_phases';
 
     protected $fillable = [
-        'project_id',
+        'phaseable_id',
+        'phaseable_type',
         'name',
         'icon',
         'summary',
@@ -24,8 +25,8 @@ class ProjectPhase extends Model
         'end_date' => 'date',
     ];
 
-    public function project()
+    public function phaseable()
     {
-        return $this->belongsTo(Project::class);
+        return $this->morphTo();
     }
-} 
+}

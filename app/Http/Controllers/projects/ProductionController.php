@@ -345,4 +345,4 @@ class ProductionController extends Controller
         $pdf = Pdf::loadView('projects.production.pdf', compact('project', 'production'));
         return $pdf->stream($filename);
     }
-}
+};

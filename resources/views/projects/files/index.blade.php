@@ -1,7 +1,7 @@
 @extends('layouts.master')
 
-@section('title', 'Project Files')
-@section('navbar-title', 'Project Files')
+@section('title', isset($enquiry) ? 'Enquiry Files' : 'Project Files')
+@section('navbar-title', isset($enquiry) ? 'Enquiry Files' : 'Project Files')
 
 @section('content')
 <style>
@@ -398,34 +398,57 @@
 </style>
 
 <div class="px-3 mx-10 w-100">
+    <!-- Navigation Breadcrumb -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    @if(isset($enquiry))
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ $enquiry->project_name }} - Files & Phases</li>
+                    @else
+                        <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ $project->name }} - Files & Phases</li>
+                    @endif
+                </ol>
+            </nav>
+            <h2 class="mb-0">Files & Phases</h2>
+        </div>
+        <a href="{{ route('enquiries.index') }}" class="btn btn-primary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Enquiries
+        </a>
+    </div>
+
 <div class="project-header d-flex justify-content-between align-items-center flex-wrap gap-2 px-3 py-2 rounded shadow-sm" style="background: #0c2d48; color: #b1d4e0;">
     <div class="text-start flex-fill">
-        <small class="text-white">Project Name</small>
-        <h5 class="mb-1">{{ $project->name }}</h5>
+        <small class="text-white">{{ isset($enquiry) ? 'Enquiry' : 'Project' }} Name</small>
+        <h5 class="mb-1">{{ isset($enquiry) ? $enquiry->project_name : $project->name }}</h5>
     </div>
     
     <div class="text-center flex-fill">
-        <small class="text-white">Project ID</small>    
-        <h6 class="mb-1">{{ $project->project_id }}</h6>
+        <small class="text-white">{{ isset($enquiry) ? 'Enquiry' : 'Project' }} ID</small>    
+        <h6 class="mb-1">{{ isset($enquiry) ? ($enquiry->formatted_id ?? $enquiry->id) : $project->project_id }}</h6>
     </div>
 
     <div class="text-center flex-fill">
         <small class="text-white">Location</small>   
-        <p class="mb-1 fw-semibold">{{ $project->venue }}</p>
+        <p class="mb-1 fw-semibold">{{ isset($enquiry) ? $enquiry->venue : $project->venue }}</p>
     </div>
 
     <div class="text-end flex-fill">
         <small class="text-white">Client</small>
-        <h5 class="mb-1">{{ $project->client_name }}</h5>
+        <h5 class="mb-1">{{ isset($enquiry) ? $enquiry->client_name : $project->client_name }}</h5>
     </div>
 </div>
 
-<!-- Project Progress Bar -->
-<div class="mt-3 px-3" data-project-id="{{ $project->id }}">
+<!-- Progress Bar -->
+<div class="mt-3 px-3" data-{{ isset($enquiry) ? 'enquiry' : 'project' }}-id="{{ isset($enquiry) ? $enquiry->id : $project->id }}">
     @php
-        $totalPhases = $project->phases->count();
-        $completed = $project->phases->where('status', 'Completed')->count();
-        $inProgress = $project->phases->where('status', 'In Progress')->count();
+        // Ensure variables exist with defaults
+        $totalPhases = $totalPhases ?? 0;
+        $completed = $completed ?? 0;
+        $inProgress = $inProgress ?? 0;
+        
         $progress = $totalPhases > 0
             ? round((($completed + 0.5 * $inProgress) / $totalPhases) * 100)
             : 0;
@@ -445,7 +468,7 @@
         }
     @endphp
     <div class="d-flex justify-content-between align-items-center mb-2">
-        <h6 class="mb-0 text-primary">Project Progress</h6>
+        <h6 class="mb-0 text-primary">{{ isset($enquiry) ? 'Enquiry' : 'Project' }} Progress</h6>
         <span class="progress-text fw-bold {{ $progressTextClass }}">{{ $progress }}%</span>
     </div>
     <div class="progress" style="height: 10px;">
@@ -464,11 +487,30 @@
     
     <!-- Phase Folders Section -->
     <div class="mb-4">
-        <h4 class="mb-3 text-primary">Project Phases</h4>
-        <p class="text-muted mb-0">Manage project phases and related files</p>
+        <h4 class="mb-3 text-primary">{{ isset($enquiry) ? 'Enquiry' : 'Project' }} Phases</h4>
+        <p class="text-muted mb-0">Manage {{ isset($enquiry) ? 'enquiry' : 'project' }} phases and related files</p>
+        @php
+            $budgetPhase = isset($enquiry) ? $enquiry->phases()->where('name', 'Budget & Quotation')->first() : $project->phases()->where('name', 'Budget & Quotation')->first();
+            $showAllPhases = $budgetPhase && $budgetPhase->status === 'Completed';
+            
+            // Check if this is a converted project
+            $isConvertedProject = isset($project) && $project->enquirySource;
+        @endphp
+        
+        @if($isConvertedProject)
+            <div class="alert alert-success alert-sm mb-3">
+                <i class="bi bi-check-circle me-2"></i>
+                <strong>Converted Project:</strong> This project was converted from an enquiry. The first 4 phases are completed from the enquiry phase, and the remaining phases are ready for project execution.
+            </div>
+        @elseif(!$showAllPhases)
+            <div class="alert alert-info alert-sm mb-3">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>Progressive Phase System:</strong> Complete the "Budget & Quotation" phase to unlock the remaining {{ isset($enquiry) ? 'enquiry' : 'project' }} phases.
+            </div>
+        @endif
         <div class="row g-2">
             @php
-                $phases = $project->phases;
+                $phases = isset($enquiry) ? $enquiry->getDisplayablePhases() : $project->getDisplayablePhases();
                 $configPhases = collect(config('project_process_phases'));
             @endphp
             @foreach ($phases as $phase)
@@ -578,7 +620,7 @@
                         <div class="position-absolute top-0 end-0 m-2" style="z-index:2;">
                             <div class="d-flex align-items-center gap-1">
 
-                                <form method="POST" action="{{ route('phases.update-status-simple', $phase->id) }}" class="d-inline">
+                                <form method="POST" action="{{ route('phases.update-status-simple', ['phaseId' => $phase->id]) }}" class="d-inline">
                                     @csrf
                                     <select name="status" class="form-select form-select-sm phase-status-dropdown" 
                                             onchange="this.form.submit()"
@@ -634,7 +676,7 @@
                                                     </span> -->
                                                 </div>
                                                 
-                                                @if($item['date'])
+                                                @if(isset($item['date']) && $item['date'])
                                                     <small class="text-muted d-block mb-2">
                                                         <i class="bi bi-calendar3"></i> {{ $item['date'] }}
                                                     </small>
@@ -670,7 +712,7 @@
                             <p class="phase-description small text-muted mb-2">
                                 View and manage client engagement documents
                             </p>
-                            <a href="{{ route('projects.files.client-engagement', $project) }}" class="btn btn-sm btn-outline-primary w-100">
+                            <a href="{{ isset($enquiry) ? route('enquiries.files.client-engagement', $enquiry) : route('projects.files.client-engagement', $project) }}" class="btn btn-sm btn-outline-primary w-100">
                                 <span>Open</span>
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>
@@ -678,7 +720,7 @@
                             <p class="phase-description small text-muted mb-2">
                                 View and manage design assets and mockups
                             </p>
-                            <a href="{{ route('projects.files.design-concept', $project) }}" class="btn btn-sm btn-outline-primary w-100">
+                            <a href="{{ isset($enquiry) ? route('enquiries.files.design-concept', $enquiry) : route('projects.files.design-concept', $project) }}" class="btn btn-sm btn-outline-primary w-100">
                                 <span>Open</span>
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>
@@ -686,7 +728,7 @@
                             <p class="phase-description small text-muted mb-2">
                                 View and manage Project Materials
                             </p>
-                            <a href="{{ route('projects.material-list.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
+                            <a href="{{ isset($enquiry) ? route('enquiries.material-list.index', $enquiry) : route('projects.material-list.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
                                 <span>Open</span>
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>
@@ -694,7 +736,7 @@
                             <p class="phase-description small text-muted mb-2">
                                 View and manage logistics documents
                             </p>
-                            <a href="{{ route('projects.logistics.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
+                            <a href="{{ isset($enquiry) ? route('enquiries.logistics.index', $enquiry) : route('projects.logistics.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
                                 <span>Open</span>
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>
@@ -702,7 +744,7 @@
                             <p class="phase-description small text-muted mb-2">
                                 View and manage quotation documents
                             </p>
-                            <a href="{{ route('projects.quotation.index', ['project' => $project->id]) }}" class="btn btn-sm btn-outline-primary w-100">
+                            <a href="{{ isset($enquiry) ? route('enquiries.files.quotation', $enquiry) : route('projects.quotation.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
                                 <span>Open</span>
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>
@@ -711,7 +753,7 @@
                             <p class="phase-description small text-muted mb-2">
                                 View and manage setup and execution documents
                             </p>
-                            <a href="{{ route('projects.files.setup', $project) }}" class="btn btn-sm btn-outline-primary w-100">
+                            <a href="{{ isset($enquiry) ? route('enquiries.files.setup', $enquiry) : route('projects.files.setup', $project) }}" class="btn btn-sm btn-outline-primary w-100">
                                 <span>Open</span>
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>
@@ -719,7 +761,7 @@
                             <p class="phase-description small text-muted mb-2">
                                 View and manage client handover documents
                             </p>
-                            <a href="{{ route('projects.handover.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
+                            <a href="{{ isset($enquiry) ? route('enquiries.handover.index', $enquiry) : route('projects.handover.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
                                 <span>Open</span>
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>
@@ -727,7 +769,7 @@
                             <p class="phase-description small text-muted mb-2">
                                 View and manage set down and return documents
                             </p>
-                            <a href="{{ route('projects.set-down-return.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
+                            <a href="{{ isset($enquiry) ? route('enquiries.set-down-return.index', $enquiry) : route('projects.set-down-return.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
                                 <span>Open</span>
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>
@@ -735,7 +777,7 @@
                             <p class="phase-description small text-muted mb-2">
                                 Manage job briefs and production workflows
                             </p>
-                            <a href="{{ route('projects.production.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
+                            <a href="{{ isset($enquiry) ? route('enquiries.production.index', $enquiry) : route('projects.production.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
                                 <span>Open</span>
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>
@@ -743,7 +785,7 @@
                             <p class="phase-description small text-muted mb-2">
                                 Manage client handover documents and sign-offs
                             </p>
-                            <a href="{{ route('projects.handover.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
+                            <a href="{{ isset($enquiry) ? route('enquiries.handover.index', $enquiry) : route('projects.handover.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
                                 <span>Open</span>
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>
@@ -751,7 +793,7 @@
                             <p class="phase-description small text-muted mb-2">
                                 Access final project reports and archives
                             </p>
-                            <a href="{{ route('projects.archival.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
+                            <a href="{{ isset($enquiry) ? route('enquiries.files.archival', $enquiry) : route('projects.archival.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
                                 <span>Open</span>
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>

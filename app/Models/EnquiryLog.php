@@ -11,6 +11,7 @@ class EnquiryLog extends Model
 
     protected $fillable = [
         'project_id',
+        'enquiry_id',
         'project_name',
         'venue',
         'date_received',
@@ -33,5 +34,13 @@ class EnquiryLog extends Model
     public function project()
     {
         return $this->belongsTo(Project::class);
+    }
+
+    /**
+     * Get the enquiry that owns the enquiry log.
+     */
+    public function enquiry()
+    {
+        return $this->belongsTo(Enquiry::class);
     }
 }

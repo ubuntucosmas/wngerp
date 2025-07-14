@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 class ProjectBudget extends Model
 {
     protected $fillable = [
-        'project_id', 'start_date', 'end_date', 'budget_total', 'invoice',
-        'profit', 'approved_by', 'approved_departments', 'status', 'approved_at'
+        'project_id', 'enquiry_id', 'start_date', 'end_date', 'budget_total', 'invoice',
+        'profit', 'approved_by', 'approved_departments', 'status', 'approved_at', 'material_list_id'
     ];
 
     protected $casts = [
@@ -22,5 +22,19 @@ class ProjectBudget extends Model
     public function project()
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function enquiry()
+    {
+        return $this->belongsTo(Enquiry::class);
+    }
+    public function materialList()
+    {
+        return $this->belongsTo(MaterialList::class);
+    }
+
+    public function quote()
+    {
+        return $this->hasOne(Quote::class);
     }
 }

@@ -15,19 +15,22 @@ class ItemTemplate extends Model
         'category_id',
         'name',
         'description',
-        'estimated_cost',
         'created_by',
         'is_active',
     ];
 
     protected $casts = [
-        'estimated_cost' => 'decimal:2',
         'is_active' => 'boolean',
     ];
 
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class, 'project_id');
+    }
+
+    public function quoteLineItems(): HasMany
+    {
+        return $this->hasMany(QuoteLineItem::class, 'template_id');
     }
 
     /**
@@ -67,14 +70,16 @@ class ItemTemplate extends Model
      */
     public function getTotalEstimatedCostAttribute()
     {
-        return $this->estimated_cost ?? 0;
+        return $this->particulars->sum(function ($particular) {
+            return $particular->unit_price * $particular->default_quantity;
+        });
     }
 
     /**
      * Get the template with its particulars loaded.
      */
-    public function loadWithParticulars()
+    public function withParticulars()
     {
-        return $this->load(['particulars', 'category']);
+        return $this->load('particulars');
     }
 }

@@ -72,21 +72,12 @@
                                 @enderror
                                 <small class="form-text text-muted">Template names must be unique within each category.</small>
                             </div>
-                            <div class="col-md-8">
+                            <div class="col-md-12">
                                 <label for="description" class="form-label fw-semibold">Description</label>
-                                <textarea class="form-control @error('description') is-invalid @enderror" 
-                                          id="description" name="description" rows="3" 
+                                <textarea class="form-control @error('description') is-invalid @enderror"
+                                          id="description" name="description" rows="3"
                                           placeholder="Describe the purpose and scope of this template...">{{ old('description') }}</textarea>
                                 @error('description')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="col-md-4">
-                                <label for="estimated_cost" class="form-label fw-semibold">Estimated Cost (KSh)</label>
-                                <input type="number" step="0.01" class="form-control @error('estimated_cost') is-invalid @enderror" 
-                                       id="estimated_cost" name="estimated_cost" value="{{ old('estimated_cost') }}" 
-                                       placeholder="0.00">
-                                @error('estimated_cost')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -269,7 +260,11 @@ $(document).ready(function() {
     });
 
     // Update preview when form fields change
-    $('#name, #description, #estimated_cost').on('input', function() {
+    $('#name, #description').on('input', function() {
+        updatePreview();
+    });
+
+    $(document).on('input', '.particular-row input', function() {
         updatePreview();
     });
 
@@ -280,22 +275,27 @@ $(document).ready(function() {
                 <div class="row g-3">
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">Particular *</label>
-                        <input type="text" name="particulars[${particularIndex}][particular]" 
+                        <input type="text" name="particulars[${particularIndex}][particular]"
                                class="form-control" required placeholder="e.g., Wood, Screws, Paint">
                     </div>
                     <div class="col-md-2">
                         <label class="form-label fw-semibold">Unit</label>
-                        <input type="text" name="particulars[${particularIndex}][unit]" 
+                        <input type="text" name="particulars[${particularIndex}][unit]"
                                class="form-control" placeholder="pcs, m, kg">
                     </div>
                     <div class="col-md-2">
                         <label class="form-label fw-semibold">Quantity *</label>
-                        <input type="number" step="0.01" name="particulars[${particularIndex}][default_quantity]" 
+                        <input type="number" step="0.01" name="particulars[${particularIndex}][default_quantity]"
                                class="form-control" value="1" required min="0">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Unit Price *</label>
+                        <input type="number" step="0.01" name="particulars[${particularIndex}][unit_price]"
+                               class="form-control" value="0.00" required min="0">
+                    </div>
+                    <div class="col-md-1">
                         <label class="form-label fw-semibold">Comment</label>
-                        <input type="text" name="particulars[${particularIndex}][comment]" 
+                        <input type="text" name="particulars[${particularIndex}][comment]"
                                class="form-control" placeholder="Optional notes">
                     </div>
                     <div class="col-md-1">
@@ -327,7 +327,13 @@ $(document).ready(function() {
     function updatePreview() {
         const name = $('#name').val() || 'Template Name';
         const description = $('#description').val() || 'No description provided';
-        const cost = $('#estimated_cost').val() ? `KSh ${parseFloat($('#estimated_cost').val()).toFixed(2)}` : 'Not specified';
+        let totalCost = 0;
+        $('.particular-row').each(function() {
+            const quantity = parseFloat($(this).find('input[name*="[default_quantity]"]').val()) || 0;
+            const unitPrice = parseFloat($(this).find('input[name*="[unit_price]"]').val()) || 0;
+            totalCost += quantity * unitPrice;
+        });
+        const cost = `KSh ${totalCost.toFixed(2)}`;
         const particularsCount = $('.particular-row').length;
 
         const previewHtml = `

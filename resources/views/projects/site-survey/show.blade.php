@@ -30,35 +30,59 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            @if(isset($enquiry))
+                                <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('enquiries.files', $enquiry) }}">{{ $enquiry->project_name }}</a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('enquiries.files.client-engagement', $enquiry) }}">Client Engagement</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">View Site Survey</li>
+                            @else
+                                <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">{{ $project->name }}</a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('projects.files.client-engagement', $project) }}">Client Engagement</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">View Site Survey</li>
+                            @endif
+                        </ol>
+                    </nav>
+                    <h2 class="mb-0">View Site Survey</h2>
+                </div>
+                <div class="page-actions">
+                    <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.files.client-engagement', $enquiry) : route('projects.files.client-engagement', $project) }}" class="btn btn-primary me-2">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Client Engagement
+                    </a>
+                    <a href="{{ isset($enquiry) ? route('enquiries.site-survey.edit', [$enquiry, $siteSurvey]) : route('projects.site-survey.edit', [$project, $siteSurvey]) }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    @if(auth()->user()->hasRole('super-admin'))
+                    <form action="{{ isset($enquiry) ? route('enquiries.site-survey.destroy', ['enquiry' => $enquiry, 'siteSurvey' => $siteSurvey]) : route('projects.site-survey.destroy', ['project' => $project, 'siteSurvey' => $siteSurvey]) }}" method="POST" class="d-inline">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this site survey? This action cannot be undone.')">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </form>
+                    @endif
+                    <a href="{{ isset($enquiry) ? route('enquiries.site-survey.print', [$enquiry, $siteSurvey]) : route('projects.site-survey.print', ['project' => $project]) }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                        <i class="fas fa-print"></i> Print
+                    </a>
+                    <a href="{{ isset($enquiry) ? route('enquiries.site-survey.download', [$enquiry, $siteSurvey]) : route('projects.site-survey.download', ['project' => $project]) }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-download"></i> Download PDF
+                    </a>
+                </div>
+            </div>
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <div class="d-flex gap-2">
-                        <h5 class="mb-0">Site Survey - {{ $project->name }}</h5>
-                        <h5 class="mb-0 text-primary">#{{ $siteSurvey->project->project_id }}</h5>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <a href="{{ route('projects.site-survey.edit', [$project, $siteSurvey]) }}" class="btn btn-sm btn-primary">
-                            <i class="fas fa-edit"></i> Edit
-                        </a>
-                        @if(auth()->user()->hasRole('super-admin'))
-                        <form action="{{ route('projects.site-survey.destroy', ['project' => $project, 'siteSurvey' => $siteSurvey]) }}" method="POST" class="d-inline">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this site survey? This action cannot be undone.')">
-                                <i class="bi bi-trash"></i> Delete
-                            </button>
-                        </form>
+                    <h5 class="mb-0">Site Survey - {{ isset($enquiry) ? $enquiry->project_name : $project->name }}</h5>
+                    <h5 class="mb-0 text-primary">
+                        @if(isset($enquiry))
+                            #ENQ{{ $enquiry->id }}
+                        @else
+                            #{{ $siteSurvey->project->project_id ?? 'N/A' }}
                         @endif
-                        <a href="{{ route('projects.site-survey.print', ['project' => $project]) }}" class="btn btn-sm btn-outline-primary" target="_blank">
-                            <i class="fas fa-print"></i> Print
-                        </a>
-                        <a href="{{ route('projects.site-survey.download', ['project' => $project]) }}" class="btn btn-sm btn-outline-secondary">
-                            <i class="fas fa-download"></i> Download PDF
-                        </a>
-                        <a href="{{ route('projects.files.index', $project) }}" class="btn btn-sm btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Back to Project Files
-                        </a>
-                    </div>
+                    </h5>
                 </div>
 
                 <div class="card-body">
@@ -695,11 +719,11 @@
                         Last updated {{ $siteSurvey->updated_at->diffForHumans() }}
                     </div>
                     <div class="d-flex gap-2">
-                        <a href="{{ route('projects.site-survey.edit', [$project, $siteSurvey]) }}" class="btn btn-outline-primary btn-sm">
+                        <a href="{{ isset($enquiry) ? route('enquiries.site-survey.edit', [$enquiry, $siteSurvey]) : route('projects.site-survey.edit', [$project, $siteSurvey]) }}" class="btn btn-outline-primary btn-sm">
                             <i class="fas fa-edit me-1"></i> Edit
                         </a>
                         @can('delete', $siteSurvey)
-                        <form action="{{ route('projects.site-survey.destroy', [$project, $siteSurvey]) }}" method="POST" class="d-inline" 
+                        <form action="{{ isset($enquiry) ? route('enquiries.site-survey.destroy', [$enquiry, $siteSurvey]) : route('projects.site-survey.destroy', [$project, $siteSurvey]) }}" method="POST" class="d-inline" 
                               onsubmit="return confirm('Are you sure you want to delete this site survey? This action cannot be undone.');">
                             @csrf
                             @method('DELETE')

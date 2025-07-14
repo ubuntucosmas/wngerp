@@ -60,6 +60,25 @@ class PhaseStatusController extends Controller
                 'status' => $request->status
             ]);
 
+            // Check if this is an enquiry phase
+            if ($phase->enquiry_id) {
+                $enquiry = \App\Models\Enquiry::find($phase->enquiry_id);
+                
+                if ($enquiry && $enquiry->areFirstFourPhasesCompleted()) {
+                    // Convert enquiry to project
+                    $project = $enquiry->convertToProject();
+                    if ($project) {
+                        return redirect()->back()->with('success', 'All phases completed! Enquiry has been converted to a project.');
+                    }
+                }
+            } else {
+                // Check if this is the Budget & Quotation phase being completed for a project
+                if ($phase->name === 'Budget & Quotation' && $request->status === 'Completed') {
+                    $project = $phase->project;
+                    $project->createRemainingPhases();
+                }
+            }
+
             return redirect()->back()->with('success', 'Phase status updated successfully!');
 
         } catch (\Exception $e) {
@@ -83,6 +102,23 @@ class PhaseStatusController extends Controller
 
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Failed to update phase status: ' . $e->getMessage());
+        }
+    }
+
+    // Manual trigger for testing - create remaining phases
+    public function createRemainingPhases($projectId)
+    {
+        try {
+            $project = \App\Models\Project::findOrFail($projectId);
+            $result = $project->createRemainingPhases();
+            
+            if ($result) {
+                return redirect()->back()->with('success', 'Remaining phases created successfully!');
+            } else {
+                return redirect()->back()->with('error', 'Budget & Quotation phase must be completed first.');
+            }
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to create remaining phases: ' . $e->getMessage());
         }
     }
 } 

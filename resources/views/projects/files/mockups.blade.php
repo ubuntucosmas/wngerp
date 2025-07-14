@@ -1,15 +1,37 @@
 @extends('layouts.master')
 
-@section('title', 'Project Design Assets')
+@section('title', isset($enquiry) ? 'Enquiry Design Assets' : 'Project Design Assets')
 
 @section('content')
 <div class="container-fluid">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold mb-0">Design Assets for {{ $project->name }}</h2>
-        <a href="{{ route('projects.files.index', $project) }}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Back to Files
-        </a>
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    @if(isset($enquiry))
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.files', $enquiry) }}">{{ $enquiry->project_name }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.files.design-concept', $enquiry) }}">Design & Concept</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Design Mockups</li>
+                    @else
+                        <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">{{ $project->name }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('projects.files.design-concept', $project) }}">Design & Concept</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Design Mockups</li>
+                    @endif
+                </ol>
+            </nav>
+            <h2 class="fw-bold mb-0">Design Mockups</h2>
+        </div>
+        <div class="page-actions">
+            <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.files.design-concept', $enquiry) : route('projects.files.design-concept', $project) }}" class="btn btn-primary me-2">
+                <i class="bi bi-arrow-left me-2"></i>Back to Design & Concept
+            </a>
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addMockupModal">
+                <i class="bi bi-plus-lg me-1"></i> Upload Design Asset
+            </button>
+        </div>
     </div>
 
     <div class="card shadow-sm">
@@ -20,7 +42,8 @@
             </button>
         </div>
         <div class="card-body">
-            @if($designAssets->count() > 0)
+            @php $assets = isset($enquiry) ? $designAssets : $designAssets; @endphp
+            @if($assets && $assets->count() > 0)
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead>
@@ -34,39 +57,30 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($designAssets as $asset)
+                            @foreach($assets as $asset)
                             <tr>
                                 <td>
-                                    <i class="bi bi-file-earmark-{{ str_contains($asset->file_type, 'image') ? 'image' : 'text' }} me-2"></i>
-                                    {{ $asset->name }}
-                                    @if($asset->description)
+                                    <i class="bi bi-file-earmark-{{ str_contains($asset->file_type ?? '', 'image') ? 'image' : 'text' }} me-2"></i>
+                                    {{ $asset->name ?? ($asset->file_name ?? 'Untitled') }}
+                                    @if(!empty($asset->description))
                                         <p class="text-muted small mb-0">{{ Str::limit($asset->description, 50) }}</p>
                                     @endif
                                 </td>
                                 <!-- <td>{{ strtoupper(pathinfo($asset->file_name, PATHINFO_EXTENSION)) }}</td>
                                 <td>{{ $asset->file_size }}</td> -->
-                                <td>{{ $asset->user->name }}</td>
-                                <td>{{ $asset->created_at->format('M d, Y') }}</td>
+                                <td>{{ $asset->user->name ?? 'N/A' }}</td>
+                                <td>{{ $asset->created_at ? \Carbon\Carbon::parse($asset->created_at)->format('M d, Y') : 'N/A' }}</td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
+                                        @if(!empty($asset->file_url))
                                         <a href="{{ $asset->file_url }}" target="_blank" class="btn btn-outline-primary" title="View">
                                             <i class="bi bi-eye"></i>
                                         </a>
                                         <a href="{{ $asset->file_url }}&export=download" class="btn btn-outline-secondary" title="Download">
                                             <i class="bi bi-download"></i>
                                         </a>
-                                        <!-- <button type="button" class="btn btn-outline-warning edit-asset" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#editAssetModal"
-                                                data-id="{{ $asset->id }}"
-                                                data-name="{{ $asset->name }}"
-                                                data-file-url="{{ $asset->file_url }}"
-                                                data-file-type="{{ $asset->file_type }}"
-                                                data-file-size="{{ $asset->file_size }}"
-                                                data-description="{{ $asset->description }}">
-                                            <i class="bi bi-pencil"></i>
-                                        </button> -->
-                                        <form action="{{ route('projects.files.design-assets.destroy', ['project' => $project->id, 'design_asset' => $asset->id]) }}" method="POST" class="d-inline">
+                                        @endif
+                                        <form action="{{ isset($enquiry) ? route('enquiries.files.design-assets.destroy', ['enquiry' => $enquiry->id, 'design_asset' => $asset->id]) : route('projects.files.design-assets.destroy', ['project' => $project->id, 'design_asset' => $asset->id]) }}" method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
                                             <button type="button" class="btn btn-outline-danger delete-asset" title="Delete">
@@ -102,7 +116,7 @@
                 <h5 class="modal-title" id="addMockupModalLabel">Add New Design Asset</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ route('projects.files.design-assets.store', $project) }}" method="POST">
+            <form action="{{ isset($enquiry) ? route('enquiries.files.design-assets.store', $enquiry) : route('projects.files.design-assets.store', $project) }}" method="POST">
                 @csrf
                 <div class="modal-body">
                     <div class="mb-3">
@@ -124,42 +138,6 @@
                         @enderror
                         <div class="form-text">Paste the shareable link from Google Drive</div>
                     </div>
-
-                    <!-- <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="file_type" class="form-label">File Type <span class="text-danger">*</span></label>
-                                <select class="form-select @error('file_type') is-invalid @enderror" id="file_type" name="file_type" required>
-                                    <option value="" disabled selected>Select file type</option>
-                                    <option value="image/jpeg" {{ old('file_type') == 'image/jpeg' ? 'selected' : '' }}>JPEG Image</option>
-                                    <option value="image/png" {{ old('file_type') == 'image/png' ? 'selected' : '' }}>PNG Image</option>
-                                    <option value="application/pdf" {{ old('file_type') == 'application/pdf' ? 'selected' : '' }}>PDF Document</option>
-                                    <option value="application/msword" {{ old('file_type') == 'application/msword' ? 'selected' : '' }}>Word Document</option>
-                                    <option value="application/vnd.ms-excel" {{ old('file_type') == 'application/vnd.ms-excel' ? 'selected' : '' }}>Excel Spreadsheet</option>
-                                    <option value="application/zip" {{ old('file_type') == 'application/zip' ? 'selected' : '' }}>ZIP Archive</option>
-                                    <option value="other" {{ old('file_type') == 'other' ? 'selected' : '' }}>Other</option>
-                                </select>
-                                @error('file_type')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="file_size" class="form-label">File Size <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control @error('file_size') is-invalid @enderror" 
-                                           id="file_size" name="file_size" 
-                                           value="{{ old('file_size') }}" 
-                                           step="0.1" min="0">
-                                    <span class="input-group-text">MB</span>
-                                    @error('file_size')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
-                    </div> -->
 
                     <div class="mb-3">
                         <label for="description" class="form-label">Description</label>
@@ -294,14 +272,22 @@
         });
 
         // Edit asset modal handler
+        @if(isset($project) || isset($enquiry))
         document.querySelectorAll('.edit-asset').forEach(button => {
             button.addEventListener('click', function() {
                 const modal = document.getElementById('editAssetModal');
-                const projectId = {{ $project->id }};
                 const assetId = this.dataset.id;
+                @if(isset($project))
+                const projectId = {{ $project->id }};
                 const updateUrl = `{{ route('projects.files.design-assets.update', ['project' => ':projectId', 'design_asset' => ':assetId']) }}`
                     .replace(':projectId', projectId)
                     .replace(':assetId', assetId);
+                @elseif(isset($enquiry))
+                const enquiryId = {{ $enquiry->id }};
+                const updateUrl = `{{ route('enquiries.files.design-assets.update', ['enquiry' => ':enquiryId', 'design_asset' => ':assetId']) }}`
+                    .replace(':enquiryId', enquiryId)
+                    .replace(':assetId', assetId);
+                @endif
                 
                 // Set form action
                 const form = modal.querySelector('form');
@@ -315,6 +301,7 @@
                 form.querySelector('#edit_description').value = this.dataset.description || '';
             });
         });
+        @endif
 
         // Auto-detect file type and size in edit modal
         const editFileUrlInput = document.getElementById('edit_file_url');

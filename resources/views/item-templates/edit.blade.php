@@ -63,19 +63,11 @@
                 </div>
 
                 <div class="row mb-4">
-                    <div class="col-md-8">
+                    <div class="col-md-12">
                         <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control @error('description') is-invalid @enderror" 
+                        <textarea class="form-control @error('description') is-invalid @enderror"
                                   id="description" name="description" rows="3">{{ old('description', $itemTemplate->description) }}</textarea>
                         @error('description')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="col-md-4">
-                        <label for="estimated_cost" class="form-label">Estimated Cost (KSh)</label>
-                        <input type="number" step="0.01" class="form-control @error('estimated_cost') is-invalid @enderror" 
-                               id="estimated_cost" name="estimated_cost" value="{{ old('estimated_cost', $itemTemplate->estimated_cost) }}">
-                        @error('estimated_cost')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
@@ -112,22 +104,27 @@
                                 <div class="row">
                                     <div class="col-md-4">
                                         <label class="form-label">Particular *</label>
-                                        <input type="text" name="particulars[{{ $index }}][particular]" 
+                                        <input type="text" name="particulars[{{ $index }}][particular]"
                                                class="form-control" value="{{ $particular->particular }}" required>
                                     </div>
                                     <div class="col-md-2">
                                         <label class="form-label">Unit</label>
-                                        <input type="text" name="particulars[{{ $index }}][unit]" 
+                                        <input type="text" name="particulars[{{ $index }}][unit]"
                                                class="form-control" value="{{ $particular->unit }}" placeholder="e.g., pcs, m, kg">
                                     </div>
                                     <div class="col-md-2">
                                         <label class="form-label">Quantity *</label>
-                                        <input type="number" step="0.01" name="particulars[{{ $index }}][default_quantity]" 
+                                        <input type="number" step="0.01" name="particulars[{{ $index }}][default_quantity]"
                                                class="form-control" value="{{ $particular->default_quantity }}" required>
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
+                                        <label class="form-label">Unit Price *</label>
+                                        <input type="number" step="0.01" name="particulars[{{ $index }}][unit_price]"
+                                               class="form-control" value="{{ $particular->unit_price ?? '0.00' }}" required>
+                                    </div>
+                                    <div class="col-md-1">
                                         <label class="form-label">Comment</label>
-                                        <input type="text" name="particulars[{{ $index }}][comment]" 
+                                        <input type="text" name="particulars[{{ $index }}][comment]"
                                                class="form-control" value="{{ $particular->comment }}" placeholder="Optional notes">
                                     </div>
                                     <div class="col-md-1">
@@ -182,22 +179,27 @@ $(document).ready(function() {
                 <div class="row">
                     <div class="col-md-4">
                         <label class="form-label">Particular *</label>
-                        <input type="text" name="particulars[${particularIndex}][particular]" 
+                        <input type="text" name="particulars[${particularIndex}][particular]"
                                class="form-control" required>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Unit</label>
-                        <input type="text" name="particulars[${particularIndex}][unit]" 
+                        <input type="text" name="particulars[${particularIndex}][unit]"
                                class="form-control" placeholder="e.g., pcs, m, kg">
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">Quantity *</label>
-                        <input type="number" step="0.01" name="particulars[${particularIndex}][default_quantity]" 
+                        <input type="number" step="0.01" name="particulars[${particularIndex}][default_quantity]"
                                class="form-control" value="1" required>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
+                        <label class="form-label">Unit Price *</label>
+                        <input type="number" step="0.01" name="particulars[${particularIndex}][unit_price]"
+                               class="form-control" value="0.00" required>
+                    </div>
+                    <div class="col-md-1">
                         <label class="form-label">Comment</label>
-                        <input type="text" name="particulars[${particularIndex}][comment]" 
+                        <input type="text" name="particulars[${particularIndex}][comment]"
                                class="form-control" placeholder="Optional notes">
                     </div>
                     <div class="col-md-1">

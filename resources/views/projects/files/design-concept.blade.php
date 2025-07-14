@@ -1,36 +1,39 @@
 @extends('layouts.master')
 
-@section('title', 'Design & Concept - ' . $project->name)
+@section('title', 'Design & Concept - ' . (isset($enquiry) ? $enquiry->project_name : $project->name))
 @section('navbar-title', 'Design & Concept')
 
 @section('content')
 <div class="px-3 mx-10 w-100">
-    <!-- Back button and breadcrumb -->
-    <div class="d-flex align-items-center mb-4">
-        <a href="{{ route('projects.files.index', $project) }}" class="btn btn-outline-secondary btn-sm me-3">
-            <i class="bi bi-arrow-left"></i> Back to Project Files
-        </a>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">Project Files</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Design & Concept</li>
-            </ol>
-        </nav>
-    </div>
-
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    @if(isset($enquiry))
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.files', $enquiry) }}">{{ $enquiry->project_name }}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Design & Concept</li>
+                    @else
+                        <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">{{ $project->name }}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Design & Concept</li>
+                    @endif
+                </ol>
+            </nav>
             <h2 class="mb-1">Design & Concept Development</h2>
             <p class="text-muted mb-0">Files and documents related to design and concept development</p>
         </div>
+        <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.files', $enquiry) : route('projects.files.index', $project) }}" class="btn btn-primary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Files & Phases
+        </a>
     </div>
 
     <!-- Files Grid -->
     <div class="row">
         <!-- Mockups Card -->
         <div class="col-lg-6 col-md-6 mb-4">
-            <a href="{{ route('projects.files.mockups', $project) }}" class="text-decoration-none">
+            <a href="{{ isset($enquiry) ? route('enquiries.files.mockups', $enquiry) : route('projects.files.mockups', $project) }}" class="text-decoration-none">
                 <div class="file-card h-100">
                     <div class="d-flex align-items-start">
                         <div class="file-card-icon me-3">
@@ -43,13 +46,22 @@
                             </p>
                             <div class="d-flex justify-content-between align-items-center mt-2">
                                 <span class="badge bg-light text-dark">Design</span>
-                                <small class="text-muted">{{ $designAssets->count() }} files</small>
+                                <small class="text-muted">{{ isset($enquiry) ? '0' : $designAssets->count() }} files</small>
                             </div>
                         </div>
                     </div>
                 </div>
             </a>
         </div>
+
+    @if(isset($enquiry))
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>Design & Concept Development</strong> functionality will be available once the enquiry is converted to a project.
+            </div>
+        </div>
+    @endif
 
     <style>
         .file-card {

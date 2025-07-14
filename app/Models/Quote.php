@@ -10,7 +10,9 @@ class Quote extends Model
 {
     protected $fillable = [
         'project_id',
+        'enquiry_id',
         'customer_name',
+        'project_budget_id',
         'customer_location',
         'attention',
         'quote_date',
@@ -28,8 +30,18 @@ class Quote extends Model
         return $this->belongsTo(Project::class);
     }
 
+    public function enquiry(): BelongsTo
+    {
+        return $this->belongsTo(Enquiry::class);
+    }
+
     public function lineItems(): HasMany
     {
         return $this->hasMany(QuoteLineItem::class);
+    }
+    
+    public function projectBudget()
+    {
+        return $this->belongsTo(ProjectBudget::class);
     }
 }

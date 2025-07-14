@@ -12,8 +12,8 @@ use App\Http\Controllers\{
     FileUploadController, QuoteController, EnquiryController, projects\ProjectBudgetController, MaterialListController, projects\SetupController,
     projects\HandoverController, projects\SetDownReturnController, projects\ArchivalReportController,
 };
-
-Route::get('/', fn () => view('auth.login'));
+use App\Models\Inventory;
+use Illuminate\Http\Request;
 
 Route::get('/admin/dashboard', fn () => view('admin.dashboard'))
     ->middleware(['auth', 'verified'])
@@ -164,19 +164,146 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
     Route::put('/projects/{project}/assign', [ProjectController::class, 'assignProjectOfficer'])->name('projects.assign');
     Route::delete('/projects/{id}', [ProjectController::class, 'destroy'])->name('projects.destroy');
     Route::get('/projects/active', [ProjectController::class, 'active'])->name('projects.active');
+});
 
 
     // Enquiries Routes
     Route::get('/projects/enquiry', [EnquiryController::class, 'index'])->name('enquiries.index');
     Route::post('/projects/enquiry', [EnquiryController::class, 'store'])->name('enquiries.store');
     Route::get('/projects/enquiry/create', [EnquiryController::class, 'create'])->name('enquiries.create');
-    Route::get('/projects/enquiry/{enquiry}', [EnquiryController::class, 'show'])->name('enquiries.show');
+
+    Route::get('/projects/enquiry/{enquiry}/files', [EnquiryController::class, 'files'])->name('enquiries.files');
+    Route::get('/projects/enquiry/{enquiry}/edit', [EnquiryController::class, 'edit'])->name('enquiries.edit');
+    
+    // Enquiry Log routes for enquiries
+    Route::get('/projects/enquiry/{enquiry}/enquiry-log/create', [EnquiryController::class, 'createEnquiryLog'])->name('enquiries.enquiry-log.create');
+    Route::post('/projects/enquiry/{enquiry}/enquiry-log', [EnquiryController::class, 'storeEnquiryLog'])->name('enquiries.enquiry-log.store');
+    Route::get('/projects/enquiry/{enquiry}/enquiry-log/{enquiryLog}', [EnquiryController::class, 'showEnquiryLog'])->name('enquiries.enquiry-log.show');
+    Route::get('/projects/enquiry/{enquiry}/enquiry-log/{enquiryLog}/edit', [EnquiryController::class, 'editEnquiryLog'])->name('enquiries.enquiry-log.edit');
+    Route::put('/projects/enquiry/{enquiry}/enquiry-log/{enquiryLog}', [EnquiryController::class, 'updateEnquiryLog'])->name('enquiries.enquiry-log.update');
+    Route::delete('/projects/enquiry/{enquiry}/enquiry-log/{enquiryLog}', [EnquiryController::class, 'destroyEnquiryLog'])->name('enquiries.enquiry-log.destroy');
+    Route::get('/projects/enquiry/{enquiry}/enquiry-log/{enquiryLog}/download', [EnquiryController::class, 'downloadEnquiryLog'])->name('enquiries.enquiry-log.download');
+    Route::get('/projects/enquiry/{enquiry}/enquiry-log/{enquiryLog}/print', [EnquiryController::class, 'printEnquiryLog'])->name('enquiries.enquiry-log.print');
+    Route::get('/projects/enquiry/{enquiry}/enquiry-log/{enquiryLog}/export', [EnquiryController::class, 'exportEnquiryLog'])->name('enquiries.enquiry-log.export');
+    
+    // Site Survey routes for enquiries
+    Route::get('/projects/enquiry/{enquiry}/site-survey/create', [EnquiryController::class, 'createSiteSurvey'])->name('enquiries.site-survey.create');
+    Route::post('/projects/enquiry/{enquiry}/site-survey', [EnquiryController::class, 'storeSiteSurvey'])->name('enquiries.site-survey.store');
+    Route::get('/projects/enquiry/{enquiry}/site-survey/{siteSurvey}', [EnquiryController::class, 'showSiteSurvey'])->name('enquiries.site-survey.show');
+    Route::get('/projects/enquiry/{enquiry}/site-survey/{siteSurvey}/edit', [App\Http\Controllers\EnquiryController::class, 'editSiteSurvey'])->name('enquiries.site-survey.edit');
+    Route::put('/projects/enquiry/{enquiry}/site-survey/{siteSurvey}', [App\Http\Controllers\EnquiryController::class, 'updateSiteSurvey'])->name('enquiries.site-survey.update');
+    Route::delete('/projects/enquiry/{enquiry}/site-survey/{siteSurvey}', [App\Http\Controllers\EnquiryController::class, 'destroySiteSurvey'])->name('enquiries.site-survey.destroy');
+    Route::get('/projects/enquiry/{enquiry}/site-survey/{siteSurvey}/download', [EnquiryController::class, 'downloadSiteSurvey'])->name('enquiries.site-survey.download');
+    Route::get('/projects/enquiry/{enquiry}/site-survey/{siteSurvey}/print', [EnquiryController::class, 'printSiteSurvey'])->name('enquiries.site-survey.print');
     Route::get('/projects/enquiry/{enquiry}/edit', [EnquiryController::class, 'edit'])->name('enquiries.edit');
     Route::put('/projects/enquiry/{enquiry}', [EnquiryController::class, 'update'])->name('enquiries.update');
     Route::delete('/projects/enquiry/{enquiry}', [EnquiryController::class, 'destroy'])->name('enquiries.destroy');
+    
+    // Additional enquiry routes for phase functionality
+    Route::get('/projects/enquiry/{enquiry}/files/client-engagement', [EnquiryController::class, 'showClientEngagement'])->name('enquiries.files.client-engagement');
+    Route::get('/projects/enquiry/{enquiry}/files/design-concept', [EnquiryController::class, 'showDesignConcept'])->name('enquiries.files.design-concept');
+    Route::get('/projects/enquiry/{enquiry}/files/setup', [EnquiryController::class, 'showSetup'])->name('enquiries.files.setup');
+    Route::get('/projects/enquiry/{enquiry}/files/archival', [EnquiryController::class, 'showArchival'])->name('enquiries.files.archival');
+    Route::get('/projects/enquiry/{enquiry}/files/quotation', [EnquiryController::class, 'showQuotation'])->name('enquiries.files.quotation');
+    
+    
+    // Placeholder routes for enquiry functionality (coming soon)
+    Route::get('/projects/enquiry/{enquiry}/material-list', [EnquiryController::class, 'materialList'])->name('enquiries.material-list.index');
+    Route::get('/projects/enquiry/{enquiry}/material-list/{materialList}', [EnquiryController::class, 'showMaterialList'])->name('enquiries.material-list.show');
+    Route::get('/projects/enquiry/{enquiry}/logistics', [EnquiryController::class, 'logistics'])->name('enquiries.logistics.index');
+    Route::get('/projects/enquiry/{enquiry}/quotation', [EnquiryController::class, 'quotation'])->name('enquiries.quotation.index');
+    Route::get('/projects/enquiry/{enquiry}/handover', [EnquiryController::class, 'handover'])->name('enquiries.handover.index');
+    Route::get('/projects/enquiry/{enquiry}/set-down-return', [EnquiryController::class, 'setDownReturn'])->name('enquiries.set-down-return.index');
+    Route::get('/projects/enquiry/{enquiry}/production', [EnquiryController::class, 'production'])->name('enquiries.production.index');
+
     Route::post('/enquiries/{enquiry}/convert-to-project', [ProjectController::class, 'convertFromEnquiry'])->name('projects.convertFromEnquiry');
+    Route::post('/enquiries/{enquiry}/convert', [EnquiryController::class, 'convertToProject'])->name('enquiries.convert');
 
+    // Enquiry Budgets
+    Route::prefix('enquiries/{enquiry}')->group(function () {
+        Route::get('budgets', [ProjectBudgetController::class, 'index'])->name('enquiries.budget.index');
+        Route::get('budgets/create', [ProjectBudgetController::class, 'create'])->name('enquiries.budget.create');
+        Route::post('budgets', [ProjectBudgetController::class, 'store'])->name('enquiries.budget.store');
+        Route::get('budgets/{budget}', [ProjectBudgetController::class, 'show'])->name('enquiries.budget.show');
+        Route::get('budgets/{budget}/edit', [ProjectBudgetController::class, 'edit'])->name('enquiries.budget.edit');
+        Route::put('budgets/{budget}', [ProjectBudgetController::class, 'update'])->name('enquiries.budget.update');
+        Route::delete('budgets/{budget}', [ProjectBudgetController::class, 'destroy'])->name('enquiries.budget.destroy');
+        Route::get('budgets/{budget}/export', [ProjectBudgetController::class, 'export'])->name('enquiries.budget.export');
+        Route::get('budgets/{budget}/download', [ProjectBudgetController::class, 'download'])->name('enquiries.budget.download');
+        Route::get('budgets/{budget}/print', [ProjectBudgetController::class, 'print'])->name('enquiries.budget.print');
+        Route::post('budgets/{budget}/approve', [ProjectBudgetController::class, 'approve'])->name('enquiries.budget.approve');
+    });
 
+    // Enquiry Budgets
+    Route::prefix('enquiries/{enquiry}')->group(function () {
+        Route::get('budgets', [ProjectBudgetController::class, 'index'])->name('enquiries.budget.index');
+        Route::get('budgets/create', [ProjectBudgetController::class, 'create'])->name('enquiries.budget.create');
+        Route::post('budgets', [ProjectBudgetController::class, 'store'])->name('enquiries.budget.store');
+        Route::get('budgets/{budget}', [ProjectBudgetController::class, 'show'])->name('enquiries.budget.show');
+        Route::get('budgets/{budget}/edit', [ProjectBudgetController::class, 'edit'])->name('enquiries.budget.edit');
+        Route::put('budgets/{budget}', [ProjectBudgetController::class, 'update'])->name('enquiries.budget.update');
+        Route::delete('budgets/{budget}', [ProjectBudgetController::class, 'destroy'])->name('enquiries.budget.destroy');
+        Route::get('budgets/{budget}/export', [ProjectBudgetController::class, 'export'])->name('enquiries.budget.export');
+        Route::get('budgets/{budget}/download', [ProjectBudgetController::class, 'download'])->name('enquiries.budget.download');
+        Route::get('budgets/{budget}/print', [ProjectBudgetController::class, 'print'])->name('enquiries.budget.print');
+        Route::post('budgets/{budget}/approve', [ProjectBudgetController::class, 'approve'])->name('enquiries.budget.approve');
+    });
+
+    
+
+    
+
+    
+
+    // Enquiry Quotes
+    Route::prefix('enquiries/{enquiry}')->group(function () {
+        Route::get('quotes', [QuoteController::class, 'index'])->name('enquiries.quotes.index');
+        Route::get('quotes/create', [QuoteController::class, 'create'])->name('enquiries.quotes.create');
+        Route::post('quotes', [QuoteController::class, 'store'])->name('enquiries.quotes.store');
+        Route::get('quotes/{quote}', [QuoteController::class, 'show'])->name('enquiries.quotes.show');
+        Route::get('quotes/{quote}/edit', [QuoteController::class, 'edit'])->name('enquiries.quotes.edit');
+        Route::put('quotes/{quote}', [QuoteController::class, 'update'])->name('enquiries.quotes.update');
+        Route::delete('quotes/{quote}', [QuoteController::class, 'destroy'])->name('enquiries.quotes.destroy');
+        Route::get('quotes/{quote}/download', [QuoteController::class, 'downloadQuote'])->name('enquiries.quotes.download');
+        Route::get('quotes/{quote}/print', [QuoteController::class, 'printQuote'])->name('enquiries.quotes.print');
+        Route::get('quotes/{quote}/excel', [QuoteController::class, 'exportExcel'])->name('enquiries.quotes.excel');
+    });
+
+    // Enquiry Material List Routes
+    Route::prefix('enquiries/{enquiry}/material-list')->name('enquiries.material-list.')->group(function () {
+        Route::get('/', [MaterialListController::class, 'index'])->name('index');
+        Route::get('/create', [MaterialListController::class, 'create'])->name('create');
+        Route::post('/', [MaterialListController::class, 'store'])->name('store');
+        Route::get('/{materialList}/show', [MaterialListController::class, 'show'])->name('show');
+        Route::get('/{materialList}/download', [MaterialListController::class, 'downloadPdf'])->name('download');
+        Route::get('/{materialList}/export-excel', [MaterialListController::class, 'exportExcel'])->name('exportExcel');
+        Route::get('/{materialList}/print', [MaterialListController::class, 'printPdf'])->name('print');
+        Route::get('/{materialList}/edit', [MaterialListController::class, 'edit'])->name('edit');
+        Route::put('/{materialList}', [MaterialListController::class, 'update'])->name('update')->where('materialList', '[0-9]+');
+        Route::delete('/{materialList}', [MaterialListController::class, 'destroy'])->name('destroy')->where('materialList', '[0-9]+');
+        Route::post('/{materialList}/approve', [MaterialListController::class, 'approve'])->name('approve')->where('materialList', '[0-9]+');
+        Route::get('/{materialList}/export/{format?}', [MaterialListController::class, 'export'])->name('export')->where('materialList', '[0-9]+');
+    });
+
+    // Enquiry Design Assets
+    Route::post('enquiries/{enquiry}/files/design-assets', [ProjectFileController::class, 'storeDesignAsset'])->name('enquiries.files.design-assets.store');
+    Route::put('enquiries/{enquiry}/files/design-assets/{design_asset}', [ProjectFileController::class, 'updateDesignAsset'])->name('enquiries.files.design-assets.update');
+    Route::delete('enquiries/{enquiry}/files/design-assets/{design_asset}', [ProjectFileController::class, 'destroyDesignAsset'])->name('enquiries.files.design-assets.destroy');
+
+    // Enquiry-specific file routes (similar to project routes but for enquiries)
+    Route::prefix('projects/enquiry/{enquiry}')->middleware(['role:pm|po|super-admin'])->group(function () {
+        // Enquiry Files Routes
+        Route::get('files/client-engagement', [EnquiryController::class, 'showClientEngagement'])->name('enquiries.files.client-engagement');
+        Route::get('files/design-concept', [EnquiryController::class, 'showDesignConcept'])->name('enquiries.files.design-concept');
+        Route::get('files/setup', [SetupController::class, 'index'])->name('enquiries.files.setup');
+        Route::get('files/mockups', [EnquiryController::class, 'showMockups'])->name('enquiries.files.mockups');
+        Route::post('files/design-assets', [ProjectFileController::class, 'storeDesignAsset'])->name('enquiries.files.design-assets.store');
+        Route::put('files/design-assets/{design_asset}', [ProjectFileController::class, 'updateDesignAsset'])->name('enquiries.files.design-assets.update');
+        Route::delete('files/design-assets/{design_asset}', [ProjectFileController::class, 'destroyDesignAsset'])->name('enquiries.files.design-assets.destroy');
+    });
+
+    // Project Manager / Project Officer Routes
+    Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
     // Phases & Tasks
     Route::post('/phases', [PhaseController::class, 'store'])->name('phases.store');
     Route::get('/phases/{id}/edit', [PhaseController::class, 'edit'])->name('phases.edit');
@@ -193,11 +320,13 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
     Route::post('/phases/{phaseId}/update-status', [\App\Http\Controllers\projects\PhaseStatusController::class, 'updateStatus'])->name('phases.update-status');
     Route::post('/phases/{phaseId}/update-status-simple', [\App\Http\Controllers\projects\PhaseStatusController::class, 'updateStatusSimple'])->name('phases.update-status-simple');
     Route::get('/phases/{phaseId}/status/{status}', [\App\Http\Controllers\projects\PhaseStatusController::class, 'updateStatusDirect'])->name('phases.update-status-direct');
+        Route::get('/projects/{projectId}/create-remaining-phases', [\App\Http\Controllers\projects\PhaseStatusController::class, 'createRemainingPhases'])->name('phases.create-remaining');
     Route::post('/tasks/{task}/deliverables', [DeliverableController::class, 'store'])->name('tasks.deliverables.store');
     Route::post('/phases/{phase}/attachments', [PhaseController::class, 'storeAttachment'])->name('phases.storeAttachment');
     Route::delete('/attachments/{id}', [PhaseController::class, 'deleteAttachment'])->name('attachments.delete');
 
     Route::resource('clients', ClientController::class);
+    });
 
     Route::prefix('projects/{project}')->middleware(['role:pm|po|super-admin'])->group(function () {
         // Site Survey Routes
@@ -221,6 +350,8 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
         Route::post('files/design-assets', [ProjectFileController::class, 'storeDesignAsset'])->name('projects.files.design-assets.store');
         Route::put('files/design-assets/{design_asset}', [ProjectFileController::class, 'updateDesignAsset'])->name('projects.files.design-assets.update');
         Route::delete('files/design-assets/{design_asset}', [ProjectFileController::class, 'destroyDesignAsset'])->name('projects.files.design-assets.destroy');
+
+        
         Route::get('files/download-template/{template}', [ProjectFileController::class, 'downloadTemplate'])->name('projects.files.download-template');
         Route::get('files/print-template/{template}', [ProjectFileController::class, 'printTemplate'])->name('projects.files.print-template');
 
@@ -288,6 +419,8 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
                 ->where('materialList', '[0-9]+');
         });
 
+        
+
         // Item Templates Routes (for using templates in material lists)
         Route::prefix('templates')->name('projects.templates.')->group(function () {
             // Get templates for material list creation
@@ -344,6 +477,8 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
             Route::get('/{quote}/excel', [QuoteController::class, 'exportExcel'])->name('excel');
         });
 
+        
+
         Route::get('budgets', [ProjectBudgetController::class, 'index'])->name('budget.index');
         Route::get('budgets/create', [ProjectBudgetController::class, 'create'])->name('budget.create');
         Route::post('budgets', [ProjectBudgetController::class, 'store'])->name('budget.store');
@@ -355,13 +490,24 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
         Route::delete('budgets/{budget}', [ProjectBudgetController::class, 'destroy'])->name('budget.destroy');
         
         Route::get('budgets/{budget}/export', [\App\Http\Controllers\projects\ProjectBudgetController::class, 'export'])->name('budget.export');
-        
+        Route::get('budgets/{budget}/download', [\App\Http\Controllers\projects\ProjectBudgetController::class, 'download'])->name('budget.download');
+        Route::get('budgets/{budget}/print', [\App\Http\Controllers\projects\ProjectBudgetController::class, 'print'])->name('budget.print');
         Route::post('budgets/{budget}/approve', [\App\Http\Controllers\projects\ProjectBudgetController::class, 'approve'])->name('budget.approve');
+        
+        });
+
+    
+
+    
+
+    
+
+//francis
         
 //francis
 
         // Production Routes
-        Route::prefix('production')->name('projects.production.')->group(function () {
+        Route::prefix('production/{project}')->name('projects.production.')->group(function () {
             // Main production dashboard
             Route::get('/', [\App\Http\Controllers\projects\ProductionController::class, 'index'])->name('index');
             
@@ -399,12 +545,7 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
         
         Route::get('files/download-template/{template}', [ProjectFileController::class, 'downloadTemplate'])->name('projects.files.download-template');
         Route::get('files/print-template/{template}', [ProjectFileController::class, 'printTemplate'])->name('projects.files.print-template');
-
-
-
-    });
     ///end of francis
-});
 
 // API Routes
 Route::get('/api/inventory/items', [\App\Http\Controllers\API\InventoryController::class, 'index'])
@@ -464,9 +605,6 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
-use App\Models\Inventory;
-use Illuminate\Http\Request;
-
 Route::get('/api/search-inventory', function (Request $request) {
     $q = $request->input('q');
 
@@ -483,3 +621,7 @@ Route::get('/api/search-inventory', function (Request $request) {
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
 
 require __DIR__ . '/auth.php';
+
+Route::get('/', function () {
+    return redirect()->route('projects.index');
+})->middleware(['auth'])->name('home');

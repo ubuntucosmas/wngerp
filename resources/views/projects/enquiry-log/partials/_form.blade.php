@@ -10,7 +10,7 @@
         <div class="form-group">
             <label for="venue" class="form-label small text-muted mb-1">Venue</label>
             <input type="text" name="venue" class="form-control form-control-sm" 
-                   value="{{ old('venue', $enquiryLog->venue ?? ($project->venue ?? '')) }}" required {{ isset($project) ? 'readonly' : '' }}>
+                   value="{{ old('venue', $enquiryLog->venue ?? (isset($enquiry) ? $enquiry->venue : ($project->venue ?? ''))) }}" required {{ isset($project) ? 'readonly' : '' }}>
         </div>
     </div>
     
@@ -20,6 +20,8 @@
                 $dateReceived = old('date_received');
                 if (!$dateReceived && isset($enquiryLog->date_received)) {
                     $dateReceived = $enquiryLog->date_received;
+                } elseif (!$dateReceived && isset($enquiry) && $enquiry->date_received) {
+                    $dateReceived = $enquiry->date_received;
                 } elseif (!$dateReceived && isset($project->enquirySource->date_received)) {
                     $dateReceived = $project->enquirySource->date_received;
                 } else {
@@ -41,7 +43,7 @@
         <div class="form-group">
             <label for="client_name" class="form-label small text-muted mb-1">Client Name</label>
             <input type="text" name="client_name" class="form-control form-control-sm" 
-                   value="{{ old('client_name', $enquiryLog->client_name ?? ($project->client_name ?? '')) }}" required {{ isset($project) ? 'readonly' : '' }}>
+                   value="{{ old('client_name', $enquiryLog->client_name ?? (isset($enquiry) ? $enquiry->client_name : ($project->client_name ?? ''))) }}" required {{ isset($project) ? 'readonly' : '' }}>
         </div>
     </div>
     
@@ -50,7 +52,7 @@
         <div class="form-group">
             <label for="contact_person" class="form-label small text-muted mb-1">Contact Person</label>
             <input type="text" name="contact_person" class="form-control form-control-sm" 
-                   value="{{ old('contact_person', $enquiryLog->contact_person ?? $project->contact_person ?? '') }}">
+                   value="{{ old('contact_person', $enquiryLog->contact_person ?? (isset($enquiry) ? $enquiry->contact_person : ($project->contact_person ?? ''))) }}">
         </div>
     </div>
     
@@ -72,8 +74,14 @@
             <label class="form-label small text-muted mb-1">Project Officer</label>
             @php
                 // Get the project officer's name or fallback to enquiry source or empty string
+                if (isset($project)) {
                 $projectOfficerName = $project->projectOfficer->name ?? 
                                     ($project->enquirySource->assigned_to ?? 'Not assigned');
+                } elseif (isset($enquiry)) {
+                    $projectOfficerName = $enquiry->assigned_po ?? 'Not assigned';
+                } else {
+                    $projectOfficerName = 'Not assigned';
+                }
             @endphp
             <input type="text" class="form-control form-control-sm bg-light" 
                    value="{{ $projectOfficerName }}" readonly>

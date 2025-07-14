@@ -1,56 +1,66 @@
 @extends('layouts.master')
 
-@section('title', 'View Project Budget')
+@section('title', 'View ' . (isset($enquiry) ? 'Enquiry' : 'Project') . ' Budget')
 
 @section('content')
-<nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 rounded shadow-sm">
-    <div class="container-fluid">
-        <a class="navbar-brand fw-bold text-primary" href="{{ route('projects.index', $project->id) }}">
-            <i class="bi bi-house-door"></i> Project Dashboard
-        </a>
-        <div class="collapse navbar-collapse">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('budget.edit', [$project->id, $budget->id]) }}">
-                        <i class="bi bi-pencil-square"></i> Edit Budget
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-success" href="{{ route('budget.export', [$project->id, $budget->id]) }}">
-                <i class="bi bi-download"></i> Export to Excel
+@php
+    // For converted projects, use enquirySource as enquiry
+    $currentEnquiry = $enquiry ?? ($enquirySource ?? null);
+@endphp
+<div class="px-3 mx-10 w-100">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    @if(isset($enquiry))
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.files', $enquiry) }}">{{ $enquiry->project_name }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.files.quotation', $enquiry) }}">Budget & Quotation</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.budget.index', $enquiry) }}">Budgets</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">View Budget</li>
+                    @else
+                        <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">{{ $project->name }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('projects.quotation.index', $project) }}">Budget & Quotation</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('budget.index', $project) }}">Budgets</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">View Budget</li>
+                    @endif
+                </ol>
+            </nav>
+            <h2 class="mb-0">View Budget</h2>
+        </div>
+        <div class="page-actions">
+            <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.budget.index', $enquiry) : route('budget.index', $project) }}" class="btn btn-primary me-2">
+                <i class="bi bi-arrow-left me-2"></i>Back to Budgets
             </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('budget.index', $project->id) }}">
-                        <i class="bi bi-arrow-left"></i> Back to Budgets
-                    </a>
-                </li>
-            </ul>
-            @if($budget->status !== 'approved')
-                <form method="POST" action="{{ route('budget.approve', [$project->id, $budget->id]) }}" class="d-flex ms-auto">
-                    @csrf
-                    <button type="submit" class="btn btn-success fw-bold">
-                        <i class="bi bi-check-circle"></i> Approve Budget
-                    </button>
-                </form>
-            @endif
+            <a href="{{ isset($currentEnquiry) ? route('enquiries.budget.edit', [$currentEnquiry, $budget]) : (isset($project) ? route('budget.edit', [$project, $budget]) : '#') }}" class="btn btn-info me-2">
+                <i class="bi bi-pencil me-2"></i>Edit
+            </a>
+            <a href="{{ isset($currentEnquiry) ? route('enquiries.budget.download', [$currentEnquiry, $budget]) : (isset($project) ? route('budget.download', [$project, $budget]) : '#') }}" class="btn btn-secondary me-2">
+                <i class="bi bi-file-earmark-pdf me-2"></i>Download PDF
+            </a>
+            <a href="{{ isset($currentEnquiry) ? route('enquiries.budget.print', [$currentEnquiry, $budget]) : (isset($project) ? route('budget.print', [$project, $budget]) : '#') }}" class="btn btn-secondary me-2" target="_blank">
+                <i class="bi bi-printer me-2"></i>Print
+            </a>
+            <a href="{{ isset($currentEnquiry) ? route('enquiries.budget.export', [$currentEnquiry, $budget]) : (isset($project) ? route('budget.export', [$project, $budget]) : '#') }}" class="btn btn-secondary">
+                <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
+            </a>
         </div>
     </div>
-</nav>
-<div class="container mt-4">
+
     {{-- Project/Budget Summary --}}
     <div class="row mb-4">
         <div class="col-lg-8">
             <div class="card shadow-sm mb-3">
-        <div class="card-body">
-                    <h4 class="mb-2 text-primary"><i class="bi bi-folder2-open me-2"></i>{{ $project->name }}</h4>
-            <div class="row mb-2">
-                <div class="col-md-6"><strong>Client:</strong> {{ $project->client_name }}</div>
-                <div class="col-md-6"><strong>Venue:</strong> {{ $project->venue }}</div>
-            </div>
-            <div class="row">
-                <div class="col-md-6"><strong>Start Date:</strong> {{ \Carbon\Carbon::parse($budget->project->start_date)->format('d M Y') }}</div>
-                <div class="col-md-6"><strong>End Date:</strong> {{ \Carbon\Carbon::parse($budget->project->end_date)->format('d M Y') }}</div>
+                <div class="card-body">
+                    <h4 class="mb-2 text-primary"><i class="bi bi-folder2-open me-2"></i>{{ isset($currentEnquiry) ? $currentEnquiry->project_name : (isset($project) ? $project->name : 'Unknown') }}</h4>
+                    <div class="row mb-2">
+                        <div class="col-md-6"><strong>Client:</strong> {{ isset($currentEnquiry) ? $currentEnquiry->client_name : (isset($project) ? $project->client_name : 'N/A') }}</div>
+                        <div class="col-md-6"><strong>Venue:</strong> {{ isset($currentEnquiry) ? $currentEnquiry->venue : (isset($project) ? $project->venue : 'N/A') }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6"><strong>Start Date:</strong> {{ \Carbon\Carbon::parse($budget->start_date)->format('d M Y') }}</div>
+                        <div class="col-md-6"><strong>End Date:</strong> {{ \Carbon\Carbon::parse($budget->end_date)->format('d M Y') }}</div>
                     </div>
                 </div>
             </div>
@@ -67,7 +77,7 @@
                         <strong>Total Budget:</strong><br>
                         <span class="text-success fs-5">KES {{ number_format((float) $budget->budget_total, 2) }}</span>
                     </div>
-                    <a href="{{ route('budget.export', [$project->id, $budget->id]) }}" class="btn btn-outline-success btn-sm mt-2">
+                    <a href="{{ isset($currentEnquiry) ? route('enquiries.budget.export', [$currentEnquiry, $budget]) : (isset($project) ? route('budget.export', [$project, $budget]) : '#') }}" class="btn btn-outline-success btn-sm mt-2">
                         <i class="bi bi-download"></i> Export to Excel
                     </a>
                 </div>
@@ -199,25 +209,18 @@
                                         </tbody>
                                     </table>
                                 </div>
-                            @else
-                                <div class="text-center p-5">
-                                    <i class="bi bi-inbox fs-1 text-muted opacity-50"></i>
-                                    <h6 class="mt-3 mb-1">No particulars found</h6>
-                                    <p class="text-muted small mb-0">Add particulars to this item</p>
-                                </div>
                             @endif
                         </div>
                     @endforeach
-                    @php $catTotal = $items->sum('budgeted_cost'); @endphp
-                    <div class="text-end fw-bold mb-3">
-                        <span class="badge bg-info">Category Subtotal: KES {{ number_format($catTotal, 2) }}</span>
-                    </div>
                 </div>
             </div>
         @else
-        <div class="card mb-4">
-                <div class="card-header bg-light fw-bold">{{ ucwords($category) }}</div>
-            <div class="card-body p-0">
+            <div class="card mb-4 animate-fade-in">
+                <div class="card-header d-flex align-items-center bg-light">
+                    <i class="bi bi-list-ul me-2 text-primary"></i>
+                    <h5 class="mb-0">{{ ucfirst($category) }}</h5>
+                </div>
+                <div class="card-body p-0">
                 <div class="table-responsive">
                         @php $byItem = $items->groupBy('item_name'); @endphp
                         @foreach($byItem as $itemName => $particulars)
@@ -267,7 +270,7 @@
     {{-- Approvals & Edit Logs --}}
     <div class="row mt-4">
         <div class="col-lg-6">
-    <div class="card mb-3">
+    
         <div class="card-header bg-light fw-bold">Approvals</div>
         <div class="card-body row">
             <div class="col-md-6 mb-2">

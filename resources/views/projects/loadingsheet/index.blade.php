@@ -112,7 +112,7 @@
                                 <p class="mb-1"><strong>From:</strong> {{ $loadingsheet['loading_point'] ?? 'N/A' }}</p>
                                 <p class="mb-1"><strong>To:</strong> {{ $loadingsheet['unloading_point'] ?? 'N/A' }}</p>
                                 <p class="mb-1"><strong>Loading:</strong> {{ isset($loadingsheet['loading_date']) ? \Carbon\Carbon::parse($loadingsheet['loading_date'])->format('M d, Y') : 'N/A' }}</p>
-                                <p class="mb-0"><strong>Unloading:</strong> {{ isset($loadingsheet['unloading_date']) ? \Carbon\Carbon::parse($loadingsheet['unloading_date'])->format('M d, Y') : 'N/A' }}</p>
+                                <p class="mb-0"><strong>Offloading:</strong> {{ isset($loadingsheet['unloading_date']) ? \Carbon\Carbon::parse($loadingsheet['unloading_date'])->format('M d, Y') : 'N/A' }}</p>
                             </div>
                         </div>
                     </div>
@@ -210,7 +210,7 @@
                                                 value="{{ $loadingsheet['loading_point'] ?? '' }}" required>
                                         </div>
                                         <div class="mb-3">
-                                            <label for="unloading_point" class="form-label">Unloading Point</label>
+                                            <label for="unloading_point" class="form-label">Offloading Point</label>
                                             <input type="text" class="form-control form-control-sm" id="unloading_point" name="unloading_point" 
                                                 value="{{ $loadingsheet['unloading_point'] ?? '' }}" required>
                                         </div>
@@ -224,7 +224,7 @@
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="mb-3">
-                                                    <label for="unloading_date" class="form-label">Unloading Date</label>
+                                                    <label for="unloading_date" class="form-label">Offloading Date</label>
                                                     <input type="date" class="form-control form-control-sm" id="unloading_date" name="unloading_date" 
                                                         value="{{ isset($loadingsheet['unloading_date']) ? \Carbon\Carbon::parse($loadingsheet['unloading_date'])->format('Y-m-d') : '' }}" required>
                                                 </div>

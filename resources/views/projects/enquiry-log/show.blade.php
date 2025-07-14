@@ -1,6 +1,6 @@
 @extends('layouts.master')
 
-@section('title', 'Project Brief')
+@section('title', isset($enquiry) ? 'Enquiry Brief' : 'Project Brief')
 
 @push('styles')
 <style>
@@ -137,24 +137,38 @@
             <div>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('projects.files.index', ['project' => $project->id]) }}">Project Files</a></li>
-                        <li class="breadcrumb-item active">Project Brief</li>
+                        @if(isset($enquiry))
+                            <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
+                            <li class="breadcrumb-item"><a href="{{ route('enquiries.files', $enquiry) }}">{{ $enquiry->project_name }}</a></li>
+                            <li class="breadcrumb-item"><a href="{{ route('enquiries.files.client-engagement', $enquiry) }}">Client Engagement</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">View Enquiry Log</li>
+                        @else
+                            <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
+                            <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">{{ $project->name }}</a></li>
+                            <li class="breadcrumb-item"><a href="{{ route('projects.files.client-engagement', $project) }}">Client Engagement</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">View Enquiry Log</li>
+                        @endif
                     </ol>
                 </nav>
                 <h4 class="mb-0 mt-1 d-flex align-items-center">
                     <i class="bi bi-journal-text me-2 text-primary"></i>
-                    Project Brief For Project {{ $project->name }}
+                    Enquiry Log
                 </h4>
             </div>
             <div class="page-actions">
-                <a href="{{ url()->previous() }}" class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-arrow-left me-1"></i> Back
+                <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.files.client-engagement', $enquiry) : route('projects.files.client-engagement', $project) }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Client Engagement
                 </a>
                 @if($enquiryLog)
-                    <a href="{{ route('projects.enquiry-log.edit', [$project->id, $enquiryLog->id]) }}" class="btn btn-sm btn-primary d-flex align-items-center">
-                        <i class="bi bi-pencil-square me-1"></i> Edit
-                    </a>
+                    @if(isset($enquiry))
+                        <a href="{{ route('enquiries.enquiry-log.edit', [$enquiry->id, $enquiryLog->id]) }}" class="btn btn-sm btn-primary d-flex align-items-center">
+                            <i class="bi bi-pencil-square me-1"></i> Edit
+                        </a>
+                    @else
+                        <a href="{{ route('projects.enquiry-log.edit', [$project->id, $enquiryLog->id]) }}" class="btn btn-sm btn-primary d-flex align-items-center">
+                            <i class="bi bi-pencil-square me-1"></i> Edit
+                        </a>
+                    @endif
                 @endif
             </div>
         </div>
@@ -165,19 +179,25 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h5 class="mb-0 d-flex align-items-center">
                     <i class="bi bi-info-circle text-primary me-2"></i>
-                    Project Brief Details
+                    {{ isset($enquiry) ? 'Enquiry' : 'Project' }} Brief Details
                 </h5>
                 <h5 class="mb-0 d-flex align-items-center">
                     <i class="bi bi-info-circle text-primary me-2"></i>
-                    Project ID: {{ $project->project_id }}
+                    {{ isset($enquiry) ? 'Enquiry' : 'Project' }} ID: {{ isset($enquiry) ? $enquiry->id : $project->project_id }}
                 </h5>
                 <span class="status-badge">
                     Status:{{ $enquiryLog->status }}
                 </span>
             </div>
             <div class="d-flex justify-content-end gap-2 align-items-center mb-4">
-                <a href="{{ route('projects.enquiry-log.download', [$project->id, $enquiryLog->id]) }}" class="btn btn-outline-danger btn-sm">Download</a>
-                <a href="{{ route('projects.enquiry-log.print', [$project->id, $enquiryLog->id]) }}" class="btn btn-outline-primary btn-sm" target="_blank">Print</a>
+                @if(isset($enquiry))
+                    <a href="{{ route('enquiries.enquiry-log.download', [$enquiry->id, $enquiryLog->id]) }}" class="btn btn-outline-danger btn-sm">Download</a>
+                    <a href="{{ route('enquiries.enquiry-log.print', [$enquiry->id, $enquiryLog->id]) }}" class="btn btn-outline-primary btn-sm" target="_blank">Print</a>
+                    <a href="{{ route('enquiries.enquiry-log.export', [$enquiry->id, $enquiryLog->id]) }}" class="btn btn-outline-success btn-sm">Export Excel</a>
+                @else
+                    <a href="{{ route('projects.enquiry-log.download', [$project->id, $enquiryLog->id]) }}" class="btn btn-outline-danger btn-sm">Download</a>
+                    <a href="{{ route('projects.enquiry-log.print', [$project->id, $enquiryLog->id]) }}" class="btn btn-outline-primary btn-sm" target="_blank">Print</a>
+                @endif
             </div>
             
             <div class="row g-3">
@@ -283,9 +303,15 @@
                             Last updated: {{ $enquiryLog->updated_at->diffForHumans() }}
                         </div>
                         <div class="text-end">
-                            <a href="{{ route('projects.enquiry-log.edit', [$project, $enquiryLog]) }}" class="text-primary text-decoration-none">
-                                <i class="bi bi-pencil-square me-1"></i>Edit Details
-                            </a>
+                            @if(isset($enquiry))
+                                <a href="{{ route('enquiries.enquiry-log.edit', [$enquiry, $enquiryLog]) }}" class="text-primary text-decoration-none">
+                                    <i class="bi bi-pencil-square me-1"></i>Edit Details
+                                </a>
+                            @else
+                                <a href="{{ route('projects.enquiry-log.edit', [$project, $enquiryLog]) }}" class="text-primary text-decoration-none">
+                                    <i class="bi bi-pencil-square me-1"></i>Edit Details
+                                </a>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -295,11 +321,17 @@
         <div class="compact-card bg-white p-5 text-center">
             <div class="py-4">
                 <i class="bi bi-journal-x fs-1 text-muted mb-3 opacity-50"></i>
-                <h5 class="mb-2">No Project Brief Found</h5>
-                <p class="text-muted mb-4">There is no project brief associated with this project.</p>
-                <a href="{{ route('projects.enquiry-log.create', $project) }}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle me-2"></i> Create Project Brief
-                </a>
+                <h5 class="mb-2">No {{ isset($enquiry) ? 'Enquiry' : 'Project' }} Brief Found</h5>
+                <p class="text-muted mb-4">There is no {{ isset($enquiry) ? 'enquiry' : 'project' }} brief associated with this {{ isset($enquiry) ? 'enquiry' : 'project' }}.</p>
+                @if(isset($enquiry))
+                    <a href="{{ route('enquiries.enquiry-log.create', $enquiry) }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>Create {{ isset($enquiry) ? 'Enquiry' : 'Project' }} Brief
+                    </a>
+                @else
+                    <a href="{{ route('projects.enquiry-log.create', $project) }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>Create {{ isset($enquiry) ? 'Enquiry' : 'Project' }} Brief
+                    </a>
+                @endif
             </div>
         </div>
     @endif

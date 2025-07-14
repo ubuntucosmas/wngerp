@@ -204,54 +204,57 @@
     </style>
 @endpush
 
-@section('title', 'Material List - ' . $project->name)
+@section('title', 'Material List - ' . (isset($enquiry) ? $enquiry->project_name : $project->name))
 
 @section('content')
-<div class="page-header">
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center flex-wrap">
-            <div class="mb-3 mb-md-0">
-                <h1 class="page-title mb-2">
-                    <i class="bi bi-clipboard2-data me-2"></i>
-                    Material List Details
-                </h1>
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-0">
+<div class="px-3 mx-10 w-100">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    @if(isset($enquiry) && $enquiry)
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.files', ['enquiry' => $enquiry]) }}">{{ $enquiry->project_name }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.material-list.index', $enquiry) }}">Project Material List</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">View Material List</li>
+                    @else
                         <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
-                        
-                        <li class="breadcrumb-item active" aria-current="page">Material List</li>
-                    </ol>
-                </nav>
-            </div>
-            <div class="d-flex gap-2">
-                <a href="{{ route('projects.material-list.download', [$project, $materialList]) }}" class="btn btn-light me-2 no-print" data-bs-toggle="tooltip" title="Download as PDF">
-                    <i class="bi bi-file-earmark-pdf"></i> <span class="d-none d-md-inline">PDF</span>
-                </a>
-                <a href="{{ route('projects.material-list.exportExcel', [$project, $materialList]) }}" class="btn btn-light me-2 no-print" data-bs-toggle="tooltip" title="Export to Excel">
-                    <i class="bi bi-file-earmark-excel"></i> <span class="d-none d-md-inline">Excel</span>
-                </a>
-                <a href="{{ route('projects.material-list.print', [$project, $materialList]) }}" class="btn btn-light me-2 no-print" data-bs-toggle="tooltip" title="Print PDF" target="_blank">
-                    <i class="bi bi-printer"></i> <span class="d-none d-md-inline">Print</span>
-                </a>
-                <a href="{{ route('projects.material-list.edit', [$project, $materialList]) }}" class="btn btn-light me-2 no-print" data-bs-toggle="tooltip" title="Edit material list">
-                    <i class="bi bi-pencil"></i> <span class="d-none d-md-inline">Edit</span>
-                </a>
-                <a href="{{ route('projects.material-list.index', $project) }}" class="btn btn-light no-print" data-bs-toggle="tooltip" title="Back to material lists">
-                    <i class="bi bi-arrow-left"></i> <span class="d-none d-md-inline">Back</span>
-                </a>
-            </div>
+                        <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">{{ $project->name }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('projects.material-list.index', $project) }}">Project Material List</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">View Material List</li>
+                    @endif
+                </ol>
+            </nav>
+            <h2 class="mb-0">View Material List</h2>
+        </div>
+        <div class="page-actions">
+            <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.material-list.index', $enquiry) : route('projects.material-list.index', $project) }}" class="btn btn-primary me-2">
+                <i class="bi bi-arrow-left me-2"></i>Back to Material Lists
+            </a>
+            <a href="{{ isset($enquiry) ? route('enquiries.material-list.edit', [$enquiry, $materialList]) : route('projects.material-list.edit', [$project, $materialList]) }}" class="btn btn-info me-2">
+                <i class="bi bi-pencil me-2"></i>Edit
+            </a>
+            <a href="{{ isset($enquiry) ? route('enquiries.material-list.download', [$enquiry, $materialList]) : route('projects.material-list.download', [$project, $materialList]) }}" class="btn btn-secondary me-2">
+                <i class="bi bi-file-earmark-pdf me-2"></i>Download PDF
+            </a>
+            <a href="{{ isset($enquiry) ? route('enquiries.material-list.print', [$enquiry, $materialList]) : route('projects.material-list.print', [$project, $materialList]) }}" class="btn btn-secondary me-2" target="_blank">
+                <i class="bi bi-printer me-2"></i>Print
+            </a>
+            <a href="{{ isset($enquiry) ? route('enquiries.material-list.exportExcel', [$enquiry, $materialList]) : route('projects.material-list.exportExcel', [$project, $materialList]) }}" class="btn btn-secondary">
+                <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
+            </a>
+            <a href="{{ isset($enquiry) ? route('enquiries.budget.create', ['enquiry' => $enquiry, 'material_list_id' => $materialList->id]) : route('budget.create', ['project' => $project, 'material_list_id' => $materialList->id]) }}" class="btn btn-success">
+                <i class="bi bi-calculator me-2"></i>Create Budget from this List
+            </a>
         </div>
     </div>
-</div>
-
-<div class="container py-4">
 
     <!-- Project Information Card -->
     <div class="card mb-4 animate-fade-in" style="animation-delay: 0.1s">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">
                 <i class="bi bi-info-circle me-2"></i>
-                Project Information
+                {{ isset($enquiry) ? 'Enquiry' : 'Project' }} Information
             </h5>
             <span class="badge bg-primary">
                 {{ $materialList->status ?? 'Active' }}
@@ -265,8 +268,8 @@
                             <i class="bi bi-building"></i>
                         </div>
                         <div>
-                            <h6 class="mb-1 text-muted small">Project Name</h6>
-                            <p class="mb-2 fw-semibold">{{ $project->name }}</p>
+                            <h6 class="mb-1 text-muted small">{{ isset($enquiry) ? 'Enquiry' : 'Project' }} Name</h6>
+                            <p class="mb-2 fw-semibold">{{ isset($enquiry) ? $enquiry->project_name : $project->name }}</p>
                         </div>
                     </div>
                     <div class="d-flex align-items-start mb-3">
@@ -275,7 +278,7 @@
                         </div>
                         <div>
                             <h6 class="mb-1 text-muted small">Client</h6>
-                            <p class="mb-2 fw-semibold">{{ $project->client_name ?? 'N/A' }}</p>
+                            <p class="mb-2 fw-semibold">{{ isset($enquiry) ? $enquiry->client_name : $project->client_name ?? 'N/A' }}</p>
                         </div>
                     </div>
                     <div class="d-flex align-items-start">
@@ -283,7 +286,7 @@
                             <i class="bi bi-calendar-range"></i>
                         </div>
                         <div>
-                            <h6 class="mb-1 text-muted small">Project Duration</h6>
+                            <h6 class="mb-1 text-muted small">{{ isset($enquiry) ? 'Enquiry' : 'Project' }} Duration</h6>
                             <p class="mb-0 fw-semibold">
                                 {{ \Carbon\Carbon::parse($materialList->start_date)->format('M d, Y') }} - 
                                 {{ \Carbon\Carbon::parse($materialList->end_date)->format('M d, Y') }}
@@ -470,7 +473,7 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">
                 <!-- <i class="bi bi-tools me-2 text-warning"></i> -->
-                Materials for Hire
+                Items for Hire
             </h5>
             <div class="d-flex align-items-center">
                 <span class="badge bg-warning-soft text-warning me-2">
@@ -538,8 +541,8 @@
                     <div class="text-center p-5">
                         <div class="text-center">
                             <i class="bi bi-inbox fs-1 text-muted opacity-50"></i>
-                            <h6 class="mt-3 mb-1">No materials for hire</h6>
-                            <p class="text-muted small mb-0">Add materials for hire to get started</p>
+                            <h6 class="mt-3 mb-1">No Items for Hire</h6>
+                            <p class="text-muted small mb-0">Add items for hire to get started</p>
                         </div>
                     </div>
                 @endif
@@ -704,7 +707,7 @@
                                         <i class="bi bi-inbox fs-1 text-muted opacity-25"></i>
                                         <h6 class="mt-3 mb-1">No {{ strtolower($categoryName) }} items</h6>
                                         <p class="text-muted small mb-0">Add items to this category to get started</p>
-                                        <a href="{{ route('projects.material-list.edit', [$project, $materialList]) }}" class="btn btn-sm btn-outline-{{ $categoryData['color'] }} mt-3">
+                                        <a href="{{ isset($enquiry) ? route('enquiries.material-list.edit', [$enquiry, $materialList]) : route('projects.material-list.edit', [$project, $materialList]) }}" class="btn btn-sm btn-outline-{{ $categoryData['color'] }} mt-3">
                                             <i class="bi bi-plus-lg me-1"></i> Add Items
                                         </a>
                                     </div>

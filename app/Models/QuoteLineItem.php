@@ -17,6 +17,7 @@ class QuoteLineItem extends Model
         'profit_margin',
         'quote_price',
         'total_cost',
+        'comment',
     ];
 
     protected $casts = [
@@ -32,6 +33,11 @@ class QuoteLineItem extends Model
     public function quote(): BelongsTo
     {
         return $this->belongsTo(Quote::class);
+    }
+
+    public function template(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\ItemTemplate::class, 'template_id');
     }
 
     protected static function booted()

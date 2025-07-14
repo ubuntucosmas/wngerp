@@ -4,7 +4,10 @@ namespace App\Http\Controllers\projects;
 use App\Http\Controllers\Controller;
 
 use App\Models\Project;
+use App\Models\Enquiry;
 use Illuminate\Http\Request;
+use App\Models\ProjectBudget;
+
 
 class ProjectFileController extends Controller
 {
@@ -35,13 +38,21 @@ class ProjectFileController extends Controller
             $fileTypes[1]['route'] = route('projects.site-survey.show', [$project, $siteSurvey]);
         }
 
+        // Get phases for this project
+        $phases = $project->getDisplayablePhases();
+        
         // Get phase completion data for summaries
         $phaseCompletions = $this->getPhaseCompletions($project);
         
         // Auto-update phase statuses based on completion
         $this->updatePhaseStatuses($project, $phaseCompletions);
         
-        return view('projects.files.index', compact('project', 'fileTypes', 'phaseCompletions'));
+        // Calculate progress
+        $totalPhases = $phases->count();
+        $completed = $phases->where('status', 'Completed')->count();
+        $inProgress = $phases->where('status', 'In Progress')->count();
+        
+        return view('projects.files.index', compact('project', 'fileTypes', 'phaseCompletions', 'phases', 'totalPhases', 'completed', 'inProgress'));
     }
 
     /**
@@ -50,10 +61,21 @@ class ProjectFileController extends Controller
     private function getPhaseCompletions(Project $project)
     {
         $completions = [];
+        
+        // Check if this project was converted from an enquiry
+        $enquirySource = $project->enquirySource;
 
         // Client Engagement & Briefing
-        $enquiryLog = $project->enquiryLog;
-        $siteSurveys = $project->siteSurveys;
+        if ($enquirySource) {
+            // For converted projects, get data from enquiry source
+            $enquiryLog = \App\Models\EnquiryLog::where('enquiry_id', $enquirySource->id)->first();
+            $siteSurveys = \App\Models\SiteSurvey::where('enquiry_id', $enquirySource->id)->get();
+        } else {
+            // For regular projects, get data from project
+            $enquiryLog = $project->enquiryLog;
+            $siteSurveys = $project->siteSurveys;
+        }
+        
         $completions['Client Engagement & Briefing'] = [
             'enquiry_log' => [
                 'completed' => $enquiryLog ? true : false,
@@ -82,7 +104,14 @@ class ProjectFileController extends Controller
         ];
 
         // Design & Concept Development
-        $designAssets = $project->designAssets;
+        if ($enquirySource) {
+            // For converted projects, get data from enquiry source
+            $designAssets = \App\Models\DesignAsset::where('enquiry_id', $enquirySource->id)->get();
+        } else {
+            // For regular projects, get data from project
+            $designAssets = $project->designAssets;
+        }
+        
         $completions['Design & Concept Development'] = [
             'design_assets' => [
                 'completed' => $designAssets->count() > 0,
@@ -99,7 +128,14 @@ class ProjectFileController extends Controller
         ];
 
         // Project Material List
-        $materialLists = $project->materialLists;
+        if ($enquirySource) {
+            // For converted projects, get data from enquiry source
+            $materialLists = \App\Models\MaterialList::where('enquiry_id', $enquirySource->id)->get();
+        } else {
+            // For regular projects, get data from project
+            $materialLists = $project->materialLists;
+        }
+        
         $completions['Project Material List'] = [
             'material_list' => [
                 'completed' => $materialLists->count() > 0,
@@ -146,8 +182,16 @@ class ProjectFileController extends Controller
         ];
 
         // Budget & Quotation
-        $budgets = \App\Models\ProjectBudget::where('project_id', $project->id)->get();
-        $quotes = $project->quotes;
+        if ($enquirySource) {
+            // For converted projects, get data from enquiry source
+            $budgets = \App\Models\ProjectBudget::where('enquiry_id', $enquirySource->id)->get();
+            $quotes = \App\Models\Quote::where('enquiry_id', $enquirySource->id)->get();
+        } else {
+            // For regular projects, get data from project
+            $budgets = \App\Models\ProjectBudget::where('project_id', $project->id)->get();
+            $quotes = $project->quotes;
+        }
+        
         $completions['Budget & Quotation'] = [
             'budget' => [
                 'completed' => $budgets->count() > 0,
@@ -301,96 +345,138 @@ class ProjectFileController extends Controller
     /**
      * Display mockup files for the project
      */
-    public function showMockups(Project $project)
+    public function showMockups(Project $project = null, Enquiry $enquiry = null)
     {
-        $designAssets = \App\Models\DesignAsset::where('project_id', $project->id)
-            ->with('user')
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return view('projects.files.mockups', compact('project', 'designAssets'));
+        if ($enquiry) {
+            $designAssets = \App\Models\DesignAsset::where('enquiry_id', $enquiry->id)
+                ->with('user')
+                ->orderBy('created_at', 'desc')
+                ->get();
+            return view('projects.files.mockups', compact('enquiry', 'designAssets'));
+        } else {
+            // Check if this project was converted from an enquiry
+            $enquirySource = $project->enquirySource;
+            
+            if ($enquirySource) {
+                // For converted projects, get data from enquiry source
+                $designAssets = \App\Models\DesignAsset::where('enquiry_id', $enquirySource->id)
+                    ->with('user')
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+            } else {
+                // For regular projects, get data from project
+                $designAssets = \App\Models\DesignAsset::where('project_id', $project->id)
+                    ->with('user')
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+            }
+            return view('projects.files.mockups', compact('project', 'designAssets'));
+        }
     }
 
     /**
      * Store a newly created design asset in storage.
      */
-    public function storeDesignAsset(Request $request, Project $project)
+    public function storeDesignAsset(Request $request, Project $project = null, Enquiry $enquiry = null)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'file_url' => 'required|url|max:1000',
-            // 'file_type' => 'nullable|string|max:100',
-            // 'file_size' => 'nullable|string|max:50',
             'description' => 'nullable|string',
         ]);
 
-        // Extract filename from URL
         $url = parse_url($validated['file_url']);
         $path = trim($url['path'] ?? '', '/');
         $filename = basename($path);
 
-        $designAsset = $project->designAssets()->create([
+        $assetData = [
             'user_id' => auth()->id(),
             'name' => $validated['name'],
             'file_name' => $filename,
             'file_url' => $validated['file_url'],
-            // 'file_type' => $validated['file_type'],
-            // 'file_size' => $validated['file_size'],
             'description' => $validated['description'] ?? null,
-        ]);
+        ];
 
-        return redirect()
-            ->route('projects.files.mockups', $project)
-            ->with('success', 'Design asset added successfully');
+        if ($enquiry) {
+            $asset = $enquiry->designAssets()->create($assetData);
+            return redirect()->route('enquiries.files.mockups', $enquiry)->with('success', 'Design asset added successfully');
+        } else {
+            // Check if this project was converted from an enquiry
+            $enquirySource = $project->enquirySource;
+            
+            if ($enquirySource) {
+                // For converted projects, store under the enquiry source
+                $assetData['enquiry_id'] = $enquirySource->id;
+                $asset = \App\Models\DesignAsset::create($assetData);
+            } else {
+                // For regular projects, store under the project
+                $asset = $project->designAssets()->create($assetData);
+            }
+            return redirect()->route('projects.files.mockups', $project)->with('success', 'Design asset added successfully');
+        }
     }
 
-    /**
-     * Update the specified design asset in storage.
-     */
-    public function updateDesignAsset(Request $request, Project $project, $designAssetId)
+    public function updateDesignAsset(Request $request, Project $project = null, Enquiry $enquiry = null, $designAssetId)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'file_url' => 'required|url|max:1000',
-            // 'file_type' => 'nullable|string|max:100',
-            // 'file_size' => 'nullable|string|max:50',
             'description' => 'nullable|string',
         ]);
 
-        // Find the design asset
-        $designAsset = $project->designAssets()->findOrFail($designAssetId);
-
-        // Extract filename from URL
         $url = parse_url($validated['file_url']);
         $path = trim($url['path'] ?? '', '/');
         $filename = basename($path);
 
-        // Update the design asset
-        $designAsset->update([
+        $assetData = [
             'name' => $validated['name'],
             'file_name' => $filename,
             'file_url' => $validated['file_url'],
-            // 'file_type' => $validated['file_type'],
-            // 'file_size' => $validated['file_size'],
             'description' => $validated['description'] ?? null,
-        ]);
+        ];
 
-        return redirect()
-            ->route('projects.files.mockups', $project)
-            ->with('success', 'Design asset updated successfully');
+        if ($enquiry) {
+            $asset = $enquiry->designAssets()->findOrFail($designAssetId);
+            $asset->update($assetData);
+            return redirect()->route('enquiries.files.mockups', $enquiry)->with('success', 'Design asset updated successfully');
+        } else {
+            // Check if this project was converted from an enquiry
+            $enquirySource = $project->enquirySource;
+            
+            if ($enquirySource) {
+                // For converted projects, find asset from enquiry source
+                $asset = \App\Models\DesignAsset::where('enquiry_id', $enquirySource->id)
+                    ->findOrFail($designAssetId);
+            } else {
+                // For regular projects, find asset from project
+                $asset = $project->designAssets()->findOrFail($designAssetId);
+            }
+            $asset->update($assetData);
+            return redirect()->route('projects.files.mockups', $project)->with('success', 'Design asset updated successfully');
+        }
     }
 
-    /**
-     * Remove the specified design asset from storage.
-     */
-    public function destroyDesignAsset(Project $project, $designAssetId)
+    public function destroyDesignAsset(Project $project = null, Enquiry $enquiry = null, $designAssetId)
     {
-        $designAsset = $project->designAssets()->findOrFail($designAssetId);
-        $designAsset->delete();
-
-        return redirect()
-            ->route('projects.files.mockups', $project)
-            ->with('success', 'Design asset deleted successfully');
+        if ($enquiry) {
+            $asset = $enquiry->designAssets()->findOrFail($designAssetId);
+            $asset->delete();
+            return redirect()->route('enquiries.files.mockups', $enquiry)->with('success', 'Design asset deleted successfully');
+        } else {
+            // Check if this project was converted from an enquiry
+            $enquirySource = $project->enquirySource;
+            
+            if ($enquirySource) {
+                // For converted projects, find asset from enquiry source
+                $asset = \App\Models\DesignAsset::where('enquiry_id', $enquirySource->id)
+                    ->findOrFail($designAssetId);
+            } else {
+                // For regular projects, find asset from project
+                $asset = $project->designAssets()->findOrFail($designAssetId);
+            }
+            $asset->delete();
+            return redirect()->route('projects.files.mockups', $project)->with('success', 'Design asset deleted successfully');
+        }
     }
 
 
@@ -399,16 +485,30 @@ class ProjectFileController extends Controller
      */
     public function showClientEngagement(Project $project)
     {
-        $siteSurvey = \App\Models\SiteSurvey::where('project_id', $project->id)->first();
+        // Check if this project was converted from an enquiry
+        $enquirySource = $project->enquirySource;
+        
+        if ($enquirySource) {
+            // For converted projects, get data from enquiry source
+            $existingProjectBrief = \App\Models\EnquiryLog::where('enquiry_id', $enquirySource->id)->first();
+            $siteSurvey = \App\Models\SiteSurvey::where('enquiry_id', $enquirySource->id)->first();
+        } else {
+            // For regular projects, get data from project
+            $existingProjectBrief = \App\Models\EnquiryLog::where('project_id', $project->id)->first();
+            $siteSurvey = \App\Models\SiteSurvey::where('project_id', $project->id)->first();
+        }
         
         $files = [
             [
                 'name' => 'Project Brief',
-                'route' => route('projects.enquiry-log.show', $project),
+                'route' => $existingProjectBrief 
+                    ? route('projects.enquiry-log.show', [$project, $existingProjectBrief])
+                    : route('projects.enquiry-log.create', $project),
                 'icon' => 'bi-journal-text',
-                'description' => 'View and manage Project Brief',
-                'type' => 'Project-Brief',
-                //'updated_at' => now(),
+                'description' => $existingProjectBrief 
+                    ? 'View existing project brief details'
+                    : 'Create new project brief',
+                'type' => $existingProjectBrief ? 'Existing-Project-Brief' : 'Project-Brief-Form',
             ],
             [
                 'name' => 'Site Survey',
@@ -416,9 +516,10 @@ class ProjectFileController extends Controller
                     ? route('projects.site-survey.show', [$project, $siteSurvey])
                     : route('projects.site-survey.create', $project),
                 'icon' => 'bi-clipboard2-pulse',
-                'description' => 'View and manage site survey details',
-                'type' => 'site-survey',
-                //'updated_at' => $siteSurvey ? $siteSurvey->updated_at : now()->subDays()
+                'description' => $siteSurvey 
+                    ? 'View existing site survey details'
+                    : 'Create new site survey',
+                'type' => $siteSurvey ? 'Existing-Site-Survey' : 'Site-Survey-Form',
             ],
             // Add more files here as needed
         ];
@@ -431,10 +532,22 @@ class ProjectFileController extends Controller
      */
     public function showDesignConcept(Project $project)
     {
-        $designAssets = \App\Models\DesignAsset::where('project_id', $project->id)
-            ->with('user')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        // Check if this project was converted from an enquiry
+        $enquirySource = $project->enquirySource;
+        
+        if ($enquirySource) {
+            // For converted projects, get data from enquiry source
+            $designAssets = \App\Models\DesignAsset::where('enquiry_id', $enquirySource->id)
+                ->with('user')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        } else {
+            // For regular projects, get data from project
+            $designAssets = \App\Models\DesignAsset::where('project_id', $project->id)
+                ->with('user')
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
             
         // $materials = \App\Models\Material::where('project_id', $project->id)
         //     ->with('user')
@@ -449,9 +562,20 @@ class ProjectFileController extends Controller
      */
     public function showQuotation(Project $project)
     {
-        $files = \App\Models\Quote::where('project_id', $project->id)
-            ->orderBy('created_at', 'desc')
-            ->get();
+        // Check if this project was converted from an enquiry
+        $enquirySource = $project->enquirySource;
+        
+        if ($enquirySource) {
+            // For converted projects, get data from enquiry source
+            $files = \App\Models\Quote::where('enquiry_id', $enquirySource->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+        } else {
+            // For regular projects, get data from project
+            $files = \App\Models\Quote::where('project_id', $project->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
 
         return view('projects.files.quotation', compact('project', 'files'));
     }

@@ -20,7 +20,7 @@ class SiteSurveyController extends Controller
         $siteSurvey = new SiteSurvey([
             'client_name' => $project->client_name,
             'location' => $project->venue,
-            'project_manager' => $project->projectManager ? $project->projectManager->name : null,
+            'project_manager' => $project->projectOfficer ? $project->projectOfficer->name : null,
             'client_contact_person' => $project->contact_person,
             'client_phone' => $project->client->phone ?? null,
             'client_email' => $project->client->email ?? null,
@@ -159,7 +159,16 @@ class SiteSurveyController extends Controller
 
     public function downloadSiteSurvey(Project $project)
     {
-        $siteSurvey = SiteSurvey::where('project_id', $project->id)->firstOrFail();
+        // Check if this project was converted from an enquiry
+        $enquirySource = $project->enquirySource;
+        
+        if ($enquirySource) {
+            // For converted projects, get data from enquiry source
+            $siteSurvey = SiteSurvey::where('enquiry_id', $enquirySource->id)->firstOrFail();
+        } else {
+            // For regular projects, get data from project
+            $siteSurvey = SiteSurvey::where('project_id', $project->id)->firstOrFail();
+        }
 
         $data = [
             'project' => $project,
@@ -174,7 +183,16 @@ class SiteSurveyController extends Controller
 
     public function printSiteSurvey(Project $project)
     {
-        $siteSurvey = SiteSurvey::where('project_id', $project->id)->firstOrFail();
+        // Check if this project was converted from an enquiry
+        $enquirySource = $project->enquirySource;
+        
+        if ($enquirySource) {
+            // For converted projects, get data from enquiry source
+            $siteSurvey = SiteSurvey::where('enquiry_id', $enquirySource->id)->firstOrFail();
+        } else {
+            // For regular projects, get data from project
+            $siteSurvey = SiteSurvey::where('project_id', $project->id)->firstOrFail();
+        }
 
         $data = [
             'project' => $project,

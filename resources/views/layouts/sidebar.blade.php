@@ -196,7 +196,7 @@
         <!-- Projects Sidebar Links -->
     @if(Auth::check() 
     && in_array(Auth::user()->department, ['projects', 'finance', 'production', 'hr', 'design', 'administration', 'ict']) 
-    && Auth::user()->hasAnyRole(['pm', 'po', 'super-admin']))
+    && Auth::user()->hasAnyRole(['pm', 'po']))
 
             <li class="nav-item my-2" data-bs-toggle="tooltip" data-bs-placement="right" title="View All Projects">
                 <a class="nav-link d-flex align-items-center {{ request()->routeIs('projects.overview') ? 'active bg-cyan text-white' : 'text-dark' }}" href="{{ route('projects.overview') }}">

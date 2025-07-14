@@ -5,26 +5,31 @@
 @section('content')
 <div class="container-fluid py-4">
     <!-- Header Section -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h2 class="fw-bold text-dark mb-1">Project Quotes</h2>
             <nav aria-label="breadcrumb">
-                <ol class="breadcrumb bg-transparent p-0 mb-0">
-                    <li class="breadcrumb-item">
-                        <a href="{{ route('projects.files.index', $project->id) }}" class="text-decoration-none text-primary">
-                            <i class="bi bi-folder me-1"></i>Project Files
-                        </a>
-                    </li>
-                    <li class="breadcrumb-item active text-muted" aria-current="page">
-                        <i class="bi bi-file-earmark-text me-1"></i>Quotes
-                    </li>
-        </ol>
-    </nav>
+                <ol class="breadcrumb">
+                    @if(isset($enquiry))
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.files', $enquiry) }}">{{ $enquiry->project_name }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.files.quotation', $enquiry) }}">Budget & Quotation</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Quotes</li>
+                    @else
+                        <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">{{ $project->name }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('projects.quotation.index', $project) }}">Budget & Quotation</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Quotes</li>
+                    @endif
+                </ol>
+            </nav>
+            <h2 class="mb-0">Quotes</h2>
         </div>
-        <div class="d-flex gap-2">
-            <a href="{{ route('quotes.create', $project) }}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
-                <i class="bi bi-plus-circle-fill"></i>
-                <span>Create Quote</span>
+        <div class="page-actions">
+            <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.files.quotation', $enquiry) : route('projects.quotation.index', $project) }}" class="btn btn-primary me-2">
+                <i class="bi bi-arrow-left me-2"></i>Back to Budget & Quotation
+            </a>
+            <a href="{{ isset($enquiry) ? route('enquiries.quotes.create', $enquiry) : (isset($project) && $project->id ? route('quotes.create', $project) : '#') }}" class="btn btn-success">
+                <i class="bi bi-plus-circle me-1"></i> Create Quote
             </a>
         </div>
     </div>
@@ -42,7 +47,7 @@
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="text-muted mb-1">Total Quotes</h6>
-                            <h4 class="fw-bold mb-0">{{ $quotes->total() }}</h4>
+                            <h4 class="fw-bold mb-0">{{ $quotes->total() ?? 0 }}</h4>
                         </div>
                     </div>
                 </div>
@@ -188,25 +193,25 @@
                                     </td>
                                     <td class="py-3 text-center">
                                         <div class="btn-group" role="group">
-                                            <a href="{{ route('quotes.show', ['project' => $project->id, 'quote' => $quote->id]) }}" 
+                                            <a href="{{ isset($enquiry) ? route('enquiries.quotes.show', ['enquiry' => $enquiry->id, 'quote' => $quote->id]) : route('quotes.show', ['project' => $project->id, 'quote' => $quote->id]) }}" 
                                                class="btn btn-sm btn-outline-primary" title="View Quote">
                                                 <i class="bi bi-eye"></i>
                                             </a>
-                                            <a href="{{ route('quotes.edit', ['project' => $project->id, 'quote' => $quote->id]) }}" 
+                                            <a href="{{ isset($enquiry) ? route('enquiries.quotes.edit', ['enquiry' => $enquiry->id, 'quote' => $quote->id]) : route('quotes.edit', ['project' => $project->id, 'quote' => $quote->id]) }}" 
                                                class="btn btn-sm btn-outline-secondary" title="Edit Quote">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-                                            <a href="{{ route('quotes.print', [$project->id, $quote->id]) }}" 
+                                            <a href="{{ isset($enquiry) ? route('enquiries.quotes.print', ['enquiry' => $enquiry->id, 'quote' => $quote->id]) : route('quotes.print', ['project' => $project->id, 'quote' => $quote->id]) }}" 
                                                class="btn btn-sm btn-outline-info" title="Print Quote" target="_blank">
                                                 <i class="bi bi-printer"></i>
                                             </a>
-                                            <a href="{{ route('quotes.excel', [$project->id, $quote->id]) }}" 
+                                            <a href="{{ isset($enquiry) ? route('enquiries.quotes.excel', ['enquiry' => $enquiry->id, 'quote' => $quote->id]) : route('quotes.excel', ['project' => $project->id, 'quote' => $quote->id]) }}" 
                                                class="btn btn-sm btn-outline-success" title="Export to Excel">
                                                 <i class="bi bi-file-earmark-excel"></i>
                                             </a>
                                             @if(auth()->user()->hasRole('super-admin'))
                                                 <button type="button" class="btn btn-sm btn-outline-danger delete-quote" 
-                                                        title="Delete Quote" data-quote-id="{{ $quote->id }}">
+                                                        title="Delete Quote" data-quote-id="{{ $quote->id }}" data-project-id="{{ $project->id ?? '' }}" data-enquiry-id="{{ $enquiry->id ?? '' }}">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             @endif
@@ -224,7 +229,7 @@
                         Showing {{ $quotes->firstItem() }} to {{ $quotes->lastItem() }} of {{ $quotes->total() }} quotes
                     </div>
                     <div>
-                    {{ $quotes->appends(['project' => $project->id])->links() }}
+                    {{ $quotes->appends(['project' => $project->id ?? '', 'enquiry' => $enquiry->id ?? ''])->links() }}
                     </div>
                 </div>
             @else
@@ -234,7 +239,7 @@
                     </div>
                     <h4 class="fw-semibold mb-2">No quotes found</h4>
                     <p class="text-muted mb-4">Get started by creating your first quote for this project</p>
-                    <a href="{{ route('quotes.create', $project) }}" class="btn btn-primary d-inline-flex align-items-center gap-2">
+                    <a href="{{ isset($enquiry) ? route('enquiries.quotes.create', $enquiry) : route('quotes.create', $project) }}" class="btn btn-primary d-inline-flex align-items-center gap-2">
                         <i class="bi bi-plus-circle"></i>
                         Create Your First Quote
                     </a>
@@ -267,32 +272,32 @@
     </div>
 </div>
 
-    @push('scripts')
+@push('scripts')
 <script>
-        document.addEventListener('DOMContentLoaded', function() {
-    // Search functionality
-    const searchInput = document.getElementById('searchInput');
-    const table = document.getElementById('quotesTable');
-    const rows = table.querySelectorAll('tbody tr');
+    document.addEventListener('DOMContentLoaded', function() {
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        const table = document.getElementById('quotesTable');
+        const rows = table.querySelectorAll('tbody tr');
 
-    searchInput.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase();
-        
-        rows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            row.style.display = text.includes(searchTerm) ? '' : 'none';
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
         });
-    });
 
         // Delete confirmation
         document.querySelectorAll('.delete-quote').forEach(button => {
-        button.addEventListener('click', function() {
-            const quoteId = this.dataset.quoteId;
-            const form = document.getElementById('deleteForm');
-            form.action = `{{ route('quotes.destroy', ['project' => $project->id, 'quote' => ':id']) }}`.replace(':id', quoteId);
-            
-            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-            modal.show();
+            button.addEventListener('click', function() {
+                const quoteId = this.dataset.quoteId;
+                const form = document.getElementById('deleteForm');
+                form.action = `{{ isset($enquiry) ? route('enquiries.quotes.destroy', ['enquiry' => $enquiry->id, 'quote' => ':id']) : route('quotes.destroy', ['project' => $project->id, 'quote' => ':id']) }}`.replace(':id', quoteId);
+                
+                const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+                modal.show();
             });
         });
     });

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Quote - {{ $project->name }}</title>
+  <title>Quote - {{ isset($project) ? $project->name : ($enquiry ? $enquiry->project_name : 'Quote') }}</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -126,6 +126,38 @@
       margin-top: 10px;
       color: #777;
     }
+
+    .item-group {
+      margin-bottom: 8px;
+    }
+
+    .item-group-title {
+      background: #f8f9fa;
+      padding: 3px 5px;
+      font-weight: bold;
+      font-size: 10px;
+      border: 1px solid #ccc;
+      border-bottom: none;
+    }
+
+    .template-badge {
+      background: #17a2b8;
+      color: white;
+      padding: 1px 4px;
+      font-size: 8px;
+      border-radius: 2px;
+      margin-left: 4px;
+    }
+
+    .profit-info {
+      font-size: 9px;
+      color: #28a745;
+    }
+
+    .cost-info {
+      font-size: 9px;
+      color: #6c757d;
+    }
   </style>
 </head>
 <body>
@@ -163,8 +195,13 @@
             @if($quote->customer_location)
               <div style="color:#555; font-size:10px; margin-bottom:2px;">Location: {{ $quote->customer_location }}</div>
             @endif
-            <div style="color:#888; font-size:10px;">Project ID: {{ $quote->project->project_id }}</div>
-            <div style="color:#888; font-size:10px;">Project Name: {{ $quote->project->name }}</div>
+            @if(isset($project) && $project)
+              <div style="color:#888; font-size:10px;">Project ID: {{ $project->project_id }}</div>
+              <div style="color:#888; font-size:10px;">Project Name: {{ $project->name }}</div>
+            @elseif(isset($enquiry) && $enquiry)
+              <div style="color:#888; font-size:10px;">Enquiry ID: {{ $enquiry->id }}</div>
+              <div style="color:#888; font-size:10px;">Enquiry Name: {{ $enquiry->project_name }}</div>
+            @endif
           </td>
           <td style="width:50%; vertical-align:top; padding:8px 12px;">
             @if($quote->attention)
@@ -181,62 +218,111 @@
       </table>
     </div>
 
-    <!-- Items -->
+    <!-- Detailed Items with Grouping -->
     <div class="section">
-      <div class="section-title">LINE ITEMS</div>
-      <table>
-        <thead>
-          <tr>
-            <th>Item Name</th>
-            <th>Description</th>
-            <th>Qty</th>
-            <th>Quote Unit Price (KES)</th>
-            <th>Quote Price (KES)</th>
-          </tr>
-        </thead>
-        <tbody>
-          @foreach($quote->lineItems as $item)
-            @php
-              $itemName = null;
-              if (str_contains($item->comment ?? '', 'Item Name:')) {
-                preg_match('/Item Name:\s*(.+?)(?:\s*\||$)/', $item->comment, $matches);
-                $itemName = $matches[1] ?? 'Production Item';
-              }
-              $quoteUnitPrice = $item->quote_price / ($item->quantity ?: 1);
-            @endphp
-          <tr>
-            <td>{{ $itemName ?? '-' }}</td>
-            <td>{{ $item->description }}</td>
-            <td>{{ $item->quantity }}</td>
-            <td>{{ number_format($quoteUnitPrice, 2) }}</td>
-            <td>{{ number_format($item->quote_price, 2) }}</td>
-          </tr>
-          @endforeach
-        </tbody>
-      </table>
+      <div class="section-title">DETAILED ITEM BREAKDOWN</div>
+      @php 
+        $subtotal = 0; 
+        $totalCost = 0;
+        $totalProfit = 0;
+        
+        // Group items by item name (for production items) or description (for other items)
+        $groupedItems = $quote->lineItems->groupBy(function($item) {
+            if (str_contains($item->comment ?? '', 'Item Name:')) {
+                return str_replace('Item Name: ', '', explode(' | ', $item->comment)[0]);
+            }
+            return $item->description;
+        });
+      @endphp
+      
+      @foreach($groupedItems as $itemName => $items)
+        @php
+          $itemTotalCost = $items->sum('total_cost');
+          $itemTotalQuotePrice = $items->sum('quote_price');
+          $itemTotalProfit = $itemTotalQuotePrice - $itemTotalCost;
+          $subtotal += $itemTotalQuotePrice;
+          $totalCost += $itemTotalCost;
+          $totalProfit += $itemTotalProfit;
+          $firstItem = $items->first();
+        @endphp
+        
+        <div class="item-group">
+          <div class="item-group-title">
+            {{ $loop->iteration }}. {{ $itemName }}
+            @if($firstItem->template)
+              <span class="template-badge">Template: {{ $firstItem->template->name }}</span>
+            @endif
+            @if($items->count() > 1)
+              <span style="font-size:8px; color:#6c757d;">({{ $items->count() }} items)</span>
+            @endif
+          </div>
+          
+          <table>
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Qty</th>
+                <th>Unit Price</th>
+                <th>Total Cost</th>
+                <th>Profit Margin</th>
+                <th>Quote Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              @foreach($items as $item)
+                @php
+                  $profitMargin = $item->profit_margin ?? 0;
+                  $profitAmount = $item->quote_price - $item->total_cost;
+                @endphp
+                <tr>
+                  <td>{{ $item->description }}</td>
+                  <td>{{ number_format($item->quantity, 2) }}</td>
+                  <td>{{ number_format($item->unit_price, 2) }}</td>
+                  <td class="cost-info">{{ number_format($item->total_cost, 2) }}</td>
+                  <td class="profit-info">+{{ number_format($profitAmount, 2) }} ({{ number_format($profitMargin, 2) }}%)</td>
+                  <td><strong>{{ number_format($item->quote_price, 2) }}</strong></td>
+                </tr>
+              @endforeach
+            </tbody>
+            <tfoot>
+              <tr style="background:#f8f9fa;">
+                <td colspan="3"><strong>Subtotal for {{ $itemName }}:</strong></td>
+                <td class="cost-info"><strong>{{ number_format($itemTotalCost, 2) }}</strong></td>
+                <td class="profit-info"><strong>+{{ number_format($itemTotalProfit, 2) }} ({{ $itemTotalCost > 0 ? number_format(($itemTotalProfit / $itemTotalCost) * 100, 2) : '0.00' }}%)</strong></td>
+                <td><strong>{{ number_format($itemTotalQuotePrice, 2) }}</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      @endforeach
     </div>
 
-    <!-- Totals -->
-    @php
-      $subTotal = $quote->lineItems->sum('total');
-      $vat = $subTotal * 0.16;
-      $grandTotal = $subTotal + $vat;
-    @endphp
-
-    <table class="totals">
-      <tr>
-        <td class="label">Sub Total:</td>
-        <td>{{ number_format($subTotal, 2) }} KES</td>
-      </tr>
-      <tr>
-        <td class="label">VAT (16%):</td>
-        <td>{{ number_format($vat, 2) }} KES</td>
-      </tr>
-      <tr>
-        <td class="label">Grand Total:</td>
-        <td><strong>{{ number_format($grandTotal, 2) }} KES</strong></td>
-      </tr>
-    </table>
+    <!-- Summary Totals -->
+    <div class="section">
+      <div class="section-title">PRICE SUMMARY</div>
+      <table class="totals" style="width: 100%;">
+        <tr>
+          <td class="label">Total Cost:</td>
+          <td class="cost-info">{{ number_format($totalCost, 2) }} KES</td>
+        </tr>
+        <tr>
+          <td class="label">Total Profit:</td>
+          <td class="profit-info">+{{ number_format($totalProfit, 2) }} KES ({{ $totalCost > 0 ? number_format(($totalProfit / $totalCost) * 100, 2) : '0.00' }}%)</td>
+        </tr>
+        <tr>
+          <td class="label">Subtotal:</td>
+          <td><strong>{{ number_format($subtotal, 2) }} KES</strong></td>
+        </tr>
+        <tr>
+          <td class="label">VAT (16%):</td>
+          <td>{{ number_format($subtotal * 0.16, 2) }} KES</td>
+        </tr>
+        <tr style="background:#e8f5e8;">
+          <td class="label"><strong>Grand Total:</strong></td>
+          <td><strong>{{ number_format($subtotal * 1.16, 2) }} KES</strong></td>
+        </tr>
+      </table>
+    </div>
 
     <!-- Terms -->
     <div class="terms">
@@ -275,7 +361,11 @@
       <div class="signature-box">
         Client Approval:<br><br>
         ________________________<br>
-        {{ $quote->project->client_name }}
+        @if(isset($project) && $project && $project->client)
+          {{ $project->client->FullName }}
+        @else
+          {{ $quote->customer_name }}
+        @endif
       </div>
     </div>
 

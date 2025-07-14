@@ -4,23 +4,47 @@
 
 @section('content')
 <div class="container py-3">
-    <div class="card shadow-sm rounded-3">
-        <div class="card-header d-flex justify-content-between align-items-center py-2 px-3">
-            <h4 class="mb-0 fw-semibold">Create New Quote</h4>
-            <a href="{{ route('quotes.index', $project) }}" class="btn btn-sm btn-secondary d-flex align-items-center gap-1 px-3">
-                <i class="fas fa-arrow-left fs-6"></i> Back
-            </a>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    @if(isset($enquiry))
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.files', $enquiry) }}">{{ $enquiry->project_name }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.files.quotation', $enquiry) }}">Budget & Quotation</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.quotes.index', $enquiry) }}">Quotes</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Create Quote</li>
+                    @else
+                        <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">{{ $project->name }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('projects.quotation.index', $project) }}">Budget & Quotation</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('quotes.index', $project) }}">Quotes</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Create Quote</li>
+                    @endif
+                </ol>
+            </nav>
+            <h2 class="mb-0">Create Quote</h2>
         </div>
+        <a href="{{ isset($enquiry) ? route('enquiries.quotes.index', $enquiry) : route('quotes.index', $project) }}" class="btn btn-primary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Quotes
+        </a>
+    </div>
+
+    <div class="card shadow-sm rounded-3">
         <div class="card-body px-3 py-4">
-            <form action="{{ route('quotes.store', $project) }}" method="POST" id="quoteForm" autocomplete="off" novalidate>
+            <form action="{{ isset($enquiry) ? route('enquiries.quotes.store', $enquiry) : route('quotes.store', $project) }}" method="POST" id="quoteForm" autocomplete="off" novalidate>
                 @csrf
+                @if(isset($project))
                 <input type="hidden" name="project_id" value="{{ $project->id }}">
+                @elseif(isset($enquiry))
+                <input type="hidden" name="enquiry_id" value="{{ $enquiry->id }}">
+                @endif
 
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
                         <label for="customer_name" class="form-label small fw-semibold">Customer Name <span class="text-danger">*</span></label>
                         <input type="text" class="form-control form-control-sm @error('customer_name') is-invalid @enderror" id="customer_name" name="customer_name" 
-                               value="{{ old('customer_name') }}{{$project->client_name}}" required autocomplete="off" autofocus>
+                               value="{{ old('customer_name') }}{{ isset($enquiry) ? $enquiry->client_name : $project->client_name }}" required autocomplete="off" autofocus>
                         @error('customer_name')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -28,7 +52,7 @@
                     <div class="col-md-6">
                         <label for="customer_location" class="form-label small fw-semibold">Customer Location</label>
                         <input type="text" class="form-control form-control-sm" id="customer_location" name="customer_location" 
-                               value="{{ old('customer_location') }}" autocomplete="off">
+                               value="{{ old('customer_location') }}{{ isset($enquiry) ? $enquiry->venue : $project->venue }}" autocomplete="off">
                     </div>
                 </div>
 
@@ -230,7 +254,7 @@
                 </div>
 
                 <div class="d-flex justify-content-between">
-                    <a href="{{ route('quotes.index', $project) }}" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1 px-3">
+                    <a href="{{ isset($enquiry) ? route('enquiries.quotes.index', $enquiry) : route('quotes.index', $project) }}" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1 px-3">
                         <i class="fas fa-times fs-6"></i> Cancel
                     </a>
                     <button type="submit" class="btn btn-primary btn-sm d-flex align-items-center gap-1 px-3">
@@ -333,7 +357,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
                 <div class="col-md-12 d-flex justify-content-end mt-2">
-                    <button type="button" class="btn btn-outline-danger btn-sm remove-item" title="Remove Item" aria-label="Remove Item">
+                    <button type="button" class="btn btn-outline-danger btn-sm remove-item" disabled title="Cannot remove last item" aria-label="Remove Item">
                         <i class="fas fa-trash"></i> Remove
                     </button>
                 </div>

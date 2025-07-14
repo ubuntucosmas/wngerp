@@ -12,6 +12,7 @@ class DesignAsset extends Model
 
     protected $fillable = [
         'project_id',
+        'enquiry_id',
         'user_id',
         'name',
         'file_name',
@@ -29,6 +30,11 @@ class DesignAsset extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    public function enquiry(): BelongsTo
+    {
+        return $this->belongsTo(Enquiry::class);
     }
 
     public function user(): BelongsTo

@@ -40,7 +40,7 @@ class FileUploadController extends Controller
             $project->save();
 
 
-            return redirect()->route('projects.files.quotation', $project)
+            return redirect()->route('projects.quotation.index', $project)
                              ->with('success', 'Quotation uploaded successfully.')
                              ->with('file_path', $path); // Keep file_path for immediate feedback if needed
         }

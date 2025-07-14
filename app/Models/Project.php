@@ -123,9 +123,12 @@ class Project extends Model
         return $this->hasMany(ProjectBudget::class);
     }
 
+    /**
+     * Get all of the phases for the project.
+     */
     public function phases()
     {
-        return $this->hasMany(\App\Models\ProjectPhase::class);
+        return $this->morphMany(ProjectPhase::class, 'phaseable');
     }
 
 
@@ -197,9 +200,28 @@ public function archivalReports()
 
 protected static function booted()
 {
-    static::created(function ($project) {
-        foreach (config('project_process_phases') as $phase) {
-            $project->phases()->create([
+    // Phases are now created for enquiries and transferred to projects when conversion happens
+    // No automatic phase creation for projects
+}
+
+/**
+ * Create remaining phases when the 4th phase (Budget & Quotation) is completed
+ */
+/**
+ * Create remaining phases when the 4th phase (Budget & Quotation) is completed
+ */
+public function createRemainingPhases()
+{
+    // Get all phases from config
+    $allPhases = config('project_process_phases');
+    $remainingPhases = array_slice($allPhases, 4); // Skip first 4 phases
+    
+    foreach ($remainingPhases as $phase) {
+        // Check if phase already exists
+        $existingPhase = $this->phases()->where('name', $phase['name'])->first();
+        
+        if (!$existingPhase) {
+            $this->phases()->create([
                 'name' => $phase['name'],
                 'title' => $phase['name'],
                 'icon' => $phase['icon'] ?? null,
@@ -210,7 +232,18 @@ protected static function booted()
                 'end_date' => null,
             ]);
         }
-    });
+    }
+    
+    return true;
+}
+
+/**
+ * Get phases that should be displayed for a project.
+ * For projects, all phases are always displayed.
+ */
+public function getDisplayablePhases()
+{
+    return $this->phases()->orderBy('id')->get();
 }
 
 }

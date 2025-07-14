@@ -1,22 +1,34 @@
 @extends('layouts.master')
-@section('title', 'Project Material-List')
+@section('title', '{{ isset($enquiry) ? "Enquiry" : "Project" }} Material-List')
 
 @section('content')
 <div class="container-fluid p-2">
-    <!-- Breadcrumbs Navigation -->
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb bg-light p-2 rounded">
-            <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">Project Files</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Material-List</li>
-        </ol>
-    </nav>
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 text-primary fw-bold">Material-List for Project: {{ $project->name }}</h1>
-        <a href="{{ route('projects.material-list.create', $project) }}" class="btn btn-outline-primary">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                @if(isset($enquiry))
+                    <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('enquiries.files', $enquiry) }}">{{ $enquiry->project_name }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Project Material List</li>
+                @else
+                    <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">{{ $project->name }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Project Material List</li>
+                @endif
+            </ol>
+        </nav>
+        <h2 class="mb-0">Project Material List</h2>
+    </div>
+    <div class="page-actions">
+        <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.files', $enquiry) : route('projects.files.index', $project) }}" class="btn btn-primary me-2">
+            <i class="bi bi-arrow-left me-2"></i>Back to Files & Phases
+        </a>
+        <a href="{{ isset($enquiry) ? route('enquiries.material-list.create', $enquiry) : route('projects.material-list.create', $project) }}" class="btn btn-success">
             <i class="bi bi-plus-circle me-1"></i> New Material-List
         </a>
     </div>
+</div>
 
     <div class="card shadow-sm rounded-4">
         <div class="card-body">
@@ -37,18 +49,16 @@
                                 <td><span class="badge bg-primary">{{ $materialList->id }}</span></td>
                                 <td>{{ \Carbon\Carbon::parse($materialList->start_date)->format('d M Y') }}</td>
                                 <td>{{ \Carbon\Carbon::parse($materialList->end_date)->format('d M Y') }}</td>
-                                <td>
-                                    <span class="fw-semibold text-dark">{{ $materialList->approved_by }}</span>
-                                </td>
+                                <td><span class="fw-semibold text-dark">{{ $materialList->approved_by }}</span></td>
                                 <td class="text-center">
-                                    <a href="{{ route('projects.material-list.show', [$project, $materialList]) }}" class="btn btn-sm btn-outline-info me-1" title="View">
+                                    <a href="{{ isset($enquiry) ? route('enquiries.material-list.show', [$enquiry, $materialList]) : route('projects.material-list.show', [$project, $materialList]) }}" class="btn btn-sm btn-outline-info me-1" title="View">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    <a href="{{ route('projects.material-list.edit', [$project, $materialList]) }}" class="btn btn-sm btn-outline-warning me-1" title="Edit">
+                                    <!-- <a href="{{ isset($enquiry) ? route('enquiries.material-list.edit', [$enquiry, $materialList]) : route('projects.material-list.edit', [$project, $materialList]) }}" class="btn btn-sm btn-outline-warning me-1" title="Edit">
                                         <i class="bi bi-pencil"></i>
-                                    </a>
+                                    </a> -->
                                     @if(auth()->user()->hasRole('super-admin'))
-                                        <form action="{{ route('projects.material-list.destroy', ['project' => $project->id, 'materialList' => $materialList->id]) }}" method="POST" style="display: inline-block;">
+                                        <form action="{{ isset($enquiry) ? route('enquiries.material-list.destroy', ['enquiry' => $enquiry->id, 'materialList' => $materialList->id]) : route('projects.material-list.destroy', ['project' => $project->id, 'materialList' => $materialList->id]) }}" method="POST" style="display: inline-block;">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete"

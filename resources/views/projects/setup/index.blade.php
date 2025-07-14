@@ -8,11 +8,11 @@
                 <div class="page-title-right">
                     <ol class="breadcrumb m-0">
                         <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">Files</a></li>
+                        <li class="breadcrumb-item"><a href="{{ isset($project) && is_object($project) && isset($project->id) ? route('projects.files.index', $project->id) : '#' }}">Files</a></li>
                         <li class="breadcrumb-item active">Setup & Execution</li>
                     </ol>
                 </div>
-                <h4 class="page-title">Setup & Execution - {{ $project->name }}</h4>
+                <h4 class="page-title">Setup & Execution - {{ isset($project) ? $project->name : 'Unknown Project' }}</h4>
             </div>
         </div>
     </div>
@@ -69,7 +69,7 @@
                                                 <a href="{{ $report->google_drive_link }}" class="btn btn-sm btn-primary" target="_blank">
                                                     <i class="fas fa-external-link-alt me-1"></i> View
                                                 </a>
-                                                <form action="{{ route('projects.setup.destroy', ['project' => $project, 'setupReport' => $report]) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this report?')">
+                                                <form action="{{ isset($project) ? route('projects.setup.destroy', ['project' => $project, 'setupReport' => $report]) : '#' }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this report?')">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="btn btn-sm btn-danger">
@@ -93,7 +93,7 @@
 <div class="modal fade" id="addReportModal" tabindex="-1" aria-labelledby="addReportModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="{{ route('projects.setup.store', $project) }}" method="POST">
+            <form action="{{ isset($project) ? route('projects.setup.store', $project) : '#' }}" method="POST">
                 @csrf
                 <div class="modal-header">
                     <h5 class="modal-title" id="addReportModalLabel">Add New Report</h5>
@@ -198,20 +198,22 @@
     .dropzone {
         min-height: 200px;
         border: 2px dashed #e3e6f0;
-        background: #f8f9fc;
-        border-radius: 6px;
+        border-radius: 10px;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .dropzone:hover {
+        border-color: #4e73df;
+        background: #f1f3f4;
     }
     .dropzone .dz-message {
-        font-size: 24px;
-        min-height: 150px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-    }
-    .dropzone .dz-message i {
-        font-size: 48px;
-        margin-bottom: 20px;
+        text-align: center;
+        margin: 0;
+        color: #6c757d;
     }
 </style>
 @endpush

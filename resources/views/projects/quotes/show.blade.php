@@ -4,48 +4,43 @@
 
 @section('content')
 <div class="container-fluid py-4">
-    <!-- Header Section -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-3">
+    <div class="px-3 mx-10 w-100">
+    <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h2 class="fw-bold text-dark mb-1">Quote #{{ $quote->id }}</h2>
             <nav aria-label="breadcrumb">
-                <ol class="breadcrumb bg-transparent p-0 mb-0">
-                    <li class="breadcrumb-item">
-                        <a href="{{ route('projects.files.index', $project) }}" class="text-decoration-none text-primary">
-                            <i class="bi bi-folder me-1"></i>Project Files
-                        </a>
-                    </li>
-                    <li class="breadcrumb-item">
-                        <a href="{{ route('quotes.index', $project) }}" class="text-decoration-none text-primary">
-                            <i class="bi bi-file-earmark-text me-1"></i>Quotes
-                        </a>
-                    </li>
-                    <li class="breadcrumb-item active text-muted" aria-current="page">
-                        Quote #{{ $quote->id }}
-                    </li>
+                <ol class="breadcrumb">
+                    @if(isset($enquiry))
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.files', $enquiry) }}">{{ $enquiry->project_name }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.files.quotation', $enquiry) }}">Budget & Quotation</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.quotes.index', $enquiry) }}">Quotes</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">View Quote #{{ $quote->id }}</li>
+                    @else
+                        <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">{{ $project->name }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('projects.quotation.index', $project) }}">Budget & Quotation</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('quotes.index', $project) }}">Quotes</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">View Quote #{{ $quote->id }}</li>
+                    @endif
                 </ol>
             </nav>
+            <h2 class="mb-0">View Quote #{{ $quote->id }}</h2>
         </div>
-        <div class="d-flex gap-2">
-            <a href="{{ route('quotes.edit', ['project' => $project->id, 'quote' => $quote->id]) }}" 
-               class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
-                <i class="bi bi-pencil-fill"></i>
-                <span>Edit Quote</span>
+        <div class="page-actions">
+            <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.quotes.index', $enquiry) : route('quotes.index', $project) }}" class="btn btn-primary me-2">
+                <i class="bi bi-arrow-left me-2"></i>Back to Quotes
             </a>
-            <a href="{{ route('quotes.print', [$project->id, $quote->id]) }}" 
-               class="btn btn-outline-primary d-flex align-items-center gap-2 shadow-sm" target="_blank">
-                <i class="bi bi-printer"></i>
-                <span>Print</span>
+            <a href="{{ isset($enquiry) ? route('enquiries.quotes.edit', ['enquiry' => $enquiry->id, 'quote' => $quote->id]) : route('quotes.edit', ['project' => $project->id, 'quote' => $quote->id]) }}" class="btn btn-info me-2">
+                <i class="bi bi-pencil me-2"></i>Edit
             </a>
-            <a href="{{ route('quotes.download', [$project->id, $quote->id]) }}" 
-               class="btn btn-outline-success d-flex align-items-center gap-2 shadow-sm"> 
-                <i class="bi bi-download"></i>
-                <span>Download PDF</span>
+            <a href="{{ isset($enquiry) ? route('enquiries.quotes.print', [$enquiry->id, $quote->id]) : route('quotes.print', [$project->id, $quote->id]) }}" class="btn btn-secondary me-2" target="_blank">
+                <i class="bi bi-printer me-2"></i>Print
             </a>
-            <a href="{{ route('quotes.excel', [$project->id, $quote->id]) }}" 
-               class="btn btn-outline-info d-flex align-items-center gap-2 shadow-sm"> 
-                <i class="bi bi-file-earmark-excel"></i>
-                <span>Export Excel</span>
+            <a href="{{ isset($enquiry) ? route('enquiries.quotes.excel', [$enquiry->id, $quote->id]) : route('quotes.excel', [$project->id, $quote->id]) }}" class="btn btn-secondary me-2">
+                <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
+            </a>
+            <a href="{{ isset($enquiry) ? route('enquiries.quotes.download', [$enquiry->id, $quote->id]) : route('quotes.download', [$project->id, $quote->id]) }}" class="btn btn-secondary">
+                <i class="bi bi-file-earmark-pdf me-2"></i>Download PDF
             </a>
         </div>
     </div>
@@ -53,29 +48,6 @@
     <!-- Quote Document -->
     <div class="card border-0 mb-4">
         <div class="card-body p-3">
-            <!-- Quote Header -->
-            <!-- <div class="bg-gradient-primary text-white p-4 rounded-top">
-                <div class="row align-items-center">
-                    <div class="col-md-6">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="bg-white bg-opacity-20 rounded-circle p-3">
-                                <i class="bi bi-file-earmark-text fs-2"></i>
-                            </div>
-                            <div>
-                                <h3 class="fw-bold mb-1">QUOTE</h3>
-                                <p class="mb-0 opacity-75">Professional Quotation</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6 text-md-end">
-                        <div class="bg-white bg-opacity-20 rounded p-3 d-inline-block">
-                            <h4 class="fw-bold mb-1">#{{ $quote->id }}</h4>
-                            <p class="mb-0 small opacity-75">{{ $quote->quote_date->format('M d, Y') }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div> -->
-
             <!-- Company & Customer Info -->
             <div class="p-4">
                 <div class="row mb-4">
@@ -95,37 +67,15 @@
                                     </div>
                                 </div>
                                 <address class="mb-0 text-muted small" style="line-height: 1.6;">
-                                    Project ID: {{ $quote->project->project_id }}<br>
-                                    <a href="mailto:admin@woodnorkgreen.co.ke" class="text-decoration-none text-muted">Project Name: {{ $quote->project->name }}</a><br>
+                                    @if(isset($enquiry))
+                                    Enquiry ID: {{ $enquiry->id }}<br>
+                                    Enquiry Name: {{ $enquiry->project_name }}<br>
+                                    @else
+                                    Project ID: {{ $project->project_id }}<br>
+                                    Project Name: {{ $project->name }}<br>
+                                    @endif
+                                    <a href="mailto:admin@woodnorkgreen.co.ke" class="text-decoration-none text-muted">admin@woodnorkgreen.co.ke</a><br>
                                 </address>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- <div class="col-md-6">
-                        <div class="card border-0 bg-light h-100">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center gap-3 mb-3">
-                                    <div class="bg-primary bg-opacity-10 rounded-circle p-2">
-                                        <i class="bi bi-person text-primary"></i>
-                                    </div>
-                                    <div>
-                                        <h5 class="fw-bold mb-1">Customer: {{ $quote->customer_name }}</h5>
-                                        @if($quote->customer_location)
-                                            <p class="text-muted mb-0 small">{{ $quote->customer_location }}</p>
-                                        @endif
-                                    </div>
-                                </div>
-                                <div class="text-muted small">
-                                    @if($quote->attention)
-                                        <p class="mb-1"><strong>Attn:</strong> {{ $quote->attention }}</p>
-                                    @endif
-                                    @if($quote->reference)
-                                        <p class="mb-1"><strong>Ref:</strong> {{ $quote->reference }}</p>
-                                    @endif
-                                    @if($quote->project_start_date)
-                                        <p class="mb-0"><strong>Project Start:</strong> {{ $quote->project_start_date->format('M d, Y') }}</p>
-                                    @endif 
-                                </div> 
                             </div>
                         </div>
                     </div>
@@ -134,7 +84,7 @@
                                 <!-- Quote Items Table -->
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-header bg-white border-0 py-2">
-                        <h6 class="fw-semibold mb-0 text-uppercase small">Itemized Breakdown with Profit Margins</h6>
+                        <h6 class="fw-semibold mb-0 text-uppercase small">Quote Items</h6>
                     </div>
                     <div class="table-responsive">
                         @php 
@@ -142,158 +92,72 @@
                             $totalCost = 0;
                             $totalProfit = 0;
                             
-                            // Group items by item name (for production items)
+                            // Group items by item name (for production items) or description (for other items)
                             $groupedItems = $quote->lineItems->groupBy(function($item) {
                                 if (str_contains($item->comment, 'Item Name:')) {
                                     return str_replace('Item Name: ', '', explode(' | ', $item->comment)[0]);
                                 }
-                                return 'Other Items';
+                                return $item->description;
                             });
                         @endphp
                         
-                        @foreach($groupedItems as $itemName => $items)
-                            @if($itemName !== 'Other Items')
-                                <!-- Production Item Group -->
-                                <div class="mb-4">
-                                    <div class="bg-light p-3 rounded-top">
-                                        <h6 class="fw-bold text-primary mb-0">
-                                            <i class="bi bi-box-seam me-2"></i>{{ $itemName }}
-                                        </h6>
-                                    </div>
                                     <table class="table table-sm table-hover mb-0">
                                         <thead class="table-secondary">
                                             <tr>
                                                 <th class="border-0 py-2 px-2 text-center" style="width: 40px; font-size: 0.8rem;">#</th>
-                                                <th class="border-0 py-2 px-2" style="font-size: 0.8rem;">Description</th>
-                                                <th class="border-0 py-2 px-2 text-end" style="width: 80px; font-size: 0.8rem;">Qty</th>
-                                                <th class="border-0 py-2 px-2 text-end" style="width: 100px; font-size: 0.8rem;">Unit Price</th>
-                                                <!-- <th class="border-0 py-2 px-2 text-end" style="width: 100px; font-size: 0.8rem;">Quote Unit Price</th> -->
+                                    <th class="border-0 py-2 px-2" style="font-size: 0.8rem;">Item Name</th>
                                                 <th class="border-0 py-2 px-2 text-end" style="width: 100px; font-size: 0.8rem;">Total Cost</th>
                                                 <th class="border-0 py-2 px-2 text-center" style="width: 100px; font-size: 0.8rem;">Profit</th>
                                                 <th class="border-0 py-2 px-2 text-end" style="width: 100px; font-size: 0.8rem;">Quote Price</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @php $itemSubtotal = 0; $itemTotalCost = 0; $itemTotalProfit = 0; @endphp
-                                            @foreach($items as $i => $item)
+                                @foreach($groupedItems as $itemName => $items)
                                                 @php
-                                                    $itemTotalCostCalc = $item->quantity * $item->unit_price;
-                                                    $itemQuotePrice = $item->quote_price ?? $itemTotalCostCalc * (1 + ($item->profit_margin / 100));
-                                                    $itemProfit = $itemQuotePrice - $itemTotalCostCalc;
-                                                    $quoteUnitPrice = $itemQuotePrice / $item->quantity;
-                                                    $itemSubtotal += $itemQuotePrice;
-                                                    $itemTotalCost += $itemTotalCostCalc;
-                                                    $itemTotalProfit += $itemProfit;
-                                                    $subtotal += $itemQuotePrice;
-                                                    $totalCost += $itemTotalCostCalc;
-                                                    $totalProfit += $itemProfit;
+                                        $itemTotalCost = $items->sum('total_cost');
+                                        $itemTotalQuotePrice = $items->sum('quote_price');
+                                        $itemTotalProfit = $itemTotalQuotePrice - $itemTotalCost;
+                                        $subtotal += $itemTotalQuotePrice;
+                                        $totalCost += $itemTotalCost;
+                                        $totalProfit += $itemTotalProfit;
+                                        $firstItem = $items->first();
                                                 @endphp
                                                 <tr class="border-bottom">
                                                     <td class="py-2 px-2 text-center">
-                                                        <span class="badge bg-light text-dark" style="font-size: 0.75rem;">{{ $i + 1 }}</span>
+                                            <span class="badge bg-light text-dark" style="font-size: 0.75rem;">{{ $loop->iteration }}</span>
                                                     </td>
                                                     <td class="py-2 px-2">
                                                         <div>
-                                                            <div class="fw-semibold" style="font-size: 0.85rem; line-height: 1.2;">{{ $item->description }}</div>
-                                                            @if($item->comment && !str_contains($item->comment, 'Item Name:'))
-                                                                <small class="text-muted" style="font-size: 0.75rem;">{{ $item->comment }}</small>
-                                                            @endif
+                                                <div class="fw-semibold" style="font-size: 0.85rem; line-height: 1.2;">{{ $itemName }}</div>
+                                                @if($firstItem->template)
+                                                    <span class="badge bg-info fs-6 py-1 px-2" style="font-size: 0.7rem;">
+                                                        <i class="bi bi-file-earmark-text me-1"></i>
+                                                        Template: {{ $firstItem->template->name }}
+                                                    </span>
+                                                @endif
+                                                @if($items->count() > 1)
+                                                    <small class="text-muted" style="font-size: 0.75rem;">{{ $items->count() }} items included</small>
+                                                @endif
                                                         </div>
                                                     </td>
-                                                    <td class="py-2 px-2 text-end fw-semibold" style="font-size: 0.85rem;">{{ number_format($item->quantity, 2) }}</td>
-                                                    <td class="py-2 px-2 text-end fw-monospace" style="font-size: 0.85rem;">{{ number_format($item->unit_price, 2) }}</td>
-                                                    <!-- <td class="py-2 px-2 text-end fw-monospace text-success" style="font-size: 0.85rem;">{{ number_format($quoteUnitPrice, 2) }}</td> -->
-                                                    <td class="py-2 px-2 text-end fw-monospace text-muted" style="font-size: 0.85rem;">{{ number_format($itemTotalCostCalc, 2) }}</td>
+                                        <td class="py-2 px-2 text-end fw-monospace text-muted" style="font-size: 0.85rem;">{{ number_format($itemTotalCost, 2) }}</td>
                                                     <td class="py-2 px-2 text-center">
                                                         <div class="d-flex flex-column align-items-center">
-                                                            <small class="text-success fw-semibold" style="font-size: 0.75rem;">+{{ number_format($itemProfit, 2) }}</small>
-                                                            <small class="text-muted" style="font-size: 0.7rem;">{{ number_format($item->profit_margin, 2) }}%</small>
+                                                <small class="text-success fw-semibold" style="font-size: 0.75rem;">+{{ number_format($itemTotalProfit, 2) }}</small>
+                                                <small class="text-muted" style="font-size: 0.7rem;">{{ $itemTotalCost > 0 ? number_format(($itemTotalProfit / $itemTotalCost) * 100, 2) : '0.00' }}%</small>
                                                         </div>
                                                     </td>
-                                                    <td class="py-2 px-2 text-end fw-bold fw-monospace text-success" style="font-size: 0.85rem;">{{ number_format($itemQuotePrice, 2) }}</td>
+                                        <td class="py-2 px-2 text-end fw-bold fw-monospace text-success" style="font-size: 0.85rem;">{{ number_format($itemTotalQuotePrice, 2) }}</td>
                                                 </tr>
                                             @endforeach
                                         </tbody>
                                         <tfoot class="table-info">
-                                            <tr class="border-top">
-                                                <th colspan="5" class="text-end py-2 px-2" style="font-size: 0.85rem;">Subtotal for {{ $itemName }}:</th>
-                                                <th class="text-end py-2 px-2 fw-semibold text-muted" style="font-size: 0.85rem;">{{ number_format($itemTotalCost, 2) }}</th>
-                                                <th class="text-center py-2 px-2">
-                                                    <div class="d-flex flex-column align-items-center">
-                                                        <small class="text-success fw-semibold" style="font-size: 0.75rem;">+{{ number_format($itemTotalProfit, 2) }}</small>
-                                                        <small class="text-muted" style="font-size: 0.7rem;">{{ number_format(($itemTotalProfit / $itemTotalCost) * 100, 2) }}%</small>
-                                                    </div>
-                                                </th>
-                                                <th class="text-end py-2 px-2 fw-bold text-success" style="font-size: 0.9rem;">{{ number_format($itemSubtotal, 2) }}</th>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
-                                </div>
-                            @else
-                                <!-- Other Items (non-production) -->
-                                <table class="table table-sm table-hover mb-0">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th class="border-0 py-2 px-2 text-center" style="width: 40px; font-size: 0.8rem;">#</th>
-                                            <th class="border-0 py-2 px-2" style="font-size: 0.8rem;">Description</th>
-                                            <th class="border-0 py-2 px-2 text-end" style="width: 80px; font-size: 0.8rem;">Qty</th>
-                                            <th class="border-0 py-2 px-2 text-end" style="width: 100px; font-size: 0.8rem;">Unit Price</th>
-                                            <th class="border-0 py-2 px-2 text-end" style="width: 100px; font-size: 0.8rem;">Quote Unit Price</th>
-                                            <th class="border-0 py-2 px-2 text-end" style="width: 100px; font-size: 0.8rem;">Total Cost</th>
-                                            <th class="border-0 py-2 px-2 text-center" style="width: 100px; font-size: 0.8rem;">Profit</th>
-                                            <th class="border-0 py-2 px-2 text-end" style="width: 100px; font-size: 0.8rem;">Quote Price</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($items as $i => $item)
-                                            @php
-                                                $itemTotalCost = $item->quantity * $item->unit_price;
-                                                $itemQuotePrice = $item->quote_price ?? $itemTotalCost * (1 + ($item->profit_margin / 100));
-                                                $itemProfit = $itemQuotePrice - $itemTotalCost;
-                                                $quoteUnitPrice = $itemQuotePrice / $item->quantity;
-                                                $subtotal += $itemQuotePrice;
-                                                $totalCost += $itemTotalCost;
-                                                $totalProfit += $itemProfit;
-                                            @endphp
-                                            <tr class="border-bottom">
-                                                <td class="py-2 px-2 text-center">
-                                                    <span class="badge bg-light text-dark" style="font-size: 0.75rem;">{{ $i + 1 }}</span>
-                                                </td>
-                                                <td class="py-2 px-2">
-                                                    <div>
-                                                        <div class="fw-semibold" style="font-size: 0.85rem; line-height: 1.2;">{{ $item->description }}</div>
-                                                        @if($item->comment)
-                                                            <small class="text-muted" style="font-size: 0.75rem;">{{ $item->comment }}</small>
-                                                        @endif
-                                                    </div>
-                                                </td>
-                                                <td class="py-2 px-2 text-end fw-semibold" style="font-size: 0.85rem;">{{ number_format($item->quantity, 2) }}</td>
-                                                <td class="py-2 px-2 text-end fw-monospace" style="font-size: 0.85rem;">{{ number_format($item->unit_price, 2) }}</td>
-                                                <td class="py-2 px-2 text-end fw-monospace text-success" style="font-size: 0.85rem;">{{ number_format($quoteUnitPrice, 2) }}</td>
-                                                <td class="py-2 px-2 text-end fw-monospace text-muted" style="font-size: 0.85rem;">{{ number_format($itemTotalCost, 2) }}</td>
-                                                <td class="py-2 px-2 text-center">
-                                                    <div class="d-flex flex-column align-items-center">
-                                                        <small class="text-success fw-semibold" style="font-size: 0.75rem;">+{{ number_format($itemProfit, 2) }}</small>
-                                                        <small class="text-muted" style="font-size: 0.7rem;">{{ number_format($item->profit_margin, 2) }}%</small>
-                                                    </div>
-                                                </td>
-                                                <td class="py-2 px-2 text-end fw-bold fw-monospace text-success" style="font-size: 0.85rem;">{{ number_format($itemQuotePrice, 2) }}</td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            @endif
-                        @endforeach
-                        
-                        <!-- Grand Total -->
-                        <table class="table table-sm mb-0">
-                            <tfoot class="table-light">
                                 <tr class="border-top">
-                                    <th colspan="5" class="text-end py-2 px-2" style="font-size: 0.85rem;">Grand Total:</th>
+                                    <th colspan="2" class="text-end py-2 px-2" style="font-size: 0.85rem;">Grand Total:</th>
                                     <th class="text-end py-2 px-2 fw-semibold text-muted" style="font-size: 0.85rem;">{{ number_format($totalCost, 2) }}</th>
                                     <th class="text-center py-2 px-2">
                                         <div class="d-flex flex-column align-items-center">
-                                            <span class="badge bg-success text-white" style="font-size: 0.75rem;">{{ number_format(($totalProfit / $totalCost) * 100, 2) }}%</span>
+                                            <span class="badge bg-success text-white" style="font-size: 0.75rem;">{{ $totalCost > 0 ? number_format(($totalProfit / $totalCost) * 100, 2) : '0.00' }}%</span>
                                             <small class="text-success fw-semibold" style="font-size: 0.75rem;">+{{ number_format($totalProfit, 2) }}</small>
                                             <small class="text-muted" style="font-size: 0.7rem;">Total Profit</small>
                                         </div>
@@ -358,28 +222,28 @@
 
     <!-- Action Buttons -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
-        <a href="{{ route('quotes.index', $project) }}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+        <a href="{{ isset($enquiry) ? route('enquiries.quotes.index', $enquiry) : route('quotes.index', $project) }}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
             <i class="bi bi-arrow-left"></i>
             <span>Back to Quotes</span>
         </a>
         <div class="d-flex gap-2">
-            <a href="{{ route('quotes.edit', ['project' => $project->id, 'quote' => $quote->id]) }}" 
+            <a href="{{ isset($enquiry) ? route('enquiries.quotes.edit', ['enquiry' => $enquiry->id, 'quote' => $quote->id]) : route('quotes.edit', ['project' => $project->id, 'quote' => $quote->id]) }}" 
                class="btn btn-primary d-flex align-items-center gap-2">
                 <i class="bi bi-pencil"></i>
                 <span>Edit Quote</span>
             </a>
-            <a href="{{ route('quotes.print', [$project->id, $quote->id]) }}" 
+            <a href="{{ isset($enquiry) ? route('enquiries.quotes.print', [$enquiry->id, $quote->id]) : route('quotes.print', [$project->id, $quote->id]) }}" 
                class="btn btn-outline-primary d-flex align-items-center gap-2" target="_blank">
                 <i class="bi bi-printer"></i>
                 <span>Print</span>
             </a>
-            <a href="{{ route('quotes.excel', [$project->id, $quote->id]) }}" 
+            <a href="{{ isset($enquiry) ? route('enquiries.quotes.excel', [$enquiry->id, $quote->id]) : route('quotes.excel', [$project->id, $quote->id]) }}" 
                class="btn btn-outline-info d-flex align-items-center gap-2">
                 <i class="bi bi-file-earmark-excel"></i>
                 <span>Export Excel</span>
             </a>
             @if(auth()->user()->hasRole('super-admin'))
-                <form action="{{ route('quotes.destroy', ['project' => $project->id, 'quote' => $quote->id]) }}" 
+                <form action="{{ isset($enquiry) ? route('enquiries.quotes.destroy', ['enquiry' => $enquiry->id, 'quote' => $quote->id]) : route('quotes.destroy', ['project' => $project->id, 'quote' => $quote->id]) }}" 
                       method="POST" class="d-inline" 
                       onsubmit="return confirm('Are you sure you want to delete this quote?')">
                     @csrf

@@ -1,36 +1,37 @@
 @extends('layouts.master')
 
-@section('title', 'Quotation - ' . $project->name)
+@section('title', 'Quotation - ' . (isset($enquiry) ? $enquiry->project_name : $project->name))
 @section('navbar-title', 'Quotation')
 
 @section('content')
 <div class="px-3 mx-10 w-100">
-    <!-- Back button and breadcrumb -->
-    <div class="d-flex align-items-center mb-4">
-        <a href="{{ route('projects.files.index', $project) }}" class="btn btn-outline-secondary btn-sm me-3">
-            <i class="bi bi-arrow-left"></i> Back to Project Files
-        </a>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">Project Files</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Quotation</li>
-            </ol>
-        </nav>
-    </div>
-
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="px-3 mx-10 w-100">
+    <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h2 class="mb-1">Quotation Management</h2>
-            <p class="text-muted mb-0">Manage quotations</p>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    @if(isset($enquiry))
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('enquiries.files', $enquiry) }}">{{ $enquiry->project_name }}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Budget & Quotation</li>
+                    @else
+                        <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
+                        <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">{{ $project->name }}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Budget & Quotation</li>
+                    @endif
+                </ol>
+            </nav>
+            <h2 class="mb-0">Budget & Quotation</h2>
         </div>
+        <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.files', $enquiry) : route('projects.files.index', $project) }}" class="btn btn-primary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Files & Phases
+        </a>
     </div>
 
-    <!-- Files Grid -->
     <div class="row">
-        <!-- Loading Sheet Card -->
+  
         <div class="col-lg-6 col-md-6 mb-4">
-            <a href="{{ route('budget.index', $project) }}" class="text-decoration-none">
+            <a href="{{ isset($enquiry) ? route('enquiries.budget.index', $enquiry) : route('budget.index', $project) }}" class="text-decoration-none">
                 <div class="file-card h-100">
                     <div class="d-flex align-items-start">
                         <div class="file-card-icon me-3">
@@ -50,9 +51,9 @@
             </a>
         </div>
 
-        <!-- Booking Orders Card -->
+        
         <div class="col-lg-6 col-md-6 mb-4">
-            <a href="{{ route('quotes.index', $project) }}" class="text-decoration-none">
+            <a href="{{ isset($enquiry) ? route('enquiries.quotes.index', $enquiry) : route('quotes.index', $project) }}" class="text-decoration-none">
                 <div class="file-card h-100">
                     <div class="d-flex align-items-start">
                         <div class="file-card-icon me-3">

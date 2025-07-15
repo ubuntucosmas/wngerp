@@ -235,14 +235,28 @@ public function edit(Project $project = null, Enquiry $enquiry = null, ProjectBu
         abort(403, 'Only Finance or Accounts can edit budgets.');
     }
     if ($budget->status === 'approved') {
-        return redirect()->route('budget.show', [$project, $budget])
-            ->with('error', 'Approved budgets cannot be edited.');
+        if ($enquiry) {
+            return redirect()->route('enquiries.budget.show', [$enquiry, $budget])
+                ->with('error', 'Approved budgets cannot be edited.');
+        } else {
+            return redirect()->route('budget.show', [$project, $budget])
+                ->with('error', 'Approved budgets cannot be edited.');
+        }
     }
+
+    // Fetch all items and group them by category
     $items = $budget->items()->get()->groupBy('category');
+
+    // Separate production items for special handling in the view
+    $productionItems = $items->pull('Materials - Production', collect())->groupBy('item_name');
+
+    // The rest of the items are grouped normally
+    $groupedItems = $items;
+
     if ($enquiry) {
-        return view('projects.budget.edit', compact('enquiry', 'budget', 'items'));
+        return view('projects.budget.edit', compact('enquiry', 'budget', 'groupedItems', 'productionItems'));
     } else {
-        return view('projects.budget.edit', compact('project', 'budget', 'items'));
+        return view('projects.budget.edit', compact('project', 'budget', 'groupedItems', 'productionItems'));
     }
 }
 

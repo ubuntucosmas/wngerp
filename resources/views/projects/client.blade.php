@@ -226,7 +226,7 @@
                     <td>{{ $client->CustomerType }}</td>
                     <td class="action-buttons">
                         <button class="btn btn-sm btn-outline-info" onclick="viewClient({{ $client->ClientID }})"><i class="bi bi-eye"></i> View</button>
-                        <button class="btn btn-sm btn-outline-warning" onclick="editClient({{ $client->ClientID }})"><i class="bi bi-pencil"></i> Edit</button>
+                        <!-- <button class="btn btn-sm btn-outline-warning" onclick="editClient({{ $client->ClientID }})"><i class="bi bi-pencil"></i> Edit</button> -->
                         <button class="btn btn-sm btn-outline-danger" onclick="deleteClient({{ $client->ClientID }})"><i class="bi bi-trash"></i> Delete</button>
                     </td>
                 </tr>

@@ -45,35 +45,30 @@ class MaterialListController extends Controller
      */
     public function show(Request $request, $projectOrEnquiryId, $materialListId)
     {
-        $materialList = MaterialList::findOrFail($materialListId);
-
-        $project = null;
-        $enquiry = null;
-
-        // Check if the route is for an enquiry or a project
-        if ($request->route()->getPrefix() == 'enquiries/{enquiry}/material-list') {
-            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
-            // if ($materialList->enquiry_id != $enquiry->id) {
-            //     abort(404);
-            // }
-        } else {
-            $project = Project::findOrFail($projectOrEnquiryId);
-            // if ($materialList->project_id != $project->id) {
-            //     abort(404);
-            // }
-        }
-
-        $materialList->load([
+        $materialList = MaterialList::with([
             'productionItems.particulars',
             'productionItems.template.category',
             'materialsHire',
             'labourItems'
-        ]);
-
+        ])->findOrFail($materialListId);
+    
+        $project = Project::find($projectOrEnquiryId);
+        $enquiry = Enquiry::find($projectOrEnquiryId);
+    
+        // Ensure the material list is correctly linked
+        if ($project && $materialList->project_id === $project->id) {
+            // linked to a project
+        } elseif ($enquiry && $materialList->enquiry_id === $enquiry->id) {
+            // linked to an enquiry
+        } else {
+            abort(404); // not linked to either correctly
+        }
+    
         $labourItemsByCategory = $materialList->labourItems->groupBy('category');
-
+    
         return view('projects.material-list.show', compact('project', 'enquiry', 'materialList', 'labourItemsByCategory'));
     }
+    
 
     /**
      * Show the form for creating a new material list.

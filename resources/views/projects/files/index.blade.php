@@ -441,6 +441,21 @@
     </div>
 </div>
 
+@if(isset($enquiry) && !$enquiry->converted_to_project_id && $enquiry->areFirstFourPhasesCompleted())
+    <div class="alert alert-success d-flex align-items-center justify-content-between my-3">
+        <div>
+            <i class="bi bi-arrow-up-circle me-2"></i>
+            <strong>Ready to Convert:</strong> All first four phases are completed or skipped. You can now convert this enquiry to a project.
+        </div>
+        <form action="{{ route('enquiries.convert', $enquiry) }}" method="POST" class="d-inline" onsubmit="return confirm('Convert this enquiry to a project? This action cannot be undone.');">
+            @csrf
+            <button type="submit" class="btn btn-success btn-sm">
+                <i class="bi bi-arrow-up-circle me-1"></i> Convert to Project
+            </button>
+        </form>
+    </div>
+@endif
+
 {{-- Overall Progress Bar (at the top, or wherever appropriate) --}}
 <div class="mb-4">
     <div class="d-flex justify-content-between align-items-center mb-1">

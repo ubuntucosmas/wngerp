@@ -138,7 +138,7 @@ class Enquiry extends Model
         }
         
         return $firstFourPhases->every(function ($phase) {
-            return $phase->status === 'Completed';
+            return strtolower($phase->status) === 'completed' || $phase->skipped;
         });
     }
 

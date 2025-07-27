@@ -219,11 +219,23 @@ class MaterialListController extends Controller
         
         $labourItemsByCategory = $materialList->labourItems->groupBy('category');
         
+        $inventoryItems = Inventory::select('item_name', 'unit_of_measure')
+            ->distinct('item_name')
+            ->orderBy('item_name')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'name' => $item->item_name,
+                    'unit_of_measure' => $item->unit_of_measure
+                ];
+            });
+        
         return view('projects.material-list.edit', [
             'project' => $project,
             'enquiry' => $enquiry,
             'materialList' => $materialList,
-            'labourItemsByCategory' => $labourItemsByCategory
+            'labourItemsByCategory' => $labourItemsByCategory,
+            'inventoryItems' => $inventoryItems
         ]);
     }
 

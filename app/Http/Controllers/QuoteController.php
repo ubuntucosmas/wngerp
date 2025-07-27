@@ -626,4 +626,39 @@ class QuoteController extends Controller
         $fileName = 'quote-' . ($enquiry ? 'enquiry-' . $enquiry->id : 'project-' . $project->id) . '-' . $quote->id . '.xlsx';
         return Excel::download(new QuoteExport($quote), $fileName);
     }
+
+    /**
+     * Approve a quote and notify all users.
+     */
+    public function approve(Request $request, $projectOrEnquiryId, Quote $quote)
+    {
+        // Restrict approval to certain roles
+        if (!auth()->user()->hasAnyRole(['super-admin', 'admin', 'finance', 'pm'])) {
+            return back()->with('error', 'You do not have permission to approve quotes.');
+        }
+        
+        // Check if quote is already approved
+        if ($quote->status === Quote::STATUS_APPROVED) {
+            return back()->with('warning', 'This quote has already been approved.');
+        }
+        
+        try {
+            $notificationCount = $quote->approveAndNotify();
+            
+            $message = "Quote #{$quote->id} has been approved successfully! ";
+            $message .= "Notifications sent to {$notificationCount} users.";
+            
+            return back()->with('success', $message);
+            
+        } catch (\Exception $e) {
+            \Log::error('Quote approval failed', [
+                'quote_id' => $quote->id,
+                'user_id' => auth()->id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return back()->with('error', 'Failed to approve quote. Please try again.');
+        }
+    }
 }

@@ -560,6 +560,35 @@ Route::get('/api/inventory/items', [\App\Http\Controllers\API\InventoryControlle
     ->middleware('auth')
     ->name('api.inventory.items');
 
+Route::get('/api/inventory/particulars-items', [\App\Http\Controllers\API\InventoryController::class, 'particularsItems'])
+    ->middleware('auth')
+    ->name('api.inventory.particulars-items');
+
+// Test route to verify filtering is working
+Route::get('/test-inventory-filter', function() {
+    $controller = new \App\Http\Controllers\API\InventoryController();
+    
+    echo "<h3>Testing Inventory Filtering</h3>";
+    
+    // Test without filter
+    $request1 = new \Illuminate\Http\Request();
+    $response1 = $controller->index($request1);
+    $data1 = $response1->getData();
+    echo "<p><strong>Without filter:</strong> " . count($data1) . " items</p>";
+    
+    // Test with filter
+    $request2 = new \Illuminate\Http\Request(['filter' => 'material-list']);
+    $response2 = $controller->index($request2);
+    $data2 = $response2->getData();
+    echo "<p><strong>With material-list filter:</strong> " . count($data2) . " items</p>";
+    
+    echo "<h4>Filtered Items:</h4>";
+    foreach($data2 as $item) {
+        echo "<li>" . $item->name . " (" . $item->unit_of_measure . ")</li>";
+    }
+    
+})->middleware('auth');
+
 // Test route for debugging
 Route::get('/test-templates', function() {
     return response()->json(['message' => 'Test route working']);
@@ -662,3 +691,6 @@ Route::get('/', function () {
 // Phase skip/unskip routes
 Route::post('/phases/{phaseId}/skip', [\App\Http\Controllers\projects\PhaseStatusController::class, 'skipPhase'])->name('phases.skip')->middleware(['auth']);
 Route::post('/phases/{phaseId}/unskip', [\App\Http\Controllers\projects\PhaseStatusController::class, 'unskipPhase'])->name('phases.unskip')->middleware(['auth']);
+
+// Quote Approval Route
+Route::post('/quotes/{projectOrEnquiryId}/{quote}/approve', [QuoteController::class, 'approve'])->middleware(['auth'])->name('quotes.approve');

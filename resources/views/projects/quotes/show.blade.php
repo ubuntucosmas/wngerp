@@ -43,9 +43,26 @@
                 <a href="{{ route('enquiries.quotes.excel', [$enquiry->id, $quote->id]) }}" class="btn btn-secondary me-2">
                     <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
                 </a>
-                <a href="{{ route('enquiries.quotes.download', [$enquiry->id, $quote->id]) }}" class="btn btn-secondary">
+                <a href="{{ route('enquiries.quotes.download', [$enquiry->id, $quote->id]) }}" class="btn btn-secondary me-2">
                     <i class="bi bi-file-earmark-pdf me-2"></i>Download PDF
                 </a>
+                @hasanyrole('super-admin|admin|finance|pm')
+                    @if($quote->status !== 'approved')
+                        <form action="{{ route('quotes.approve', [$enquiry->id, $quote->id]) }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-success" onclick="return confirm('Are you sure you want to approve this quote? This will notify all users.')">
+                                <i class="bi bi-check-circle me-2"></i>Approve Quote
+                            </button>
+                        </form>
+                    @else
+                        <span class="badge bg-success fs-6 px-3 py-2">
+                            <i class="bi bi-check-circle me-1"></i>Approved
+                            @if($quote->approved_at)
+                                <small class="ms-2">{{ $quote->approved_at->format('M d, Y') }}</small>
+                            @endif
+                        </span>
+                    @endif
+                @endhasanyrole
             @elseif(isset($project) && $project)
                 <a href="{{ route('quotes.index', $project) }}" class="btn btn-primary me-2">
                     <i class="bi bi-arrow-left me-2"></i>Back to Quotes
@@ -59,9 +76,26 @@
                 <a href="{{ route('quotes.excel', [$project->id, $quote->id]) }}" class="btn btn-secondary me-2">
                     <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
                 </a>
-                <a href="{{ route('quotes.download', [$project->id, $quote->id]) }}" class="btn btn-secondary">
+                <a href="{{ route('quotes.download', [$project->id, $quote->id]) }}" class="btn btn-secondary me-2">
                     <i class="bi bi-file-earmark-pdf me-2"></i>Download PDF
                 </a>
+                @hasanyrole('super-admin|admin|finance|pm')
+                    @if($quote->status !== 'approved')
+                        <form action="{{ route('quotes.approve', [$project->id, $quote->id]) }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-success" onclick="return confirm('Are you sure you want to approve this quote? This will notify all users.')">
+                                <i class="bi bi-check-circle me-2"></i>Approve Quote
+                            </button>
+                        </form>
+                    @else
+                        <span class="badge bg-success fs-6 px-3 py-2">
+                            <i class="bi bi-check-circle me-1"></i>Approved
+                            @if($quote->approved_at)
+                                <small class="ms-2">{{ $quote->approved_at->format('M d, Y') }}</small>
+                            @endif
+                        </span>
+                    @endif
+                @endhasanyrole
             @else
                 <a href="{{ route('projects.index') }}" class="btn btn-primary me-2">
                     <i class="bi bi-arrow-left me-2"></i>Back to Projects

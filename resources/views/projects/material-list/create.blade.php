@@ -446,30 +446,102 @@
     let hireIndex = {{ isset($materialList->materials_hire) && is_array($materialList->materials_hire) ? count($materialList->materials_hire) : 0 }} > 0 ? {{ isset($materialList->materials_hire) && is_array($materialList->materials_hire) ? count($materialList->materials_hire) : 1 }} : 1;
     let particularCounters = {};
     let inventoryItems = [];
+    let hireItems = [];
+    let particularsItems = [];
     let templates = [];
     let itemGroupToRemove = null;
 
     // Function to fetch inventory items
     function fetchInventoryItems() {
         return new Promise((resolve, reject) => {
-            if (inventoryItems.length > 0) {
-                resolve(inventoryItems);
-                return;
-            }
+            // Force refresh for debugging - remove caching temporarily
+            console.log('Fetching inventory items with material-list filter...');
+            console.log('API URL:', '{{ route("api.inventory.items") }}');
             $.ajax({
                 url: '{{ route("api.inventory.items") }}',
                 type: 'GET',
+                data: { filter: 'material-list' }, // Add filter parameter for material list
                 dataType: 'json',
+                cache: false, // Disable caching
                 success: function(data) {
+                    console.log('Received filtered inventory items:', data);
+                    console.log('Number of items received:', data.length);
                     inventoryItems = data;
                     resolve(data);
                 },
                 error: function(xhr, status, error) {
                     console.error('Error loading inventory items:', error);
+                    console.error('Status:', status);
+                    console.error('Response:', xhr.responseText);
                     reject(error);
                 }
             });
         });
+    }
+
+    // Function to fetch hire items only
+    function fetchHireItems() {
+        return new Promise((resolve, reject) => {
+            if (hireItems.length > 0) {
+                resolve(hireItems);
+                return;
+            }
+            $.ajax({
+                url: '{{ route("api.inventory.particulars-items") }}',
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    hireItems = data;
+                    resolve(data);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading hire items:', error);
+                    reject(error);
+                }
+            });
+        });
+    }
+
+    // Function to fetch particulars items (consumable, hire, electricals only)
+    function fetchParticularsItems() {
+        return new Promise((resolve, reject) => {
+            if (particularsItems.length > 0) {
+                resolve(particularsItems);
+                return;
+            }
+            $.ajax({
+                url: '{{ route("api.inventory.particulars-items") }}',
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    particularsItems = data;
+                    resolve(data);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading particulars items:', error);
+                    reject(error);
+                }
+            });
+        });
+    }
+
+    // Find unit of measure for particulars items
+    function findParticularsUnitOfMeasure(itemName) {
+        if (!itemName) return '';
+        const item = particularsItems.find(i => i.name === itemName);
+        return item ? (item.unit_of_measure || '') : '';
+    }
+
+    // Check if a dropdown is for particulars (inside production items)
+    function isParticularsDropdown($select) {
+        return $select.closest('.particulars-body').length > 0 || 
+               ($select.attr('name') && $select.attr('name').includes('[particulars]'));
+    }
+
+    // Check if a dropdown is for hire items
+    function isHireDropdown($select) {
+        return $select.closest('#materialsHireBody').length > 0 ||
+               ($select.attr('name') && $select.attr('name').includes('materials_hire'));
     }
 
     // Function to fetch templates for dropdown
@@ -571,6 +643,17 @@
         return item ? (item.unit_of_measure || '') : '';
     }
 
+    // Check if a dropdown should use filtered items (both particulars and hire items)
+    function shouldUseFilteredItems($select) {
+        const name = $select.attr('name') || '';
+        const isInProductionSection = $select.closest('#collapseMaterialsProduction').length > 0;
+        const isInHireSection = $select.closest('#collapseMaterialsHire').length > 0 || $select.closest('#materialsHireBody').length > 0;
+        const hasParticularsInName = name.includes('[particulars]');
+        const hasHireInName = name.includes('materials_hire');
+        
+        return hasParticularsInName || hasHireInName || (isInProductionSection && name.includes('particular')) || isInHireSection;
+    }
+
     // Populate a single dropdown with cached items
     function populateDropdown($select, selectedValue = '') {
         const currentValue = selectedValue || $select.val();
@@ -582,7 +665,11 @@
             disabled: true,
             selected: !currentValue
         }));
-        inventoryItems.forEach(item => {
+        
+        // Use filtered items for particulars and hire sections, otherwise use all inventory items
+        const itemsToUse = shouldUseFilteredItems($select) ? particularsItems : inventoryItems;
+        
+        itemsToUse.forEach(item => {
             const option = $('<option>', {
                 value: item.name,
                 text: item.name,
@@ -596,17 +683,59 @@
         });
         $select.prop('disabled', false);
         if (currentValue && !$select.val()) {
-            const unit = findUnitOfMeasure(currentValue);
+            const unit = shouldUseFilteredItems($select) ? findParticularsUnitOfMeasure(currentValue) : findUnitOfMeasure(currentValue);
             if (unit) {
                 $row.find('.unit-field').val(unit);
             }
         }
     }
 
+    // Populate hire dropdown with hire items only
+    function populateHireDropdown($select, selectedValue = '') {
+        const currentValue = selectedValue || $select.val();
+        const $row = $select.closest('tr');
+        $select.empty();
+        $select.append($('<option>', {
+            value: '',
+            text: '-- Select hire item --',
+            disabled: true,
+            selected: !currentValue
+        }));
+        hireItems.forEach(item => {
+            const option = $('<option>', {
+                value: item.name,
+                text: item.name,
+                'data-unit': item.unit_of_measure || ''
+            });
+            if (currentValue === item.name) {
+                option.prop('selected', true);
+                $row.find('.unit-field').val(item.unit_of_measure || '');
+            }
+            $select.append(option);
+        });
+        $select.prop('disabled', false);
+        if (currentValue && !$select.val()) {
+            const unit = findHireUnitOfMeasure(currentValue);
+            if (unit) {
+                $row.find('.unit-field').val(unit);
+            }
+        }
+    }
+
+    // Find unit of measure for hire items
+    function findHireUnitOfMeasure(itemName) {
+        if (!itemName) return '';
+        const item = hireItems.find(i => i.name === itemName);
+        return item ? (item.unit_of_measure || '') : '';
+    }
+
     // Initialize all dropdowns on page load
     async function initializeDropdowns() {
         try {
-            await fetchInventoryItems();
+            await Promise.all([
+                fetchInventoryItems(),
+                fetchParticularsItems()
+            ]);
             $('.inventory-dropdown').each(function() {
                 const $select = $(this);
                 if (!$select.data('initialized')) {
@@ -638,13 +767,18 @@
     }
 
     // Function to initialize a new hire row
-    function initializeHireRow($row) {
+    async function initializeHireRow($row) {
         const $select = $row.find('.inventory-dropdown');
         const $unitField = $row.find('.unit-field');
         $unitField.prop('readonly', true);
         if (!$select.data('initialized')) {
-            populateDropdown($select);
-            $select.data('initialized', true);
+            try {
+                await fetchHireItems();
+                populateHireDropdown($select);
+                $select.data('initialized', true);
+            } catch (error) {
+                console.error('Failed to initialize hire row:', error);
+            }
         }
     }
 

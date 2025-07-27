@@ -268,30 +268,14 @@
             </nav>
             @if($phase->project->enquiryLog)
                 <div class="enquiry-status mb-3">
-                    @php
-                        $status = strtolower($phase->project->enquiryLog->status);
-                        $statusClass = [
-                            'active' => 'bg-success',
-                            'completed' => 'bg-primary',
-                            'pending' => 'bg-warning text-dark',
-                            'cancelled' => 'bg-danger',
-                            'on hold' => 'bg-info',
-                        ][$status] ?? 'bg-secondary';
-                        
-                        $statusIcon = [
-                            'active' => 'bi-check-circle-fill',
-                            'completed' => 'bi-check-all',
-                            'pending' => 'bi-hourglass-split',
-                            'cancelled' => 'bi-x-circle-fill',
-                            'on hold' => 'bi-pause-circle-fill',
-                        ][$status] ?? 'bi-info-circle-fill';
-                    @endphp
-                    <span class="badge {{ $statusClass }} d-inline-flex align-items-center py-2 px-3 shadow-sm" style="font-size: 0.9rem; letter-spacing: 0.5px;">
-                        <i class="bi {{ $statusIcon }} me-2"></i>
-                        <span class="fw-medium">Enquiry Status:</span>
-                        <span class="ms-1 text-uppercase fw-bold">{{ $phase->project->enquiryLog->status }}</span>
-                        @if($status === 'active')
-                            <span class="ms-2 badge-pulse"></span>
+                    <span class="badge bg-info d-inline-flex align-items-center py-2 px-3 shadow-sm" style="font-size: 0.9rem; letter-spacing: 0.5px;">
+                        <i class="bi bi-journal-text me-2"></i>
+                        <span class="fw-medium">Enquiry Log:</span>
+                        <span class="ms-1 text-uppercase fw-bold">
+                            {{ $phase->project->enquiryLog ? 'AVAILABLE' : 'NOT AVAILABLE' }}
+                        </span>
+                        @if($phase->project->enquiryLog)
+                            <span class="ms-2 badge bg-success">Active</span>
                         @endif
                     </span>
                 </div>

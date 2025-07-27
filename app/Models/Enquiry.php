@@ -147,93 +147,137 @@ class Enquiry extends Model
      */
     public function convertToProject()
     {
-        if (!$this->areFirstFourPhasesCompleted()) {
-            return false;
-        }
-
-        // Find the client
-        $client = \App\Models\Client::where('FullName', $this->client_name)->first();
-
-        if (!$client) {
-            return false;
-        }
-
-        // Generate Project ID
-        $month = now()->format('m');
-        $year = now()->format('y');
-        $prefix = 'WNG' . $month . $year;
-
-        $lastProject = \App\Models\Project::where('project_id', 'like', $prefix . '%')->latest('created_at')->first();
-        $lastNumber = 0;
-
-        if ($lastProject && preg_match('/WNG\d{4}(\d+)/', $lastProject->project_id, $matches)) {
-            $lastNumber = (int)$matches[1];
-        }
-
-        $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
-        $projectId = $prefix . $newNumber;
-
-        // Find the project officer by name if assigned_po is set
-        $projectOfficerId = null;
-        if (!empty($this->assigned_po)) {
-            $projectOfficer = \App\Models\User::where('name', $this->assigned_po)->first();
-            if ($projectOfficer) {
-                $projectOfficerId = $projectOfficer->id;
+        try {
+            if (!$this->areFirstFourPhasesCompleted()) {
+                \Log::warning('Enquiry conversion failed: Not all first 4 phases completed', [
+                    'enquiry_id' => $this->id,
+                    'phases_count' => $this->phases()->count(),
+                    'completed_phases' => $this->phases()->where('status', 'Completed')->count()
+                ]);
+                return false;
             }
+
+            // Find the client
+            $client = \App\Models\Client::where('FullName', $this->client_name)->first();
+
+            if (!$client) {
+                \Log::error('Enquiry conversion failed: Client not found', [
+                    'enquiry_id' => $this->id,
+                    'client_name' => $this->client_name
+                ]);
+                throw new \Exception("Client '{$this->client_name}' not found in the system. Please ensure the client exists before converting to project.");
+            }
+
+            // Generate Project ID
+            $month = now()->format('m');
+            $year = now()->format('y');
+            $prefix = 'WNG' . $month . $year;
+
+            $lastProject = \App\Models\Project::where('project_id', 'like', $prefix . '%')->latest('created_at')->first();
+            $lastNumber = 0;
+
+            if ($lastProject && preg_match('/WNG\d{4}(\d+)/', $lastProject->project_id, $matches)) {
+                $lastNumber = (int)$matches[1];
+            }
+
+            $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+            $projectId = $prefix . $newNumber;
+
+            // Find the project officer by name if assigned_po is set
+            $projectOfficerId = null;
+            if (!empty($this->assigned_po)) {
+                $projectOfficer = \App\Models\User::where('name', $this->assigned_po)->first();
+                if ($projectOfficer) {
+                    $projectOfficerId = $projectOfficer->id;
+                } else {
+                    \Log::warning('Project officer not found during conversion', [
+                        'enquiry_id' => $this->id,
+                        'assigned_po' => $this->assigned_po
+                    ]);
+                }
+            }
+
+            // Create the project
+            $project = \App\Models\Project::create([
+                'project_id' => $projectId,
+                'name' => $this->project_name ?? 'Project from Enquiry ' . $this->id,
+                'client_id' => $client->ClientID,
+                'client_name' => $client->FullName,
+                'venue' => $this->venue ?? 'TBD',
+                'start_date' => $this->expected_delivery_date ?? now(),
+                'end_date' => $this->expected_delivery_date ?? now()->addDays(2),
+                'project_manager_id' => auth()->id() ?? 1, // Fallback to user ID 1 if no auth
+                'project_officer_id' => $projectOfficerId,
+                'deliverables' => $this->project_deliverables,
+                'follow_up_notes' => $this->follow_up_notes,
+                'contact_person' => $this->contact_person,
+                'status' => 'active', // Set to active instead of using enquiry status
+            ]);
+
+            \Log::info('Project created successfully during conversion', [
+                'enquiry_id' => $this->id,
+                'project_id' => $project->id,
+                'project_code' => $projectId
+            ]);
+
+            // Transfer existing phases from enquiry to project
+            $phasesUpdated = $this->phases()->update([
+                'phaseable_id' => $project->id,
+                'phaseable_type' => \App\Models\Project::class,
+            ]);
+
+            \Log::info('Phases transferred', [
+                'enquiry_id' => $this->id,
+                'project_id' => $project->id,
+                'phases_updated' => $phasesUpdated
+            ]);
+
+            // Transfer material lists from enquiry to project
+            $this->materialLists()->update(['project_id' => $project->id]);
+
+            // Transfer quotes from enquiry to project
+            $this->quotes()->update(['project_id' => $project->id]);
+
+            // Transfer budgets from enquiry to project
+            $this->budgets()->update(['project_id' => $project->id]);
+
+            // Transfer design assets from enquiry to project
+            $this->designAssets()->update(['project_id' => $project->id]);
+
+            // Transfer site surveys from enquiry to project
+            $this->siteSurveys()->update(['project_id' => $project->id]);
+
+            // Transfer enquiry log from enquiry to project
+            $enquiryLog = $this->enquiryLog;
+            if ($enquiryLog) {
+                $enquiryLog->update(['project_id' => $project->id]);
+            }
+
+            // Add remaining phases (from Production onwards) to the project
+            $project->createRemainingPhases();
+
+            // Update the enquiry
+            $this->converted_to_project_id = $project->id;
+            $this->save();
+
+            \Log::info('Enquiry conversion completed successfully', [
+                'enquiry_id' => $this->id,
+                'project_id' => $project->id,
+                'project_code' => $projectId
+            ]);
+
+            return $project;
+
+        } catch (\Exception $e) {
+            \Log::error('Enquiry conversion failed', [
+                'enquiry_id' => $this->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Re-throw the exception so it can be caught by the controller
+            throw $e;
         }
-
-        // Create the project
-        $project = \App\Models\Project::create([
-            'project_id' => $projectId,
-            'name' => $this->project_name ?? 'Project from Enquiry ' . $this->id,
-            'client_id' => $client->ClientID,
-            'client_name' => $client->FullName,
-            'venue' => $this->venue ?? 'TBD',
-            'start_date' => $this->expected_delivery_date ?? now(),
-            'end_date' => $this->expected_delivery_date ?? now()->addDays(2),
-            'project_manager_id' => auth()->id(),
-            'project_officer_id' => $projectOfficerId,
-            'deliverables' => $this->project_deliverables,
-            'follow_up_notes' => $this->follow_up_notes,
-            'contact_person' => $this->contact_person,
-            'status' => $this->status ?? 'Initiated',
-        ]);
-
-        // Transfer existing phases from enquiry to project
-        $this->phases()->update([
-            'phaseable_id' => $project->id,
-            'phaseable_type' => Project::class,
-        ]);
-
-        // Transfer material lists from enquiry to project
-        $this->materialLists()->update(['project_id' => $project->id]);
-
-        // Transfer quotes from enquiry to project
-        $this->quotes()->update(['project_id' => $project->id]);
-
-        // Transfer budgets from enquiry to project
-        $this->budgets()->update(['project_id' => $project->id]);
-
-        // Transfer design assets from enquiry to project
-        $this->designAssets()->update(['project_id' => $project->id]);
-
-        // Transfer site surveys from enquiry to project
-        $this->siteSurveys()->update(['project_id' => $project->id]);
-
-        // Transfer enquiry log from enquiry to project
-        $enquiryLog = $this->enquiryLog;
-        if ($enquiryLog) {
-            $enquiryLog->update(['project_id' => $project->id]);
-        }
-
-        // Add remaining phases (from Production onwards) to the project
-        $project->createRemainingPhases();
-
-        // Update the enquiry
-        $this->converted_to_project_id = $project->id;
-        $this->save();
-
-        return $project;
     }
 
     /**

@@ -18,7 +18,6 @@ class EnquiryLog extends Model
         'client_name',
         'project_scope_summary',
         'contact_person',
-        'status',
         'assigned_to',
         'follow_up_notes',
     ];

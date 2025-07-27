@@ -65,10 +65,21 @@ class PhaseStatusController extends Controller
                 $enquiry = \App\Models\Enquiry::find($phase->enquiry_id);
                 
                 if ($enquiry && $enquiry->areFirstFourPhasesCompleted()) {
-                    // Convert enquiry to project
-                    $project = $enquiry->convertToProject();
-                    if ($project) {
-                        return redirect()->back()->with('success', 'All phases completed! Enquiry has been converted to a project.');
+                    try {
+                        // Convert enquiry to project
+                        $project = $enquiry->convertToProject();
+                        if ($project) {
+                            return redirect()->back()->with('success', "All phases completed! Enquiry has been converted to project: {$project->project_id}");
+                        } else {
+                            return redirect()->back()->with('error', 'Failed to convert enquiry to project. Please check the logs for details.');
+                        }
+                    } catch (\Exception $e) {
+                        \Log::error('Enquiry conversion error in PhaseStatusController', [
+                            'enquiry_id' => $enquiry->id,
+                            'error' => $e->getMessage()
+                        ]);
+                        
+                        return redirect()->back()->with('error', 'Conversion failed: ' . $e->getMessage());
                     }
                 }
             } else {

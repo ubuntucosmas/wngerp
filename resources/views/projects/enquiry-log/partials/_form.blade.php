@@ -56,18 +56,7 @@
         </div>
     </div>
     
-    <div class="col-12 col-md-6 col-lg-4">
-        <div class="form-group">
-            <label for="status" class="form-label small text-muted mb-1">Status</label>
-            <select name="status" class="form-select form-select-sm" required>
-                <option value="" disabled {{ !isset($enquiryLog) ? 'selected' : '' }}>Select status</option>
-                <option value="Open" {{ old('status', $enquiryLog->status ?? '') === 'Open' ? 'selected' : '' }}>Open</option>
-                <option value="Quoted" {{ old('status', $enquiryLog->status ?? '') === 'Quoted' ? 'selected' : '' }}>Quoted</option>
-                <option value="Approved" {{ old('status', $enquiryLog->status ?? '') === 'Approved' ? 'selected' : '' }}>Approved</option>
-                <option value="Declined" {{ old('status', $enquiryLog->status ?? '') === 'Declined' ? 'selected' : '' }}>Declined</option>
-            </select>
-        </div>
-    </div>
+
     
     <div class="col-12 col-md-6 col-lg-4">
         <div class="form-group">

@@ -160,11 +160,33 @@
                                                 <i class="bi bi-file-earmark-text text-primary"></i>
                                             </div>
                                             <div>
-                                                <h6 class="fw-semibold mb-1">Quote #{{ $quote->id }}</h6>
+                                                <div class="d-flex align-items-center gap-2 mb-1">
+                                                    <h6 class="fw-semibold mb-0">Quote #{{ $quote->id }}</h6>
+                                                    @if($quote->status === 'approved')
+                                                        <span class="badge bg-success">
+                                                            <i class="bi bi-check-circle me-1"></i>Approved
+                                                        </span>
+                                                    @elseif($quote->status === 'rejected')
+                                                        <span class="badge bg-danger">
+                                                            <i class="bi bi-x-circle me-1"></i>Rejected
+                                                        </span>
+                                                    @elseif($quote->status === 'waiting_approval')
+                                                        <span class="badge bg-warning">
+                                                            <i class="bi bi-clock me-1"></i>Pending
+                                                        </span>
+                                                    @else
+                                                        <span class="badge bg-secondary">
+                                                            <i class="bi bi-file-earmark me-1"></i>Draft
+                                                        </span>
+                                                    @endif
+                                                </div>
                                                 <div class="d-flex align-items-center gap-3 text-muted small">
                                                     <span><i class="bi bi-list-ul me-1"></i>{{ $itemCount }} items</span>
                                                     @if($quote->reference)
                                                         <span><i class="bi bi-tag me-1"></i>{{ $quote->reference }}</span>
+                                                    @endif
+                                                    @if($quote->approved_at)
+                                                        <span><i class="bi bi-calendar-check me-1"></i>{{ $quote->approved_at->format('M d, Y') }}</span>
                                                     @endif
                                                 </div>
                                             </div>
@@ -209,6 +231,17 @@
                                                class="btn btn-sm btn-outline-success" title="Export to Excel">
                                                 <i class="bi bi-file-earmark-excel"></i>
                                             </a>
+                                            @hasanyrole('super-admin|admin|finance|pm')
+                                                @if($quote->status !== 'approved')
+                                                    <form action="{{ route('quotes.approve', [isset($enquiry) ? $enquiry->id : $project->id, $quote->id]) }}" method="POST" class="d-inline">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Approve Quote" 
+                                                                onclick="return confirm('Are you sure you want to approve this quote? This will notify all users.')">
+                                                            <i class="bi bi-check-circle"></i>
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            @endhasanyrole
                                             @if(auth()->user()->hasRole('super-admin'))
                                                 <button type="button" class="btn btn-sm btn-outline-danger delete-quote" 
                                                         title="Delete Quote" data-quote-id="{{ $quote->id }}" data-project-id="{{ $project->id ?? '' }}" data-enquiry-id="{{ $enquiry->id ?? '' }}">

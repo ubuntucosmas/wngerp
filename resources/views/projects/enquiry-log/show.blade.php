@@ -186,7 +186,7 @@
                     {{ isset($enquiry) ? 'Enquiry' : 'Project' }} ID: {{ isset($enquiry) ? $enquiry->id : $project->project_id }}
                 </h5>
                 <span class="status-badge">
-                    Status:{{ $enquiryLog->status }}
+                    Type: {{ isset($project) && $project ? 'Converted Project' : 'Enquiry Log' }}
                 </span>
             </div>
             <div class="d-flex justify-content-end gap-2 align-items-center mb-4">
@@ -224,14 +224,8 @@
                                     <div class="fs-6 text-dark">{{ $enquiryLog->assigned_to ?? '—' }}</div>
                                 </div>
                                 <div class="col-12">
-                                    <div class="text-primary small fw-bold text-uppercase">Status</div>
-                                    <div class="fs-6 text-dark">{{ $enquiryLog->status ?? '—' }}</div>
-                                </div>
-                                <div class="col-12">
-                                    <div class="text-primary small fw-bold text-uppercase">Status</div>
-                                    <div class="badge bg-{{ $enquiryLog->status === 'Approved' ? 'success' : ($enquiryLog->status === 'Declined' ? 'danger' : 'secondary') }}">
-                                        {{ $enquiryLog->status ?? '—' }}
-                                    </div>
+                                    <div class="text-primary small fw-bold text-uppercase">Project Type</div>
+                                    <div class="fs-6 text-dark">{{ isset($project) && $project ? 'Converted Project' : 'Enquiry Log' }}</div>
                                 </div>
                                 <div class="col-12">
                                     <div class="text-primary small fw-bold text-uppercase">Date Received</div>

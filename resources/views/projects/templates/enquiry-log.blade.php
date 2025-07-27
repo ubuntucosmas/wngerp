@@ -1,245 +1,194 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Enquiry Log - {{ $enquiryLog->project_name ?? 'WOODNORKGREEN' }}</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <style>
-        @font-face {
-            font-family: 'DejaVu Sans';
-            font-style: normal;
-            font-weight: normal;
-            src: url('{{ storage_path('fonts/dejavu/DejaVuSans.ttf') }}') format('truetype');
-        }
-        @font-face {
-            font-family: 'DejaVu Sans';
-            font-style: normal;
-            font-weight: bold;
-            src: url('{{ storage_path('fonts/dejavu/DejaVuSans-Bold.ttf') }}') format('truetype');
-        }
+<!-- Header Section -->
+<table style="font-family: 'Poppins', Arial, sans-serif;">
+    <tr>
+        <td colspan="8" align="center" style="font-size:16px;font-weight:bold;padding:8px 0;font-family: 'Poppins', Arial, sans-serif;">Enquiry Log Export</td>
+    </tr>
+    <tr>
+        <td colspan="8" align="center" style="padding-bottom:8px;">
+            <!-- Logo Placeholder -->
+            <img src="{{ public_path('images/wng-logo.png') }}" alt="Company Logo" height="40">
+        </td>
+    </tr>
+</table>
 
-        body {
-            font-family: 'DejaVu Sans', sans-serif;
-            font-size: 10px;
-            color: #333;
-            background: #ffffff;
-            padding: 20px;
-        }
+@php
+    $enquiry = $enquiryLog->enquiry;
+    // $project is already passed from controller, don't override it
+    $dateReceived = $enquiryLog->date_received ? \Carbon\Carbon::parse($enquiryLog->date_received) : null;
+    $expectedDelivery = $enquiry && $enquiry->expected_delivery_date ? \Carbon\Carbon::parse($enquiry->expected_delivery_date) : null;
+    $scopeItems = is_array($enquiryLog->project_scope_summary) ? $enquiryLog->project_scope_summary : (json_decode($enquiryLog->project_scope_summary, true) ?: array_filter(explode(',', $enquiryLog->project_scope_summary ?? '')));
+@endphp
 
-        .excel-style-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 30px;
-        }
+<!-- Project Information -->
+<table style="font-family: 'Poppins', Arial, sans-serif; font-size: 11px;">
+    <tr>
+        <th align="left" style="font-size: 11px; font-weight: 600;">Project ID:</th>
+        <td style="font-size: 11px;">{{ $project ? $project->project_id : 'ENQ-' . str_pad($enquiryLog->id, 5, '0', STR_PAD_LEFT) }}</td>
+        <th align="left" style="font-size: 11px; font-weight: 600;">{{ isset($enquiry) ? 'Enquiry' : 'Project' }} Name:</th>
+        <td style="font-size: 11px;">{{ $enquiryLog->project_name ?? 'N/A' }}</td>
+        <th align="left" style="font-size: 11px; font-weight: 600;">Client:</th>
+        <td style="font-size: 11px;">{{ $enquiryLog->client_name ?? 'N/A' }}</td>
+    </tr>
+    <tr>
+        <th align="left" style="font-size: 11px; font-weight: 600;">Venue:</th>
+        <td style="font-size: 11px;">{{ $enquiryLog->venue ?? 'N/A' }}</td>
+        <th align="left" style="font-size: 11px; font-weight: 600;">Contact Person:</th>
+        <td style="font-size: 11px;">{{ $enquiryLog->contact_person ?? 'N/A' }}</td>
+        <th align="left" style="font-size: 11px; font-weight: 600;">Assigned To:</th>
+        <td style="font-size: 11px;">{{ $enquiryLog->assigned_to ?? 'Unassigned' }}</td>
+    </tr>
+    <tr>
+        <th align="left" style="font-size: 11px; font-weight: 600;">Project Type:</th>
+        <td style="font-size: 11px;">{{ $project ? 'Converted Project' : 'Enquiry Log' }}</td>
+        <th align="left" style="font-size: 11px; font-weight: 600;">Date Received:</th>
+        <td style="font-size: 11px;">{{ $dateReceived ? $dateReceived->format('M d, Y') : 'N/A' }}</td>
+        <th align="left" style="font-size: 11px; font-weight: 600;">Expected Delivery:</th>
+        <td style="font-size: 11px;">{{ $expectedDelivery ? $expectedDelivery->format('M d, Y') : 'N/A' }}</td>
+    </tr>
+    <tr>
+        <th align="left" style="font-size: 11px; font-weight: 600;">Reference:</th>
+        <td style="font-size: 11px;">ENQ-{{ str_pad($enquiryLog->id, 5, '0', STR_PAD_LEFT) }}</td>
+        <th align="left" style="font-size: 11px; font-weight: 600;"></th>
+        <td style="font-size: 11px;"></td>
+        <th align="left" style="font-size: 11px; font-weight: 600;"></th>
+        <td style="font-size: 11px;"></td>
+    </tr>
+</table>
+<br>
 
-        .excel-style-table th, .excel-style-table td {
-            border: 1px solid #dee2e6;
-            padding: 6px 8px;
-            text-align: left;
-            vertical-align: top;
-        }
-
-        .excel-style-table th {
-            background-color: #124653; /* Baby Blue */
-            color: #ffffff;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-
-        .excel-header {
-            text-align: center;
-            font-size: 18px;
-            color: #0BADD3;
-            font-weight: bold;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-
-        .sub-header {
-            text-align: center;
-            color: #6E6F71;
-            font-size: 9px;
-            margin-bottom: 20px;
-        }
-
-        .section-title {
-            background-color:  #124653; /* Blue */
-            color: #fff;
-            padding: 5px 10px;
-            font-weight: bold;
-            font-size: 11px;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 1px 6px;
-            border-radius: 10px;
-            font-size: 8px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        .status-Open { background: #fff3cd; color: #856404; }
-        .status-Quoted { background: #cce5ff; color: #004085; }
-        .status-Approved { background: #d4edda; color: #155724; }
-        .status-Declined { background: #f8d7da; color: #721c24; }
-
-        ul.scope-list {
-            margin: 0;
-            padding-left: 15px;
-        }
-
-        ul.scope-list li {
-            margin-bottom: 3px;
-        }
-
-        .notes-content {
-            white-space: pre-wrap;
-        }
-
-        .footer {
-            position: absolute;
-            bottom: 10mm;
-            left: 20mm;
-            right: 20mm;
-            text-align: center;
-            font-size: 7px;
-            color: #6E6F71;
-            padding-top: 3mm;
-            border-top: 1px solid #e0e0e0;
-        }
-        .logo img {
-            text-align: center;
-            margin-bottom: 10px;
-            height: 60px;
-        }
-
-        h1 {
-            font-size: 16px;
-            text-align: center;
-            margin: 0;
-            color: #145da0;
-          }
-
-          p {
-            font-size: 10px;
-            text-align: center;
-            margin: 0;
-            color: #6E6F71;
-          }
-
-          hr {
-            border: none;
-            border-top: 1px solid #b1d4e0;
-            margin: 10px 0;
-          }
-
-          .company-header {
-            text-align: center;
-            margin-bottom: 8px;
-          }
-    </style>
-</head>
-<body>
-    <div class="company-header">
-        <div class="logo">
-            <img src="{{ public_path('images/wng-logo.png') }}" alt="Company Logo">
-        </div>
-        <h1>WOODNORKGREEN</h1>
-        <h2>PROJECT BRIEF</h2>
-        <p>Karen Village Art Centre, Ngong Rd Nairobi</p>
-        <p>www.woodnorkgreen.co.ke | admin@woodnorkgreen.co.ke | +254780 397798</p>
-    </div>
-    <hr>    
-    <div class="section-title">Client & Project Information</div>
-    <table class="excel-style-table">
+@if(count($scopeItems) > 0)
+<table border="1" style="border-collapse:collapse; font-family: 'Poppins', Arial, sans-serif;">
+    <thead style="background:#f0f0f0;">
         <tr>
-            <th>Project ID</th>
-            <td>{{ $enquiryLog->project->project_id ?? '—' }}</td>
-            <th>Project Name</th>
-            <td>{{ $enquiryLog->project_name ?? '—' }}</td>
+            <th colspan="3" style="font-size:12px;text-align:left;padding:6px;font-weight:600;">Project Scope Summary</th>
         </tr>
         <tr>
-            <th>Client Name</th>
-            <td>{{ $enquiryLog->client_name ?? '—' }}</td>
-            <th>Contact Person</th>
-            <td>{{ $enquiryLog->contact_person ?? '—' }}</td>
+            <th style="font-size:10px;padding:4px;font-weight:600;">#</th>
+            <th style="font-size:10px;padding:4px;font-weight:600;">Scope Item</th>
+            <th style="font-size:10px;padding:4px;font-weight:600;">Description</th>
         </tr>
+    </thead>
+    <tbody>
+        @foreach($scopeItems as $index => $item)
         <tr>
-            <th>Venue</th>
-            <td>{{ $enquiryLog->venue ?? '—' }}</td>
+            <td style="font-size:10px;padding:4px;">{{ $index + 1 }}</td>
+            <td style="font-size:10px;padding:4px;">{{ trim($item) }}</td>
+            <td style="font-size:10px;padding:4px;">{{ strlen(trim($item)) > 50 ? 'Detailed scope item' : 'Standard scope item' }}</td>
         </tr>
-    </table>
+        @endforeach
+    </tbody>
+</table>
+@endif
+<br>
 
-    <div class="section-title">Project Details</div>
-    <table class="excel-style-table">
+@php
+    $daysElapsed = $dateReceived ? $dateReceived->diffInDays(now()) : 0;
+    $daysToDelivery = $expectedDelivery ? now()->diffInDays($expectedDelivery, false) : null;
+    $scopeCount = count($scopeItems);
+@endphp
+
+<!-- Timeline Information -->
+<table border="1" style="border-collapse:collapse; font-family: 'Poppins', Arial, sans-serif;">
+    <thead style="background:#f0f0f0;">
         <tr>
-            <th>Date Received</th>
-            <td>{{ $enquiryLog->date_received ? \Carbon\Carbon::parse($enquiryLog->date_received)->format('M d, Y') : '—' }}</td>
-            <th>Status</th>
-            <td>
-                <span class="status-badge status-{{ $enquiryLog->status ?? 'Open' }}">
-                    {{ $enquiryLog->status ?? 'Open' }}
-                </span>
+            <th colspan="3" style="font-size:12px;text-align:left;padding:6px;font-weight:600;">Timeline Information</th>
+        </tr>
+        <tr>
+            <th style="font-size:10px;padding:4px;font-weight:600;">Milestone</th>
+            <th style="font-size:10px;padding:4px;font-weight:600;">Date</th>
+            <th style="font-size:10px;padding:4px;font-weight:600;">Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="font-size:10px;padding:4px;">Enquiry Received</td>
+            <td style="font-size:10px;padding:4px;">{{ $dateReceived ? $dateReceived->format('M d, Y') : 'N/A' }}</td>
+            <td style="font-size:10px;padding:4px;">{{ $daysElapsed }} days ago</td>
+        </tr>
+        <tr>
+            <td style="font-size:10px;padding:4px;">Expected Delivery</td>
+            <td style="font-size:10px;padding:4px;">{{ $expectedDelivery ? $expectedDelivery->format('M d, Y') : 'Not Set' }}</td>
+            <td style="font-size:10px;padding:4px;">{{ $daysToDelivery !== null ? ($daysToDelivery < 0 ? 'OVERDUE' : $daysToDelivery . ' days left') : 'N/A' }}</td>
+        </tr>
+        <tr>
+            <td style="font-size:10px;padding:4px;">Last Updated</td>
+            <td style="font-size:10px;padding:4px;">{{ $enquiryLog->updated_at->format('M d, Y H:i') }}</td>
+            <td style="font-size:10px;padding:4px;">{{ $enquiryLog->updated_at->diffForHumans() }}</td>
+        </tr>
+        <tr>
+            <td style="font-size:10px;padding:4px;">Project Conversion</td>
+            <td style="font-size:10px;padding:4px;">{{ $project ? $project->created_at->format('M d, Y') : 'Pending' }}</td>
+            <td style="font-size:10px;padding:4px;">{{ $project ? 'COMPLETED' : 'PENDING' }}</td>
+        </tr>
+    </tbody>
+</table>
+<br>
+
+@if($enquiry && $enquiry->phases->count() > 0)
+<table border="1" style="border-collapse:collapse; font-family: 'Poppins', Arial, sans-serif;">
+    <thead style="background:#f0f0f0;">
+        <tr>
+            <th colspan="4" style="font-size:12px;text-align:left;padding:6px;font-weight:600;">Project Phases</th>
+        </tr>
+        <tr>
+            <th style="font-size:10px;padding:4px;font-weight:600;">Phase Name</th>
+            <th style="font-size:10px;padding:4px;font-weight:600;">Status</th>
+            <th style="font-size:10px;padding:4px;font-weight:600;">Start Date</th>
+            <th style="font-size:10px;padding:4px;font-weight:600;">End Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach($enquiry->phases as $phase)
+            <tr>
+                <td style="font-size:10px;padding:4px;">{{ $phase->name }}</td>
+                <td style="font-size:10px;padding:4px;">{{ $phase->status }}</td>
+                <td style="font-size:10px;padding:4px;">{{ $phase->start_date ? \Carbon\Carbon::parse($phase->start_date)->format('M d, Y') : 'N/A' }}</td>
+                <td style="font-size:10px;padding:4px;">{{ $phase->end_date ? \Carbon\Carbon::parse($phase->end_date)->format('M d, Y') : 'N/A' }}</td>
+            </tr>
+        @endforeach
+    </tbody>
+</table>
+<br>
+@endif
+
+<!-- Follow Up Notes -->
+<table border="1" style="border-collapse:collapse; font-family: 'Poppins', Arial, sans-serif;">
+    <thead style="background:#f0f0f0;">
+        <tr>
+            <th style="font-size:12px;text-align:left;padding:6px;font-weight:600;">Follow Up Notes</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="padding:6px;font-size:10px;">{{ $enquiryLog->follow_up_notes ?? 'No follow-up notes recorded.' }}</td>
+        </tr>
+    </tbody>
+</table>
+<br>
+
+<!-- Project Handover Details -->
+<table border="1" style="border-collapse:collapse; font-family: 'Poppins', Arial, sans-serif;">
+    <thead style="background:#f0f0f0;">
+        <tr>
+            <th style="font-size:12px;text-align:left;padding:6px;font-weight:600;">Project Handover Details</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td style="padding:6px;font-size:10px;">
+                <strong>Handed Over At:</strong> {{ now()->format('M d, Y \a\t H:i') }}<br>
+                <strong>Officer:</strong> {{ Auth::user()->name ?? 'System' }}
             </td>
         </tr>
-        <tr>
-            <th>Assigned To</th>
-            <td>{{ $enquiryLog->assigned_to ?? '—' }}</td>
-            <th>Reference</th>
-            <td>ENQ-{{ str_pad($enquiryLog->id, 5, '0', STR_PAD_LEFT) }}</td>
-        </tr>
-    </table>
+    </tbody>
+</table>
+<br>
 
-    <div class="section-title">Project Scope Summary</div>
-    <table class="excel-style-table">
-        <tr>
-            <td>
-                @php
-                    $scopeSummary = $enquiryLog->project_scope_summary ?? '';
-                    $scopeItems = is_array($scopeSummary) 
-                        ? $scopeSummary 
-                        : (json_decode($scopeSummary, true) ?: array_filter(explode(',', $scopeSummary)));
-                @endphp
-                @if(is_array($scopeItems) && count($scopeItems))
-                    <ul class="scope-list">
-                        @foreach($scopeItems as $item)
-                            <li>{{ trim($item) }}</li>
-                        @endforeach
-                    </ul>
-                @else
-                    <p style="color: #6E6F71; font-style: italic;">No scope summary provided</p>
-                @endif
-            </td>
-        </tr>
-    </table>
-
-    <div class="section-title">Follow Up Notes</div>
-    <table class="excel-style-table">
-        <tr>
-            <td class="notes-content">{{ $enquiryLog->follow_up_notes ?? 'No notes available.' }}</td>
-        </tr>
-    </table>
-
-    <div style="border: 1px solid #2e8bc0; padding: 20px; border-radius: 8px; margin-top: 30px; font-family: Arial, sans-serif; width: 100%; max-width: 600px;">
-        <h3 style="color: #0c2d48; margin-top: 0;">Project Handover Details</h3>
-    
-        <div style="margin-bottom: 15px;">
-            <strong>Handed Over At:</strong>
-            <span style="margin-left: 10px;">{{ now()->format('M d, Y \a\t H:i') }}</span>
-        </div>
-    
-        <div>
-            <strong>Officer:</strong>
-            <span style="margin-left: 10px;">{{ Auth::user()->name }}</span>
-        </div>
-    </div>
-    
-
-    <!-- Footer -->
-    <div class="footer">
-        <div>Page <span class="page-number"></span> | Document generated on {{ now()->format('M d, Y \a\t H:i') }}</div>
-        <div>© {{ date('Y') }} WOODNORKGREEN. All rights reserved.</div>
-    </div>
-
-</body>
-</html>
+<!-- Footer -->
+<table style="font-family: 'Poppins', Arial, sans-serif;">
+    <tr>
+        <td colspan="8" align="center" style="font-size:9px;color:#666;padding-top:15px;border-top:1px solid #ccc;">
+            Document generated on {{ now()->format('M d, Y \a\t H:i') }} | © {{ date('Y') }} WOODNORKGREEN. All rights reserved.
+        </td>
+    </tr>
+</table>

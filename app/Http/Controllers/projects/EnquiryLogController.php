@@ -49,7 +49,6 @@ class EnquiryLogController extends Controller
             'client_name' => 'required|string|max:255',
             'project_scope_summary' => 'required|string',
             'contact_person' => 'nullable|string|max:255',
-            'status' => 'required|in:Open,Quoted,Approved,Declined',
             'assigned_to' => 'nullable|string|max:255',
             'follow_up_notes' => 'nullable|string',
         ]);
@@ -92,7 +91,6 @@ class EnquiryLogController extends Controller
             'client_name' => 'required|string|max:255',
             'project_scope_summary' => 'required|string',
             'contact_person' => 'nullable|string|max:255',
-            'status' => 'required|in:Open,Quoted,Approved,Declined',
             'assigned_to' => 'nullable|string|max:255',
             'follow_up_notes' => 'nullable|string',
         ]);

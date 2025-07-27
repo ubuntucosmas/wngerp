@@ -59,11 +59,11 @@
                                         <div class="row mb-4">
                                             <div class="col-md-6">
                                                 <label for="start_date">Start Date</label>
-                                                <input type="date" class="form-control" name="start_date" value="{{ old('start_date', isset($project) ? ($project->start_date ?? '') : (isset($enquiry) ? ($enquiry->start_date ?? '') : '')) }}">
+                                                <input type="date" class="form-control" name="start_date" value="{{ isset($enquiry) ? $enquiry->start_date : (isset($project) ? $project->start_date : '') }}">
                                             </div>
                                             <div class="col-md-6">
                                                 <label for="end_date">End Date</label>
-                                                <input type="date" class="form-control" name="end_date" value="{{ old('end_date', isset($project) ? ($project->end_date ?? '') : (isset($enquiry) ? ($enquiry->end_date ?? '') : '')) }}">
+                                                <input type="date" class="form-control" name="end_date" value="{{ isset($enquiry) ? $enquiry->end_date : (isset($project) ? $project->end_date : '') }}">
                                             </div>
                                         </div>
                                     </div>

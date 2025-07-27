@@ -26,16 +26,24 @@ class ProjectBudgetController extends Controller
             ]);
             return view('projects.budget.index', compact('enquiry', 'budgets'));
         } else {
-            // Check if this project was converted from an enquiry
-            $enquirySource = $project->enquirySource;
+            // For projects, get budgets from both project_id and enquiry_id (if converted from enquiry)
+            $budgets = ProjectBudget::where(function($query) use ($project) {
+                $query->where('project_id', $project->id);
+                
+                // Also check if this project was converted from an enquiry
+                $enquirySource = $project->enquirySource;
+                if ($enquirySource) {
+                    $query->orWhere('enquiry_id', $enquirySource->id);
+                }
+            })->with('items')->paginate(10);
             
-            if ($enquirySource) {
-                // For converted projects, get budgets from enquiry source
-                $budgets = ProjectBudget::where('enquiry_id', $enquirySource->id)->with('items')->paginate(10);
-            } else {
-                // For regular projects, get budgets from project
-                $budgets = ProjectBudget::where('project_id', $project->id)->with('items')->paginate(10);
-            }
+            \Log::info('Project budgets loaded', [
+                'project_id' => $project->id,
+                'enquiry_source_id' => $project->enquirySource?->id,
+                'budget_count' => $budgets->count(),
+                'total_budgets' => $budgets->total(),
+                'budgets' => $budgets->pluck('id')->toArray()
+            ]);
             
             return view('projects.budget.index', compact('project', 'budgets'));
         }

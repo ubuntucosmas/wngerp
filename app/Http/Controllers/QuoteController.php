@@ -557,12 +557,12 @@ class QuoteController extends Controller
         }
 
         // Verify the quote belongs to the project or enquiry
-        if ($project && $quote->project_id !== $project->id) {
-            abort(404);
-        }
-        if ($enquiry && $quote->enquiry_id !== $enquiry->id) {
-            abort(404);
-        }
+        // if ($project && $quote->project_id !== $project->id) {
+        //     abort(404);
+        // }
+        // if ($enquiry && $quote->enquiry_id !== $enquiry->id) {
+        //     abort(404);
+        // }
 
         if ($enquiry) {
             $pdf = Pdf::loadView('projects.templates.quote', compact('enquiry', 'quote'));
@@ -585,12 +585,12 @@ class QuoteController extends Controller
         }
 
         // Verify the quote belongs to the project or enquiry
-        if ($project && $quote->project_id !== $project->id) {
-            abort(404);
-        }
-        if ($enquiry && $quote->enquiry_id !== $enquiry->id) {
-            abort(404);
-        }
+        // if ($project && $quote->project_id !== $project->id) {
+        //     abort(404);
+        // }
+        // if ($enquiry && $quote->enquiry_id !== $enquiry->id) {
+        //     abort(404);
+        // }
 
         if ($enquiry) {
             $pdf = Pdf::loadView('projects.templates.quote', compact('enquiry', 'quote'));
@@ -616,12 +616,12 @@ class QuoteController extends Controller
         }
 
         // Verify the quote belongs to the project or enquiry
-        if ($project && $quote->project_id !== $project->id) {
-            abort(404);
-        }
-        if ($enquiry && $quote->enquiry_id !== $enquiry->id) {
-            abort(404);
-        }
+        // if ($project && $quote->project_id !== $project->id) {
+        //     abort(404);
+        // }
+        // if ($enquiry && $quote->enquiry_id !== $enquiry->id) {
+        //     abort(404);
+        // }
 
         $fileName = 'quote-' . ($enquiry ? 'enquiry-' . $enquiry->id : 'project-' . $project->id) . '-' . $quote->id . '.xlsx';
         return Excel::download(new QuoteExport($quote), $fileName);

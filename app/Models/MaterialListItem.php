@@ -16,6 +16,7 @@ class MaterialListItem extends Model
         'particular',
         'unit',
         'quantity',
+        'unit_price',
         'comment',
     ];
 

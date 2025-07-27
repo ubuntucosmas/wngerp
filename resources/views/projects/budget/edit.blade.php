@@ -4,212 +4,213 @@
 
 @section('content')
 @hasanyrole('finance|po|pm|super-admin')
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    @if(isset($enquiry))
-                        <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('enquiries.files', $enquiry) }}">{{ $enquiry->project_name }}</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('enquiries.files.quotation', $enquiry) }}">Budget & Quotation</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('enquiries.budget.index', $enquiry) }}">Budgets</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Edit Budget</li>
-                    @else
-                        <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">{{ $project->name }}</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('projects.quotation.index', $project) }}">Budget & Quotation</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('budget.index', $project) }}">Budgets</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Edit Budget</li>
-                    @endif
-                </ol>
-            </nav>
-            <h2 class="mb-0">Edit Budget</h2>
+<div class="container-fluid d-flex justify-content-center align-items-start py-4" style="min-height: 100vh; background: #f4f6fa;">
+    <div class="material-list-card card shadow-sm w-100" style="max-width: 1100px;">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center border-bottom-0" style="border-radius: 16px 16px 0 0;">
+            <h2 class="mb-0 fs-5 fw-bold">Edit {{ isset($enquiry) ? 'Enquiry' : 'Project' }} Budget</h2>
+            <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.budget.index', $enquiry) : route('budget.index', $project) }}"
+               class="btn btn-outline-primary btn-sm d-flex align-items-center gap-1"
+               data-bs-toggle="tooltip" data-bs-placement="bottom" title="Back to Budgets" aria-label="Back to Budgets">
+                <i class="bi bi-arrow-left"></i> <span class="d-none d-md-inline">Back to Budgets</span>
+            </a>
         </div>
-        <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.budget.index', $enquiry) : route('budget.index', $project) }}" class="btn btn-primary">
-            <i class="bi bi-arrow-left me-2"></i>Back to Budgets
-        </a>
-    </div>
-
-    @error('start_date')
-        <div class="alert alert-danger">{{ $message }}</div>
-    @enderror
-    @error('end_date')
-        <div class="alert alert-danger">{{ $message }}</div>
-    @enderror
-
-    <form action="{{ isset($enquiry) ? route('enquiries.budget.update', [$enquiry, $budget]) : (isset($project) ? route('budget.update', [$project, $budget]) : '#') }}" method="POST">
-        @csrf
-        @method('PUT')
-        <div class="form-container">
-            <nav class="sidebar-nav">
-                <ul>
-                    <li><a href="#basic-details" class="active">Basic Details</a></li>
-                    <li><a href="#materials-production">Materials - Production</a></li>
-                    <li><a href="#materials-hire">Materials for Hire</a></li>
-                    <li><a href="#workshop-labour">Workshop Labour</a></li>
-                    <li><a href="#site-labour">Site Labour</a></li>
-                    <li><a href="#setdown-labour">Set Down Labour</a></li>
-                    <li><a href="#logistics">Logistics</a></li>
-                    <li><a href="#approval">Approval</a></li>
-                </ul>
-            </nav>
-
-            <div class="form-content">
-                <!-- Basic Details -->
-                <div id="basic-details" class="form-section-card">
-                    <div class="form-section-card-header">
-                        <h5><i class="fas fa-info-circle me-2"></i>Basic Details</h5>
-                    </div>
-                    <div class="form-section-card-body">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="project_name">{{ isset($enquiry) ? 'Enquiry' : 'Project' }} Name</label>
-                                <input type="text" class="form-control" name="project_name" value="{{ isset($enquiry) ? $enquiry->project_name : $project->name }}" readonly>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="client">Client</label>
-                                <input type="text" class="form-control" name="client" value="{{ isset($enquiry) ? $enquiry->client_name : $project->client_name }}" readonly>
-                            </div>
-                        </div>
-
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <label for="start_date">Start Date</label>
-                                <input type="date" class="form-control" name="start_date" value="{{ old('start_date', $budget->start_date ? $budget->start_date->format('Y-m-d') : '') }}">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="end_date">End Date</label>
-                                <input type="date" class="form-control" name="end_date" value="{{ old('end_date', $budget->end_date ? $budget->end_date->format('Y-m-d') : '') }}">
-                            </div>
-                        </div>
-                    </div>
+        <div class="card-body p-0">
+            <div class="row g-0">
+                <div class="col-md-3 sidebar-col">
+                    <nav class="sidebar-nav sticky-top card h-100 shadow-sm mb-0" style="top: 80px; z-index: 1020; border-radius: 12px 0 0 12px;">
+                        <ul class="nav flex-column py-3 px-2">
+                            <li class="nav-item"><a href="#basic-details" class="nav-link active" data-bs-toggle="tooltip" title="Go to Basic Details" aria-label="Go to Basic Details">Basic Details</a></li>
+                            <li class="nav-item"><a href="#materials-production" class="nav-link" data-bs-toggle="tooltip" title="Go to Materials - Production" aria-label="Go to Materials - Production">Materials - Production</a></li>
+                            <li class="nav-item"><a href="#materials-hire" class="nav-link" data-bs-toggle="tooltip" title="Go to Materials for Hire" aria-label="Go to Materials for Hire">Materials for Hire</a></li>
+                            <li class="nav-item"><a href="#workshop-labour" class="nav-link" data-bs-toggle="tooltip" title="Go to Workshop Labour" aria-label="Go to Workshop Labour">Workshop Labour</a></li>
+                            <li class="nav-item"><a href="#site" class="nav-link" data-bs-toggle="tooltip" title="Go to Site" aria-label="Go to Site">Site</a></li>
+                            <li class="nav-item"><a href="#set-down" class="nav-link" data-bs-toggle="tooltip" title="Go to Set Down" aria-label="Go to Set Down">Set Down</a></li>
+                            <li class="nav-item"><a href="#logistics" class="nav-link" data-bs-toggle="tooltip" title="Go to Logistics" aria-label="Go to Logistics">Logistics</a></li>
+                            <li class="nav-item"><a href="#outsourced" class="nav-link" data-bs-toggle="tooltip" title="Go to Outsourced" aria-label="Go to Outsourced">Outsourced</a></li>
+                        </ul>
+                    </nav>
                 </div>
-
-                <!-- Materials - Production -->
-                <div id="materials-production" class="form-section-card section-production">
-                    <div class="form-section-card-header">
-                        <h5><i class="bi bi-box-seam me-2"></i>Materials - Production</h5>
-                    </div>
-                    <div class="form-section-card-body">
-                        <div id="budget-items-wrapper">
-                            @php $prodItemIdx = 0; @endphp
-                            @foreach(($budget->productionItems ?? []) as $item)
-                                <div class="item-group border rounded p-3 mb-3" data-item-idx="{{ $prodItemIdx }}">
-                                    <div class="mb-2">
-                                        <label>Item Name</label>
-                                        <input type="text" name="production_items[{{ $prodItemIdx }}][item_name]" class="form-control" value="{{ $item->item_name }}" placeholder="e.g. Stage Truss" required>
+                <div class="col-md-9 form-content-col">
+                    <form action="{{ isset($enquiry) ? route('enquiries.budget.update', [$enquiry, $budget]) : (isset($project) ? route('budget.update', [$project, $budget]) : '#') }}" method="POST" class="p-3 position-relative" id="budgetForm">
+                        @csrf
+                        @method('PUT')
+                        <div class="accordion compact-accordion" id="budgetAccordion">
+                            <!-- Basic Details -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingBasicDetails">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBasicDetails" aria-expanded="true" aria-controls="collapseBasicDetails">
+                                        <i class="fas fa-info-circle me-2"></i>Basic Details
+                                    </button>
+                                </h2>
+                                <div id="collapseBasicDetails" class="accordion-collapse collapse show" aria-labelledby="headingBasicDetails" data-bs-parent="#budgetAccordion">
+                                    <div class="accordion-body">
+                                        <div class="row mb-3">
+                                            <div class="col-md-6">
+                                                <label for="project_name">{{ isset($enquiry) ? 'Enquiry' : 'Project' }} Name</label>
+                                                <input type="text" class="form-control" name="project_name" value="{{ isset($enquiry) ? $enquiry->project_name : $project->name }}" readonly>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="client">Client</label>
+                                                <input type="text" class="form-control" name="client" value="{{ isset($enquiry) ? $enquiry->client_name : $project->client_name }}" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="row mb-4">
+                                            <div class="col-md-6">
+                                                <label for="start_date">Start Date</label>
+                                                <input type="date" class="form-control" name="start_date" value="{{ old('start_date', $budget->start_date ? $budget->start_date->format('Y-m-d') : '') }}">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="end_date">End Date</label>
+                                                <input type="date" class="form-control" name="end_date" value="{{ old('end_date', $budget->end_date ? $budget->end_date->format('Y-m-d') : '') }}">
+                                            </div>
+                                        </div>
                                     </div>
-                                    <table class="table table-bordered">
-                                        <thead>
-                                            <tr>
-                                                <th>Particular</th>
-                                                <th>Unit Of Measure</th>
-                                                <th>Quantity</th>
-                                                <th>Unit Price</th>
-                                                <th>Budgeted Cost</th>
-                                                <th>Comment</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="particulars-body">
-                                            @foreach($item->particulars as $pIdx => $particular)
-                                                <tr>
-                                                    <td><input type="text" name="production_items[{{ $prodItemIdx }}][particulars][{{ $pIdx }}][particular]" class="form-control" value="{{ $particular->particular }}"></td>
-                                                    <td><input type="text" name="production_items[{{ $prodItemIdx }}][particulars][{{ $pIdx }}][unit]" class="form-control" value="{{ $particular->unit }}"></td>
-                                                    <td><input type="number" step="0.01" name="production_items[{{ $prodItemIdx }}][particulars][{{ $pIdx }}][quantity]" class="form-control" value="{{ $particular->quantity }}"></td>
-                                                    <td><input type="number" step="0.01" name="production_items[{{ $prodItemIdx }}][particulars][{{ $pIdx }}][unit_price]" class="form-control" value="{{ $particular->unit_price }}"></td>
-                                                    <td><input type="number" step="0.01" name="production_items[{{ $prodItemIdx }}][particulars][{{ $pIdx }}][budgeted_cost]" class="form-control" value="{{ $particular->budgeted_cost }}"></td>
-                                                    <td><input type="text" name="production_items[{{ $prodItemIdx }}][particulars][{{ $pIdx }}][comment]" class="form-control" value="{{ $particular->comment }}"></td>
-                                                    <td><button type="button" class="btn btn-danger btn-sm remove-particular">Remove</button></td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                    <button type="button" class="btn btn-success btn-sm add-particular">+ Add Particular</button>
                                 </div>
-                                @php $prodItemIdx++; @endphp
+                            </div>
+                            <!-- Materials - Production -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingMaterialsProduction">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMaterialsProduction" aria-expanded="false" aria-controls="collapseMaterialsProduction">
+                                        <i class="bi bi-box-seam me-2"></i>Materials - Production
+                                    </button>
+                                </h2>
+                                <div id="collapseMaterialsProduction" class="accordion-collapse collapse" aria-labelledby="headingMaterialsProduction" data-bs-parent="#budgetAccordion">
+                                    <div class="accordion-body">
+                                        <div id="budget-items-wrapper">
+                                            @php $prodItemIdx = 0; @endphp
+                                            @foreach(($budget->productionItems ?? []) as $item)
+                                                <div class="item-group border rounded p-3 mb-3" data-item-idx="{{ $prodItemIdx }}">
+                                                    <div class="mb-2">
+                                                        <label>Item Name</label>
+                                                        <input type="text" name="production_items[{{ $prodItemIdx }}][item_name]" class="form-control" value="{{ $item->item_name }}" placeholder="e.g. Stage Truss" required>
+                                                    </div>
+                                                    <table class="table table-bordered">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Particular</th>
+                                                                <th>Unit Of Measure</th>
+                                                                <th>Quantity</th>
+                                                                <th>Unit Price</th>
+                                                                <th>Budgeted Cost</th>
+                                                                <th>Comment</th>
+                                                                <th>Action</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody class="particulars-body">
+                                                            @foreach($item->particulars as $pIdx => $particular)
+                                                                <tr>
+                                                                    <td><input type="text" name="production_items[{{ $prodItemIdx }}][particulars][{{ $pIdx }}][particular]" class="form-control" value="{{ $particular->particular }}"></td>
+                                                                    <td><input type="text" name="production_items[{{ $prodItemIdx }}][particulars][{{ $pIdx }}][unit]" class="form-control" value="{{ $particular->unit }}"></td>
+                                                                    <td><input type="number" step="0.01" name="production_items[{{ $prodItemIdx }}][particulars][{{ $pIdx }}][quantity]" class="form-control" value="{{ $particular->quantity }}"></td>
+                                                                    <td><input type="number" step="0.01" name="production_items[{{ $prodItemIdx }}][particulars][{{ $pIdx }}][unit_price]" class="form-control" value="{{ $particular->unit_price }}"></td>
+                                                                    <td><input type="number" step="0.01" name="production_items[{{ $prodItemIdx }}][particulars][{{ $pIdx }}][budgeted_cost]" class="form-control" value="{{ $particular->budgeted_cost }}"></td>
+                                                                    <td><input type="text" name="production_items[{{ $prodItemIdx }}][particulars][{{ $pIdx }}][comment]" class="form-control" value="{{ $particular->comment }}"></td>
+                                                                    <td><button type="button" class="btn btn-danger btn-sm remove-particular">Remove</button></td>
+                                                                </tr>
+                                                            @endforeach
+                                                        </tbody>
+                                                    </table>
+                                                    <button type="button" class="btn btn-success btn-sm add-particular">+ Add Particular</button>
+                                                </div>
+                                                @php $prodItemIdx++; @endphp
+                                            @endforeach
+                                            <button type="button" class="btn btn-primary btn-sm btn-add-item" id="addBudgetItemGroup">
+                                                <i class="bi bi-plus-circle"></i> Add Item
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @php
+                                $otherCategories = ['Materials for Hire', 'Workshop labour', 'Site', 'Set down', 'Logistics', 'Outsourced'];
+                            @endphp
+                            @foreach($otherCategories as $cat)
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="heading{{ str_replace(' ', '', $cat) }}">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ str_replace(' ', '', $cat) }}" aria-expanded="false" aria-controls="collapse{{ str_replace(' ', '', $cat) }}">
+                                            <i class="bi bi-tools me-2"></i>{{ $cat }}
+                                        </button>
+                                    </h2>
+                                    <div id="collapse{{ str_replace(' ', '', $cat) }}" class="accordion-collapse collapse" aria-labelledby="heading{{ str_replace(' ', '', $cat) }}" data-bs-parent="#budgetAccordion">
+                                        <div class="accordion-body">
+                                            <table class="table table-bordered" id="table_{{ str_replace(' ', '_', strtolower($cat)) }}">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Particular</th>
+                                                        <th>Unit Of Measure</th>
+                                                        <th>Quantity</th>
+                                                        <th>Unit Price</th>
+                                                        <th>Budgeted Cost</th>
+                                                        <th>Comment</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @php $rows = ($budget->labourItems ?? collect())->where('category', $cat); @endphp
+                                                    @foreach($rows as $i => $row)
+                                                        <tr>
+                                                            <td><input type="text" name="items[{{ $cat }}][{{ $i }}][particular]" class="form-control" value="{{ $row->particular }}"></td>
+                                                            <td><input type="text" name="items[{{ $cat }}][{{ $i }}][unit]" class="form-control" value="{{ $row->unit }}"></td>
+                                                            <td><input type="number" step="0.01" name="items[{{ $cat }}][{{ $i }}][quantity]" class="form-control" value="{{ $row->quantity }}"></td>
+                                                            <td><input type="number" step="0.01" name="items[{{ $cat }}][{{ $i }}][unit_price]" class="form-control" value="{{ $row->unit_price }}"></td>
+                                                            <td><input type="number" step="0.01" name="items[{{ $cat }}][{{ $i }}][budgeted_cost]" class="form-control" value="{{ $row->budgeted_cost }}"></td>
+                                                            <td><input type="text" name="items[{{ $cat }}][{{ $i }}][comment]" class="form-control" value="{{ $row->comment }}"></td>
+                                                            <td><button type="button" class="btn btn-danger btn-sm remove-row">Remove</button></td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                            <button type="button" class="btn btn-success btn-sm add-row" data-category="{{ $cat }}">+ Add Row</button>
+                                        </div>
+                                    </div>
+                                </div>
                             @endforeach
-                            <button type="button" class="btn btn-primary btn-sm btn-add-item" id="addBudgetItemGroup">
-                                <i class="bi bi-plus-circle"></i> Add Item
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingApproval">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseApproval" aria-expanded="false" aria-controls="collapseApproval">
+                                        <i class="bi bi-check-circle me-2"></i>Approval
+                                    </button>
+                                </h2>
+                                <div id="collapseApproval" class="accordion-collapse collapse" aria-labelledby="headingApproval" data-bs-parent="#budgetAccordion">
+                                    <div class="accordion-body">
+                                        <div class="mb-4">
+                                            <label for="approved_by">Prepared By:</label>
+                                            <input type="text" name="approved_by" value="{{ old('approved_by', $budget->approved_by) }}" class="form-control mb-2 required" required>
+                                            <label for="approved_departments">Departments (comma-separated)</label>
+                                            <input type="text" name="approved_departments" value="{{ old('approved_departments', $budget->approved_departments) }}" class="form-control" placeholder="Production, Finance" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Floating Summary Bar -->
+                        <div id="floatingSummaryBar" class="floating-summary-bar card shadow-sm" aria-live="polite">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>Total Budget:</strong> <span class="text-primary" id="grandTotal">0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Sticky Action Bar -->
+                        <div class="sticky-action-bar d-flex justify-content-end gap-2 mt-4 pt-3 border-top bg-white" style="position:sticky; bottom:0; z-index:1100; border-radius:0 0 12px 12px;">
+                            <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.budget.index', $enquiry) : route('budget.index', $project) }}"
+                               class="btn btn-outline-secondary d-flex align-items-center gap-1"
+                               data-bs-toggle="tooltip" title="Cancel and go back" aria-label="Cancel and go back">
+                                <i class="bi bi-x-circle"></i> <span class="d-none d-md-inline">Cancel</span>
+                            </a>
+                            <button type="reset" class="btn btn-outline-secondary d-flex align-items-center gap-1" data-bs-toggle="tooltip" title="Reset Form" aria-label="Reset Form">
+                                <i class="bi bi-arrow-counterclockwise"></i> <span class="d-none d-md-inline">Reset</span>
+                            </button>
+                            <button type="submit" class="btn btn-primary d-flex align-items-center gap-1" id="submitBtn" data-bs-toggle="tooltip" title="Update Budget" aria-label="Update Budget">
+                                <span class="spinner-border spinner-border-sm me-1 d-none" id="submitSpinner" role="status" aria-hidden="true"></span>
+                                <i class="bi bi-save"></i> <span class="d-none d-md-inline">Update Budget</span>
                             </button>
                         </div>
-                    </div>
-                </div>
-
-                @php
-                    $otherCategories = ['Materials for Hire', 'Workshop labour', 'Site', 'Set down', 'Logistics'];
-                @endphp
-                @foreach($otherCategories as $cat)
-                    <div id="{{ Str::slug($cat) }}" class="form-section-card section-{{ Str::slug($cat) }}">
-                        <div class="form-section-card-header">
-                            <h5><i class="bi bi-tools me-2"></i>{{ $cat }}</h5>
-                        </div>
-                        <div class="form-section-card-body">
-                            <table class="table table-bordered" id="table_{{ Str::slug($cat) }}">
-                                <thead>
-                                    <tr>
-                                        <th>Particular</th>
-                                        <th>Unit Of Measure</th>
-                                        <th>Quantity</th>
-                                        <th>Unit Price</th>
-                                        <th>Budgeted Cost</th>
-                                        <th>Comment</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @php $rows = ($budget->labourItems ?? collect())->where('category', $cat); @endphp
-                                    @foreach($rows as $i => $row)
-                                        <tr>
-                                            <td><input type="text" name="items[{{ $cat }}][{{ $i }}][particular]" class="form-control" value="{{ $row->particular }}"></td>
-                                            <td><input type="text" name="items[{{ $cat }}][{{ $i }}][unit]" class="form-control" value="{{ $row->unit }}"></td>
-                                            <td><input type="number" step="0.01" name="items[{{ $cat }}][{{ $i }}][quantity]" class="form-control" value="{{ $row->quantity }}"></td>
-                                            <td><input type="number" step="0.01" name="items[{{ $cat }}][{{ $i }}][unit_price]" class="form-control" value="{{ $row->unit_price }}"></td>
-                                            <td><input type="number" step="0.01" name="items[{{ $cat }}][{{ $i }}][budgeted_cost]" class="form-control" value="{{ $row->budgeted_cost }}"></td>
-                                            <td><input type="text" name="items[{{ $cat }}][{{ $i }}][comment]" class="form-control" value="{{ $row->comment }}"></td>
-                                            <td><button type="button" class="btn btn-danger btn-sm remove-row">Remove</button></td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                            <button type="button" class="btn btn-success btn-sm add-row" data-category="{{ $cat }}">+ Add Row</button>
-                        </div>
-                    </div>
-                @endforeach
-
-                <!-- Approval -->
-                <div id="approval" class="form-section-card">
-                    <div class="form-section-card-header">
-                        <h5><i class="bi bi-check-circle me-2"></i>Approval</h5>
-                    </div>
-                    <div class="form-section-card-body">
-                        <div class="mb-4">
-                            <label for="approved_by">Prepared By:</label>
-                            <input type="text" name="approved_by" value="{{ old('approved_by', $budget->approved_by) }}" class="form-control mb-2 required" required>
-
-                            <label for="approved_departments">Departments (comma-separated)</label>
-                            <input type="text" name="approved_departments" value="{{ old('approved_departments', $budget->approved_departments) }}" class="form-control" placeholder="Production, Finance" required>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="d-flex justify-content-between mt-4 pt-3 border-top">
-                    <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.budget.index', $enquiry) : route('budget.index', $project) }}" class="btn btn-outline-secondary">
-                        <i class="bi bi-x-circle"></i> Cancel
-                    </a>
-                    <div>
-                        <button type="reset" class="btn btn-outline-secondary me-2">
-                            <i class="bi bi-arrow-counterclockwise"></i> Reset
-                        </button>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-save"></i> Update Budget
-                        </button>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
-    </form>
+    </div>
 </div>
 @endhasanyrole
 
@@ -217,132 +218,88 @@
 
 @push('styles')
 <style>
-    .form-container {
-        display: flex;
-        gap: 2rem;
-        margin-top: 2rem;
-    }
-
-    .sidebar-nav {
-        position: sticky;
-        top: 20px; /* Adjust as needed */
-        height: fit-content;
-        width: 250px;
-        flex-shrink: 0;
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        padding: 1.5rem;
-    }
-
-    .sidebar-nav ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .sidebar-nav li {
-        margin-bottom: 0.75rem;
-    }
-
-    .sidebar-nav a {
-        display: block;
-        padding: 0.5rem 1rem;
-        color: #6E6F71;
-        text-decoration: none;
-        border-radius: 6px;
-        transition: all 0.3s ease;
-        font-weight: 500;
-    }
-
-    .sidebar-nav a:hover {
-        background-color: rgba(11, 173, 211, 0.1);
-        color: #0BADD3;
-    }
-
-    .sidebar-nav a.active {
-        background-color: #0BADD3;
-        color: white;
-        box-shadow: 0 2px 8px rgba(11, 173, 211, 0.2);
-    }
-
-    .form-content {
-        flex-grow: 1;
-    }
-
-    .form-section-card {
+    body { background: #f4f6fa; }
+    .material-list-card {
+        border-radius: 16px;
         background: #fff;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        margin-bottom: 2.5rem;
-        overflow: hidden;
+        margin: 0 auto;
     }
-
-    .form-section-card-header {
-        background: linear-gradient(135deg, #0BADD3, #0897c4);
-        color: white;
-        padding: 1.25rem 1.5rem;
-        border-bottom: none;
+    .sidebar-col {
+        min-width: 180px;
+        max-width: 220px;
     }
-
-    .form-section-card-header h5 {
-        font-weight: 600;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        font-size: 1.25rem;
+    .sidebar-nav {
+        border-radius: 12px 0 0 12px;
+        background: #f8f9fb;
+        border: none;
+        min-height: 100%;
     }
-
-    .form-section-card-header h5:before {
-        content: '';
-        display: inline-block;
-        width: 8px;
-        height: 20px;
-        background: #C8DA30;
-        margin-right: 12px;
-        border-radius: 4px;
-    }
-
-    .form-section-card-body {
-        padding: 2rem;
-    }
-
-    .section-production {
-        border-left: 4px solid #4e73df;
-    }
-    
-    .section-hire {
-        border-left: 4px solid #36b9cc;
-    }
-    
-    .section-labor {
-        border-left: 4px solid #1cc88a;
-    }
-    
-    .section-header {
-        color: #2e59d9;
-        font-weight: 600;
-        margin-bottom: 1.5rem;
-        padding-bottom: 0.75rem;
-        border-bottom: 2px solid #e3e6f0;
-    }
-    
-    .btn-add-item {
-        border-radius: 20px;
+    .sidebar-nav .nav-link {
+        color: #4e73df;
         font-weight: 500;
-        padding: 0.4rem 1.25rem;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        margin-bottom: 4px;
+        transition: background 0.2s;
     }
-
-    @media (max-width: 992px) {
-        .form-container {
-            flex-direction: column;
+    .sidebar-nav .nav-link.active, .sidebar-nav .nav-link:hover {
+        background: #e3e6f0;
+        color: #224abe;
+    }
+    .form-content-col {
+        padding-left: 0;
+    }
+    .compact-accordion .accordion-item {
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        margin-bottom: 1rem;
+        border: none;
+        background: #f8f9fa;
+    }
+    .compact-accordion .accordion-button {
+        border-radius: 10px 10px 0 0;
+        padding: 0.75rem 1.25rem;
+        font-size: 1.05rem;
+        background: #f4f6fa;
+    }
+    .compact-accordion .accordion-body {
+        padding: 1rem 1.25rem;
+        background: #fff;
+        border-radius: 0 0 10px 10px;
+    }
+    .floating-summary-bar {
+        position: sticky;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: #f8f9fb;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+        padding: 0.5rem 1.5rem;
+        z-index: 1050;
+        border-top: 1px solid #e3e6f0;
+        border-radius: 0 0 12px 12px;
+        margin-top: 1.5rem;
+    }
+    .sticky-action-bar {
+        padding: 1rem 1.5rem 1rem 1.5rem;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
+        margin-left: -1.5rem;
+        margin-right: -1.5rem;
+    }
+    @media (max-width: 900px) {
+        .material-list-card { max-width: 100vw; }
+        .sidebar-col { display: none; }
+        .form-content-col { width: 100%; }
+    }
+    @media (max-width: 600px) {
+        .compact-accordion .accordion-body, .compact-accordion .accordion-button {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
         }
-        .sidebar-nav {
-            position: static;
-            width: 100%;
-            margin-bottom: 2rem;
+        .floating-summary-bar { padding: 0.5rem 0.5rem; }
+        .sticky-action-bar {
+            padding: 0.5rem 0.5rem;
+            margin-left: 0;
+            margin-right: 0;
         }
     }
 </style>
@@ -399,29 +356,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateGrandTotal() {
         let total = 0;
-        document.querySelectorAll('.budget-section tbody tr').forEach(row => {
-            total += updateRowCost(row);
+        document.querySelectorAll('input[name*="[budgeted_cost]"]').forEach(input => {
+            total += parseFloat(input.value) || 0;
         });
         document.getElementById('grandTotal').textContent = total.toFixed(2);
-
-        const invoice = parseFloat(document.getElementById('invoiceAmount')?.value || 0);
-        document.getElementById('profitAmount').value = (invoice - total).toFixed(2);
     }
 
     // Initial load
-    updateTotals();
+    updateGrandTotal();
 
-    document.querySelectorAll('.quantity, .unit-price').forEach(input => {
-        input.addEventListener('input', updateTotals);
+    document.querySelectorAll('input[name*="[quantity]"], input[name*="[unit_price]"]').forEach(input => {
+        input.addEventListener('input', function() {
+            const row = this.closest('tr');
+            if (row) {
+                updateBudgetedCost(row);
+                updateGrandTotal();
+            }
+        });
     });
-
-    document.getElementById('invoiceAmount').addEventListener('input', updateTotals);
 
     document.querySelectorAll('.remove-row').forEach(button => {
         button.addEventListener('click', (e) => {
             const row = e.target.closest('tr');
             row.remove();
-            updateTotals();
+            updateGrandTotal();
         });
     });
 
@@ -432,13 +390,14 @@ document.addEventListener('DOMContentLoaded', function() {
             const tbody = document.querySelector(`tbody[data-section="${section}"]`);
             const timestamp = Date.now(); // Unique ID for new row
             
+            const defaultUnit = section === 'Logistics' ? 'Trips' : '';
             const newRow = document.createElement('tr');
             newRow.innerHTML = `
                 <td>
                     <input type="hidden" name="items[${section}][new_${timestamp}][id]" value="">
                     <input type="text" name="items[${section}][new_${timestamp}][particular]" class="form-control" required>
                 </td>
-                <td><input type="text" name="items[${section}][new_${timestamp}][unit]" class="form-control"></td>
+                <td><input type="text" name="items[${section}][new_${timestamp}][unit]" class="form-control" value="${defaultUnit}"></td>
                 <td><input type="number" step="0.01" name="items[${section}][new_${timestamp}][quantity]" class="form-control quantity" required></td>
                 <td><input type="number" step="0.01" name="items[${section}][new_${timestamp}][unit_price]" class="form-control unit-price" required></td>
                 <td><input type="number" step="0.01" name="items[${section}][new_${timestamp}][budgeted_cost]" class="form-control cost" readonly></td>
@@ -451,12 +410,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const quantityInput = newRow.querySelector('.quantity');
             const priceInput = newRow.querySelector('.unit-price');
             
-            quantityInput.addEventListener('input', updateTotals);
-            priceInput.addEventListener('input', updateTotals);
+            quantityInput.addEventListener('input', function() {
+                updateBudgetedCost(newRow);
+                updateGrandTotal();
+            });
+            priceInput.addEventListener('input', function() {
+                updateBudgetedCost(newRow);
+                updateGrandTotal();
+            });
             
             newRow.querySelector('.remove-row').addEventListener('click', () => {
                 newRow.remove();
-                updateTotals();
+                updateGrandTotal();
             });
             
             // Focus on the particular field for better UX
@@ -467,6 +432,28 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle form submission
     document.querySelector('form').addEventListener('submit', function(e) {
         // Add any validation here if needed
+    });
+
+    // Submit button loading state and feedback
+    $('#budgetForm').on('submit', function(e) {
+        var $btn = $('#submitBtn');
+        var $spinner = $('#submitSpinner');
+        $btn.prop('disabled', true);
+        $spinner.removeClass('d-none');
+        setTimeout(function() {
+            $btn.prop('disabled', false);
+            $spinner.addClass('d-none');
+        }, 2000); // Simulate loading, replace with actual logic if needed
+    });
+    // Sidebar navigation active state
+    $('.sidebar-nav .nav-link').on('click', function(e) {
+        e.preventDefault();
+        const target = $(this).attr('href');
+        if ($(target).length) {
+            $('html, body').animate({ scrollTop: $(target).offset().top - 80 }, 400);
+        }
+        $('.sidebar-nav .nav-link').removeClass('active');
+        $(this).addClass('active');
     });
 });
 </script>

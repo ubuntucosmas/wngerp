@@ -50,9 +50,11 @@ class ProjectFileController extends Controller
         // Calculate progress
         $totalPhases = $phases->count();
         $completed = $phases->where('status', 'Completed')->count();
+        $skipped = $phases->where('skipped', true)->count();
         $inProgress = $phases->where('status', 'In Progress')->count();
+        $done = $completed + $skipped;
         
-        return view('projects.files.index', compact('project', 'fileTypes', 'phaseCompletions', 'phases', 'totalPhases', 'completed', 'inProgress'));
+        return view('projects.files.index', compact('project', 'fileTypes', 'phaseCompletions', 'phases', 'totalPhases', 'completed', 'skipped', 'done', 'inProgress'));
     }
 
     /**
@@ -90,16 +92,20 @@ class ProjectFileController extends Controller
                 ] : ['No enquiry log found']
             ],
             'site_survey' => [
-                'completed' => $siteSurveys->count() > 0,
+                'completed' => $siteSurveys->count() > 0 || $project->site_survey_skipped,
                 'title' => 'Site Survey Form',
-                'status' => $siteSurveys->count() > 0 ? 'Completed' : 'Not Started',
-                'date' => $siteSurveys->count() > 0 ? $siteSurveys->first()->created_at->format('M d, Y') : null,
-                'details' => $siteSurveys->count() > 0 ? [
+                'status' => $project->site_survey_skipped ? 'Skipped' : ($siteSurveys->count() > 0 ? 'Completed' : 'Not Started'),
+                'date' => $project->site_survey_skipped ? 'Skipped' : ($siteSurveys->count() > 0 ? $siteSurveys->first()->created_at->format('M d, Y') : null),
+                'details' => $project->site_survey_skipped ? [
+                    'Status: Skipped',
+                    'Reason: ' . ($project->site_survey_skip_reason ?: 'No reason provided'),
+                    'Skipped Date: ' . now()->format('M d, Y')
+                ] : ($siteSurveys->count() > 0 ? [
                     'Location: ' . ($siteSurveys->first()->location ?? 'N/A'),
                     'Visit Date: ' . ($siteSurveys->first()->site_visit_date ? $siteSurveys->first()->site_visit_date->format('M d, Y') : 'N/A'),
                     'Project Manager: ' . ($siteSurveys->first()->project_manager ?? 'N/A'),
                     'Client Approval: ' . ($siteSurveys->first()->client_approval ? 'Yes' : 'No')
-                ] : ['No site survey found']
+                ] : ['No site survey found'])
             ]
         ];
 
@@ -510,21 +516,70 @@ class ProjectFileController extends Controller
                     : 'Create new project brief',
                 'type' => $existingProjectBrief ? 'Existing-Project-Brief' : 'Project-Brief-Form',
             ],
-            [
-                'name' => 'Site Survey',
-                'route' => $siteSurvey 
-                    ? route('projects.site-survey.show', [$project, $siteSurvey])
-                    : route('projects.site-survey.create', $project),
-                'icon' => 'bi-clipboard2-pulse',
-                'description' => $siteSurvey 
-                    ? 'View existing site survey details'
-                    : 'Create new site survey',
-                'type' => $siteSurvey ? 'Existing-Site-Survey' : 'Site-Survey-Form',
-            ],
-            // Add more files here as needed
         ];
 
+        // Add site survey file based on status
+        if ($project->site_survey_skipped) {
+            $files[] = [
+                'name' => 'Site Survey',
+                'route' => '#',
+                'icon' => 'bi-clipboard2-pulse',
+                'description' => 'Site survey was skipped for this project',
+                'type' => 'Skipped-Site-Survey',
+                'skipped' => true,
+                'skip_reason' => $project->site_survey_skip_reason,
+            ];
+        } elseif ($siteSurvey) {
+            $files[] = [
+                'name' => 'Site Survey',
+                'route' => route('projects.site-survey.show', [$project, $siteSurvey]),
+                'icon' => 'bi-clipboard2-pulse',
+                'description' => 'View existing site survey details',
+                'type' => 'Existing-Site-Survey',
+            ];
+        } else {
+            $files[] = [
+                'name' => 'Site Survey',
+                'route' => route('projects.site-survey.create', $project),
+                'icon' => 'bi-clipboard2-pulse',
+                'description' => 'Create new site survey',
+                'type' => 'Site-Survey-Form',
+            ];
+        }
+
         return view('projects.files.client-engagement', compact('project', 'files'));
+    }
+
+    /**
+     * Skip site survey for project
+     */
+    public function skipSiteSurvey(Request $request, Project $project)
+    {
+        $validated = $request->validate([
+            'site_survey_skip_reason' => 'nullable|string|max:255',
+        ]);
+
+        $project->update([
+            'site_survey_skipped' => true,
+            'site_survey_skip_reason' => $validated['site_survey_skip_reason'],
+        ]);
+
+        return redirect()->route('projects.files.client-engagement', $project)
+            ->with('success', 'Site survey skipped successfully.');
+    }
+
+    /**
+     * Unskip site survey for project
+     */
+    public function unskipSiteSurvey(Project $project)
+    {
+        $project->update([
+            'site_survey_skipped' => false,
+            'site_survey_skip_reason' => null,
+        ]);
+
+        return redirect()->route('projects.files.client-engagement', $project)
+            ->with('success', 'Site survey unskipped successfully.');
     }
 
         /**

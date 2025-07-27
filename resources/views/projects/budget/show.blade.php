@@ -1,91 +1,165 @@
 @extends('layouts.master')
 
-@section('title', 'View ' . (isset($enquiry) ? 'Enquiry' : 'Project') . ' Budget')
+@section('title', 'Budget Details')
 
 @section('content')
-@php
-    // For converted projects, use enquirySource as enquiry
-    $currentEnquiry = $enquiry ?? ($enquirySource ?? null);
-@endphp
-<div class="px-3 mx-10 w-100">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+<div class="container-fluid p-0">
+    <!-- Header Section -->
+    <div class="bg-white border-bottom shadow-sm">
+        <div class="container-fluid px-4 py-3">
+            <div class="d-flex justify-content-between align-items-center">
         <div>
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    @if(isset($enquiry))
-                        <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('enquiries.files', $enquiry) }}">{{ $enquiry->project_name }}</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('enquiries.files.quotation', $enquiry) }}">Budget & Quotation</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('enquiries.budget.index', $enquiry) }}">Budgets</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">View Budget</li>
+                    <nav aria-label="breadcrumb" class="mb-2">
+                                                <ol class="breadcrumb mb-0 small">
+                            @if(isset($enquiry) && $enquiry)
+                                <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}" class="text-decoration-none">Enquiries</a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('enquiries.files', $enquiry) }}" class="text-decoration-none">{{ $enquiry->project_name }}</a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('enquiries.files.quotation', $enquiry) }}" class="text-decoration-none">Budget & Quotation</a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('enquiries.budget.index', $enquiry) }}" class="text-decoration-none">Budgets</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Details</li>
+                            @elseif(isset($project) && $project)
+                                <li class="breadcrumb-item"><a href="{{ route('projects.index') }}" class="text-decoration-none">Projects</a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}" class="text-decoration-none">{{ $project->name }}</a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('projects.quotation.index', $project) }}" class="text-decoration-none">Budget & Quotation</a></li>
+                                <li class="breadcrumb-item"><a href="{{ route('budget.index', $project) }}" class="text-decoration-none">Budgets</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Details</li>
                     @else
-                        <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">{{ $project->name }}</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('projects.quotation.index', $project) }}">Budget & Quotation</a></li>
-                        <li class="breadcrumb-item"><a href="{{ route('budget.index', $project) }}">Budgets</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">View Budget</li>
+                                <li class="breadcrumb-item"><a href="{{ route('projects.index') }}" class="text-decoration-none">Projects</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Budget Details</li>
                     @endif
                 </ol>
             </nav>
-            <h2 class="mb-0">View Budget</h2>
+                    <h4 class="mb-0 fw-bold text-dark">Budget #{{ $budget->id }}</h4>
+                    <p class="text-muted small mb-0">{{ \Carbon\Carbon::parse($budget->start_date)->format('M d, Y') }} - {{ \Carbon\Carbon::parse($budget->end_date)->format('M d, Y') }}</p>
         </div>
-        <div class="page-actions">
-            <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.budget.index', $enquiry) : route('budget.index', $project) }}" class="btn btn-primary me-2">
-                <i class="bi bi-arrow-left me-2"></i>Back to Budgets
+                                <div class="d-flex gap-2">
+                    @if(isset($enquiry) && $enquiry)
+                        <a href="{{ route('enquiries.budget.index', $enquiry) }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrow-left me-1"></i>Back
+                        </a>
+                        <a href="{{ route('enquiries.budget.edit', [$enquiry, $budget]) }}" class="btn btn-warning btn-sm">
+                            <i class="bi bi-pencil me-1"></i>Edit
+                        </a>
+                    @elseif(isset($project) && $project)
+                        <a href="{{ route('budget.index', $project) }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrow-left me-1"></i>Back
+                        </a>
+                        <a href="{{ route('budget.edit', [$project, $budget]) }}" class="btn btn-warning btn-sm">
+                            <i class="bi bi-pencil me-1"></i>Edit
             </a>
-            <a href="{{ isset($currentEnquiry) ? route('enquiries.budget.edit', [$currentEnquiry, $budget]) : (isset($project) ? route('budget.edit', [$project, $budget]) : '#') }}" class="btn btn-info me-2">
-                <i class="bi bi-pencil me-2"></i>Edit
+                    @else
+                        <a href="{{ route('projects.index') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrow-left me-1"></i>Back
+                        </a>
+                    @endif
+                    <div class="dropdown">
+                        <button class="btn btn-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-download me-1"></i>Export
+                        </button>
+                                                <ul class="dropdown-menu">
+                            @if(isset($enquiry) && $enquiry)
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('enquiries.budget.download', [$enquiry, $budget]) }}">
+                                        <i class="bi bi-file-earmark-pdf me-2"></i>Download PDF
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('enquiries.budget.print', [$enquiry, $budget]) }}" target="_blank">
+                                        <i class="bi bi-printer me-2"></i>Print
             </a>
-            <a href="{{ isset($currentEnquiry) ? route('enquiries.budget.download', [$currentEnquiry, $budget]) : (isset($project) ? route('budget.download', [$project, $budget]) : '#') }}" class="btn btn-secondary me-2">
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('enquiries.budget.export', [$enquiry, $budget]) }}">
+                                        <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
+                                    </a>
+                                </li>
+                            @elseif(isset($project) && $project)
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('budget.download', [$project, $budget]) }}">
                 <i class="bi bi-file-earmark-pdf me-2"></i>Download PDF
             </a>
-            <a href="{{ isset($currentEnquiry) ? route('enquiries.budget.print', [$currentEnquiry, $budget]) : (isset($project) ? route('budget.print', [$project, $budget]) : '#') }}" class="btn btn-secondary me-2" target="_blank">
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('budget.print', [$project, $budget]) }}" target="_blank">
                 <i class="bi bi-printer me-2"></i>Print
             </a>
-            <a href="{{ isset($currentEnquiry) ? route('enquiries.budget.export', [$currentEnquiry, $budget]) : (isset($project) ? route('budget.export', [$project, $budget]) : '#') }}" class="btn btn-secondary">
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('budget.export', [$project, $budget]) }}">
                 <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
             </a>
-        </div>
-    </div>
-
-    {{-- Project/Budget Summary --}}
-    <div class="row mb-4">
-        <div class="col-lg-8">
-            <div class="card shadow-sm mb-3">
-                <div class="card-body">
-                    <h4 class="mb-2 text-primary"><i class="bi bi-folder2-open me-2"></i>{{ isset($currentEnquiry) ? $currentEnquiry->project_name : (isset($project) ? $project->name : 'Unknown') }}</h4>
-                    <div class="row mb-2">
-                        <div class="col-md-6"><strong>Client:</strong> {{ isset($currentEnquiry) ? $currentEnquiry->client_name : (isset($project) ? $project->client_name : 'N/A') }}</div>
-                        <div class="col-md-6"><strong>Venue:</strong> {{ isset($currentEnquiry) ? $currentEnquiry->venue : (isset($project) ? $project->venue : 'N/A') }}</div>
+                                </li>
+                            @endif
+                        </ul>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6"><strong>Start Date:</strong> {{ \Carbon\Carbon::parse($budget->start_date)->format('d M Y') }}</div>
-                        <div class="col-md-6"><strong>End Date:</strong> {{ \Carbon\Carbon::parse($budget->end_date)->format('d M Y') }}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-4">
-            <div class="card shadow-sm mb-3">
-                <div class="card-body text-center">
-                    <div class="mb-2">
-                        <span class="badge bg-{{ $budget->status === 'approved' ? 'success' : 'secondary' }} fs-6">
-                            Status: {{ ucfirst($budget->status ?? 'draft') }}
-                        </span>
-                    </div>
-                    <div class="mb-2">
-                        <strong>Total Budget:</strong><br>
-                        <span class="text-success fs-5">KES {{ number_format((float) $budget->budget_total, 2) }}</span>
-                    </div>
-                    <a href="{{ isset($currentEnquiry) ? route('enquiries.budget.export', [$currentEnquiry, $budget]) : (isset($project) ? route('budget.export', [$project, $budget]) : '#') }}" class="btn btn-outline-success btn-sm mt-2">
-                        <i class="bi bi-download"></i> Export to Excel
-                    </a>
                 </div>
             </div>
         </div>
     </div>
 
-    {{-- Budget Items Grouped by Category --}}
+    <!-- Content Section -->
+    <div class="container-fluid px-4 py-4">
+        <!-- Project Information Card -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-3">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <h6 class="fw-semibold text-dark mb-2">Project Information</h6>
+                        <div class="small text-muted">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span><i class="bi bi-building me-1"></i>Project:</span>
+                                <span class="fw-medium">{{ (isset($enquiry) && $enquiry) ? $enquiry->project_name : (isset($project) && $project ? $project->name : 'N/A') }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span><i class="bi bi-person me-1"></i>Client:</span>
+                                <span class="fw-medium">{{ (isset($enquiry) && $enquiry) ? $enquiry->client_name : (isset($project) && $project ? $project->client_name : 'N/A') }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span><i class="bi bi-geo-alt me-1"></i>Venue:</span>
+                                <span class="fw-medium">{{ (isset($enquiry) && $enquiry) ? $enquiry->venue : (isset($project) && $project ? $project->venue : 'N/A') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-semibold text-dark mb-2">Budget Details</h6>
+                        <div class="small text-muted">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span><i class="bi bi-person me-1"></i>Prepared by:</span>
+                                <span class="fw-medium">{{ $budget->approved_by ?? 'N/A' }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span><i class="bi bi-building me-1"></i>Departments:</span>
+                                <span class="fw-medium">{{ $budget->approved_departments ?? 'N/A' }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span><i class="bi bi-clock me-1"></i>Created:</span>
+                                <span class="fw-medium">{{ $budget->created_at->format('M d, Y H:i') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Budget Total Summary -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-3">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h6 class="fw-semibold text-dark mb-1">Budget Summary</h6>
+                        <p class="text-muted small mb-0">Total budget allocation for this project period</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="h3 fw-bold text-primary mb-0">
+                            KES {{ number_format((float) $budget->budget_total, 2) }}
+                    </div>
+                        <div class="small text-muted">Total Budget</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <!-- Budget Items by Category -->
     @php $grouped = $budget->items->groupBy(fn($item) => strtolower(trim($item->category))); @endphp
     @foreach($grouped as $category => $items)
         @php
@@ -93,225 +167,185 @@
             $byItem = $items->groupBy('item_name');
         @endphp
         @if($isProduction)
-            <div class="card mb-4 animate-fade-in">
-                <div class="card-header d-flex align-items-center bg-light">
-                    <i class="bi bi-box-seam me-2 text-primary"></i>
-                    <h5 class="mb-0">Production Materials</h5>
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-primary bg-opacity-10 border-0 py-3">
+                        <h6 class="mb-0 fw-semibold text-primary">
+                            <i class="bi bi-box-seam me-2"></i>Production Materials
+                        </h6>
                 </div>
                 <div class="card-body p-0">
                     @foreach($byItem as $itemName => $particulars)
-                        @php $item = $particulars->first(); $itemTotal = $particulars->sum('budgeted_cost'); @endphp
-                        <div class="production-item border-bottom">
-                            <div class="p-4 bg-light">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <div>
-                                        <h5 class="mb-1 fw-bold text-primary">
-                                            {{ $itemName }}
-                                        </h5>
-                                        @if($item->template)
-                                            <div class="mb-2">
-                                                <span class="badge bg-info fs-6 py-2 px-3">
-                                                    <i class="bi bi-file-earmark-text me-1"></i>
-                                                    Template: {{ $item->template->name }}
-                                                </span>
-                                        @endif
-                                        @if($item->description)
-                                            <p class="text-muted small mb-0 mt-2">{{ $item->description }}</p>
-                                        @endif
+                            @php
+                                $filteredParticulars = $particulars->filter(function($item) {
+                                    return !empty($item->particular) && $item->quantity > 0;
+                                });
+                                $item = $filteredParticulars->first();
+                                $itemTotal = $filteredParticulars->sum('budgeted_cost');
+                            @endphp
+                            @if($filteredParticulars->isNotEmpty())
+                                <div class="border-bottom">
+                                    <div class="p-3 bg-light">
+                                        <h6 class="mb-0 fw-semibold text-dark">{{ $itemName }}</h6>
                                     </div>
-                                    @if($item->template)
-                                        <div class="text-end">
-                                            <small class="text-muted">
-                                                <i class="bi bi-clock me-1"></i>
-                                                Template created {{ $item->template->created_at->diffForHumans() }}
-                                            </small>
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
-                            @if($item->template && $item->template->particulars->count())
-                                <div class="mb-3">
-                                    <h6 class="fw-bold">Template Particulars</h6>
                                     <div class="table-responsive">
-                                        <table class="table table-bordered table-sm">
-                                            <thead class="table-secondary">
+                                        <table class="table table-sm mb-0">
+                                            <thead class="table-light">
                                                 <tr>
-                                                    <th>ID</th>
-                                                    <th>Template ID</th>
-                                                    <th>Particular</th>
-                                                    <th>Unit</th>
-                                                    <th>Default Qty</th>
-                                                    <th>Comment</th>
-                                                    <th>Created At</th>
-                                                    <th>Updated At</th>
+                                                    <th class="border-0">Particular</th>
+                                                    <th class="border-0">Unit</th>
+                                                    <th class="border-0 text-end">Quantity</th>
+                                                    <th class="border-0 text-end">Unit Price</th>
+                                                    <th class="border-0 text-end">Total</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach($item->template->particulars as $tp)
+                                                @foreach($filteredParticulars as $particular)
                                                     <tr>
-                                                        <td>{{ $tp->id }}</td>
-                                                        <td>{{ $tp->item_template_id }}</td>
-                                                        <td>{{ $tp->particular }}</td>
-                                                        <td>{{ $tp->unit }}</td>
-                                                        <td>{{ $tp->default_quantity }}</td>
-                                                        <td>{{ $tp->comment }}</td>
-                                                        <td>{{ $tp->created_at }}</td>
-                                                        <td>{{ $tp->updated_at }}</td>
+                                                        <td class="fw-medium">{{ $particular->particular }}</td>
+                                                        <td class="text-muted">{{ $particular->unit ?? '-' }}</td>
+                                                        <td class="text-end">{{ number_format($particular->quantity, 2) }}</td>
+                                                        <td class="text-end">{{ $particular->unit_price ? 'KES ' . number_format($particular->unit_price, 2) : '-' }}</td>
+                                                        <td class="text-end fw-semibold">
+                                                            KES {{ number_format($particular->budgeted_cost, 2) }}
+                                                        </td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>
+                                            <tfoot class="table-light">
+                                                <tr>
+                                                    <td colspan="4" class="text-end fw-bold">Subtotal:</td>
+                                                    <td class="text-end fw-bold text-primary">KES {{ number_format($itemTotal, 2) }}</td>
+                                                </tr>
+                                            </tfoot>
                                         </table>
                                     </div>
                                 </div>
                             @endif
-                            @if(count($particulars))
-                                <div class="table-responsive">
-                                    <table class="table table-hover align-middle mb-0">
-                                        <thead class="bg-light">
-                                            <tr>
-                                                <th class="text-nowrap ps-4">#</th>
-                                                <th class="text-nowrap">Particular</th>
-                                                <th class="text-nowrap text-center">Unit</th>
-                                                <th class="text-nowrap text-end pe-4">Qty</th>
-                                                <th class="text-nowrap text-end pe-4">Unit Price</th>
-                                                <th class="text-nowrap text-end pe-4">Cost</th>
-                                                <th class="text-nowrap">Comment</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($particulars as $index => $item)
-                                                <tr class="border-top">
-                                                    <td class="ps-4 fw-bold text-muted">{{ $index + 1 }}</td>
-                                                    <td class="fw-semibold">{{ $item->particular }}</td>
-                                                    <td class="text-center">
-                                                        <span class="bg-primary-soft text-primary px-3 py-2">
-                                                            {{ $item->unit ?? 'N/A' }}
-                                                        </span>
-                                                    </td>
-                                                    <td class="text-end fw-bold pe-4">{{ number_format($item->quantity, 2) }}</td>
-                                                    <td class="text-end pe-4">KES {{ number_format($item->unit_price, 2) }}</td>
-                                                    <td class="text-end pe-4">KES {{ number_format($item->budgeted_cost, 2) }}</td>
-                                                    <td>
-                                                        @if($item->comment)
-                                                            <span class="d-inline-block text-truncate" style="max-width: 200px;" data-bs-toggle="tooltip" title="{{ $item->comment }}">
-                                                                {{ $item->comment }}
-                                                            </span>
-                                                        @else
-                                                            <span class="text-muted">-</span>
-                                                        @endif
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                            <tr class="table-info fw-bold">
-                                                <td colspan="5" class="text-end">Subtotal for {{ $itemName }}</td>
-                                                <td colspan="2">KES {{ number_format($itemTotal, 2) }}</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            @endif
-                        </div>
                     @endforeach
                 </div>
             </div>
         @else
-            <div class="card mb-4 animate-fade-in">
-                <div class="card-header d-flex align-items-center bg-light">
-                    <i class="bi bi-list-ul me-2 text-primary"></i>
-                    <h5 class="mb-0">{{ ucfirst($category) }}</h5>
+                @php
+                    $categoryColors = [
+                        'Materials for Hire' => ['bg' => 'bg-success', 'text' => 'text-success'],
+                        'Workshop labour' => ['bg' => 'bg-primary', 'text' => 'text-primary'],
+                        'Site' => ['bg' => 'bg-success', 'text' => 'text-success'],
+                        'Set down' => ['bg' => 'bg-warning', 'text' => 'text-warning'],
+                        'Logistics' => ['bg' => 'bg-info', 'text' => 'text-info'],
+                        'Outsourced' => ['bg' => 'bg-danger', 'text' => 'text-danger'],
+                    ];
+                    $color = $categoryColors[$category] ?? ['bg' => 'bg-secondary', 'text' => 'text-secondary'];
+                @endphp
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header {{ $color['bg'] }} bg-opacity-10 border-0 py-3">
+                        <h6 class="mb-0 fw-semibold {{ $color['text'] }}">
+                            <i class="bi bi-tools me-2"></i>{{ ucwords(str_replace('-', ' ', $category)) }}
+                        </h6>
                 </div>
                 <div class="card-body p-0">
-                <div class="table-responsive">
-                        @php $byItem = $items->groupBy('item_name'); @endphp
                         @foreach($byItem as $itemName => $particulars)
-                            @php $itemTotal = $particulars->sum('budgeted_cost'); @endphp
-                            <div class="mb-3">
-                                <div class="fw-bold text-primary mb-1">{{ $itemName }}</div>
-                                <table class="table table-bordered mb-0">
-                                    <thead class="table-secondary">
+                            @php
+                                $filteredParticulars = $particulars->filter(function($item) {
+                                    return !empty($item->particular) && $item->quantity > 0;
+                                });
+                                $itemTotal = $filteredParticulars->sum('budgeted_cost');
+                            @endphp
+                            @if($filteredParticulars->isNotEmpty())
+                                <div class="border-bottom">
+                                    <div class="p-3 bg-light">
+                                        <h6 class="mb-0 fw-semibold text-dark">{{ $itemName }}</h6>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm mb-0">
+                                            <thead class="table-light">
                                         <tr>
-                                            <th>Particular</th>
-                                            <th>Unit</th>
-                                            <th>Qty</th>
-                                            <th>Unit Price</th>
-                                            <th>Cost</th>
-                                            <th>Comment</th>
+                                                    <th class="border-0">Particular</th>
+                                                    <th class="border-0">Unit</th>
+                                                    <th class="border-0 text-end">Quantity</th>
+                                                    <th class="border-0 text-end">Unit Price</th>
+                                                    <th class="border-0 text-end">Total</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach($particulars as $item)
+                                                @foreach($filteredParticulars as $particular)
                                             <tr>
-                                                <td>{{ $item->particular }}</td>
-                                                <td>{{ $item->unit }}</td>
-                                                <td>{{ $item->quantity }}</td>
-                                                <td>KES {{ number_format($item->unit_price, 2) }}</td>
-                                                <td>KES {{ number_format($item->budgeted_cost, 2) }}</td>
-                                                <td>{{ $item->comment }}</td>
+                                                        <td class="fw-medium">{{ $particular->particular }}</td>
+                                                        <td class="text-muted">{{ $particular->unit ?? '-' }}</td>
+                                                        <td class="text-end">{{ number_format($particular->quantity, 2) }}</td>
+                                                        <td class="text-end">{{ $particular->unit_price ? 'KES ' . number_format($particular->unit_price, 2) : '-' }}</td>
+                                                        <td class="text-end fw-semibold">
+                                                            KES {{ number_format($particular->budgeted_cost, 2) }}
+                                                        </td>
                                             </tr>
                                         @endforeach
-                                        <tr class="table-info fw-bold">
-                                            <td colspan="4" class="text-end">Subtotal for {{ $itemName }}</td>
-                                            <td colspan="2">KES {{ number_format($itemTotal, 2) }}</td>
+                                            </tbody>
+                                            <tfoot class="table-light">
+                                                <tr>
+                                                    <td colspan="4" class="text-end fw-bold">Subtotal:</td>
+                                                    <td class="text-end fw-bold {{ $color['text'] }}">KES {{ number_format($itemTotal, 2) }}</td>
                                         </tr>
-                                    </tbody>
+                                            </tfoot>
                                 </table>
                             </div>
+                                </div>
+                            @endif
                         @endforeach
-                        @php $catTotal = $items->sum('budgeted_cost'); @endphp
-                        <div class="text-end fw-bold mb-3">
-                            <span class="badge bg-info">Category Subtotal: KES {{ number_format($catTotal, 2) }}</span>
-                        </div>
-                    </div>
                 </div>
             </div>
         @endif
     @endforeach
 
-    {{-- Approvals & Edit Logs --}}
-    <div class="row mt-4">
-        <div class="col-lg-6">
-    
-        <div class="card-header bg-light fw-bold">Approvals</div>
-        <div class="card-body row">
-            <div class="col-md-6 mb-2">
-                <strong>Departments:</strong><br>
-                {{ $budget->approved_departments ?? '-' }}
-            </div>
-            <div class="col-md-6 mb-2">
-                <strong>Approved:</strong><br>
-                {{ $budget->approved_at ? $budget->approved_at->format('d M Y H:i') : '-' }} BY: {{ $budget->approved_by ?? '-' }}
-            </div>
-        </div>
-    </div>
-        </div>
-        <div class="col-lg-6">
-    @php
-        $editLogs = \App\Models\BudgetEditLog::where('project_budget_id', $budget->id)->latest()->get();
-    @endphp
-    @if($budget->status === 'approved' && $editLogs->count())
-                <div class="card mb-3">
-            <div class="card-header bg-light fw-bold">Edit Logs (After Approval)</div>
-            <div class="card-body">
-                <ul class="list-group">
-                    @foreach($editLogs as $log)
-                        <li class="list-group-item">
-                            <strong>{{ $log->user->name ?? 'Unknown User' }}</strong> edited on {{ $log->created_at->format('d M Y H:i') }}<br>
-                            <small>Changes: {{ json_encode($log->changes) }}</small>
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
-        </div>
+                <!-- Action Buttons -->
+        <div class="d-flex justify-content-center gap-3 mt-4 pt-4 border-top">
+            @if(!$budget->quote)
+                @if(isset($enquiry) && $enquiry)
+                    <a href="{{ route('enquiries.quotes.create', ['enquiry' => $enquiry, 'project_budget_id' => $budget->id]) }}" class="btn btn-success">
+                        <i class="bi bi-file-earmark-text me-2"></i>Create Quote from this Budget
+                    </a>
+                @elseif(isset($project) && $project)
+                    <a href="{{ route('quotes.create', ['project' => $project, 'project_budget_id' => $budget->id]) }}" class="btn btn-success">
+                        <i class="bi bi-file-earmark-text me-2"></i>Create Quote from this Budget
+                    </a>
+                @endif
+            @else
+                @if(isset($enquiry) && $enquiry)
+                    <a href="{{ route('enquiries.quotes.show', ['enquiry' => $enquiry, 'quote' => $budget->quote->id]) }}" class="btn btn-info">
+                        <i class="bi bi-file-earmark-text me-2"></i>View Associated Quote
+                    </a>
+                @elseif(isset($project) && $project)
+                    <a href="{{ route('quotes.show', ['project' => $project, 'quote' => $budget->quote->id]) }}" class="btn btn-info">
+                        <i class="bi bi-file-earmark-text me-2"></i>View Associated Quote
+                    </a>
+                @endif
     @endif
         </div>
     </div>
 </div>
 
-<div class="row mt-4">
-    <div class="col-12 text-end">
-        <span class="badge bg-success fs-4 p-3">
-            Grand Total Budget: KES {{ number_format($budget->budget_total, 2) }}
-        </span>
-    </div>
-</div>
+<style>
+.card {
+    transition: all 0.2s ease-in-out;
+}
+
+.table th {
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table td {
+    vertical-align: middle;
+    font-size: 0.875rem;
+}
+
+.btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+</style>
 @endsection

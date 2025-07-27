@@ -11,7 +11,7 @@ class ClientController extends Controller
     // Display a list of all clients
     public function index()
     {
-        $clients = Client::latest()->paginate(10); // Added pagination
+        $clients = Client::latest()->simplePaginate(10);
         return view('projects.client', compact('clients'));
     }
 
@@ -35,19 +35,16 @@ class ClientController extends Controller
             'CreatedBy' => 'required|integer',
         ]);
 
-        try {
         Client::create($validated);
+
         return redirect()->route('clients.index')->with('success', 'Client added successfully.');
-        } catch (\Exception $e) {
-            return back()->withInput()->with('error', 'Failed to add client. Please try again.');
-        }
     }
 
-    // Show form for editing
+    // Show form for editing (optional for now)
     public function edit($id)
     {
         $client = Client::findOrFail($id);
-        return view('projects.client', compact('client')); // Fixed view path
+        return view('clients.edit', compact('client'));
     }
 
     // Update existing client
@@ -71,30 +68,25 @@ class ClientController extends Controller
             'Industry' => 'nullable|string|max:100',
         ]);
 
-        try {
         $client->update($validated);
+
         return redirect()->route('clients.index')->with('success', 'Client updated successfully.');
-        } catch (\Exception $e) {
-            return back()->withInput()->with('error', 'Failed to update client. Please try again.');
-        }
+    }
+
+    // Show client details
+    public function show($id)
+    {
+        $client = Client::findOrFail($id);
+        return view('projects.client-show', compact('client'));
     }
 
     // Delete client
     public function destroy($id)
     {
-        try {
-            $client = Client::findOrFail($id);
-            $client->delete();
-            return redirect()->route('clients.index')->with('success', 'Client deleted successfully.');
-        } catch (\Exception $e) {
-            return back()->with('error', 'Failed to delete client. Please try again.');
-        }
-    }
-
-    // Show client details (for AJAX requests)
-    public function show($id)
-    {
         $client = Client::findOrFail($id);
-        return response()->json($client);
+        $client->delete();
+
+        return redirect()->route('clients.index')
+                         ->with('success', 'Client deleted successfully.');
     }
 }

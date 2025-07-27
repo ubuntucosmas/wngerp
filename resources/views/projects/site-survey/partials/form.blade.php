@@ -221,377 +221,396 @@
 <div class="form-container">
     <nav class="sidebar-nav">
         <ul>
-            <li><a href="#basic-information" class="active">Basic Information</a></li>
-            <li><a href="#contact-information">Contact Information</a></li>
-            <li><a href="#project-overview">Project Overview</a></li>
-            <li><a href="#site-assessment">Site Assessment</a></li>
-            <li><a href="#client-requirements">Client Requirements</a></li>
-            <li><a href="#project-timeline">Project Timeline</a></li>
-            <li><a href="#health-safety">Health and Safety</a></li>
-            <li><a href="#additional-information">Additional Information</a></li>
-            <li><a href="#signatures">Signatures</a></li>
+            <li><a href="#" class="sidebar-link active" data-bs-target="#collapseBasicInfo">Basic Information</a></li>
+            <li><a href="#" class="sidebar-link" data-bs-target="#collapseContactInfo">Contact Information</a></li>
+            <li><a href="#" class="sidebar-link" data-bs-target="#collapseProjectOverview">Project Overview</a></li>
+            <li><a href="#" class="sidebar-link" data-bs-target="#collapseSiteAssessment">Site Assessment</a></li>
+            <li><a href="#" class="sidebar-link" data-bs-target="#collapseClientRequirements">Client Requirements</a></li>
+            <li><a href="#" class="sidebar-link" data-bs-target="#collapseProjectTimeline">Project Timeline</a></li>
+            <li><a href="#" class="sidebar-link" data-bs-target="#collapseHealthSafety">Health and Safety</a></li>
+            <li><a href="#" class="sidebar-link" data-bs-target="#collapseAdditionalInfo">Additional Information</a></li>
+            <li><a href="#" class="sidebar-link" data-bs-target="#collapseSignatures">Signatures</a></li>
         </ul>
     </nav>
 
+    <!-- Accordion for Form Sections -->
     <div class="form-content">
-        <!-- Basic Information -->
-        <div id="basic-information" class="form-section-card">
-            <div class="form-section-card-header">
-                <h5><i class="fas fa-info-circle me-2"></i>Basic Information</h5>
-            </div>
-            <div class="form-section-card-body">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="form-group mb-4">
-                            <label for="site_visit_date" class="form-label required-field">
-                                <i class="far fa-calendar-alt me-2"></i>Site Visit Date
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
-                                <input type="text" 
-                                       class="form-control datepicker @error('site_visit_date') is-invalid @enderror" 
-                                       id="site_visit_date" 
-                                       name="site_visit_date" 
-                                       placeholder="Select visit date"
-                                       data-date-format="Y-m-d"
-                                       value="{{ $siteSurvey->exists && $siteSurvey->site_visit_date ? $siteSurvey->site_visit_date->format('Y-m-d') : old('site_visit_date', '') }}" 
-                                       readonly
-                                       required>
-                            </div>
-                            @error('site_visit_date')
-                                <div class="invalid-feedback d-block">
-                                    <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
-                                </div>
-                            @enderror
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group mb-4">
-                            <label for="project_manager" class="form-label required-field">Project Officer</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
-                                <select class="form-select @error('project_manager') is-invalid @enderror" 
-                                        id="project_manager" 
-                                        name="project_manager" 
-                                        required>
-                                    <option value="">Select Project Officer</option>
-                                    @if(isset($teamMembers) && $teamMembers->count() > 0)
-                                        @foreach($teamMembers as $member)
-                                            <option value="{{ $member->name }}" 
-                                                {{ old('project_manager', $siteSurvey->project_manager) == $member->name ? 'selected' : '' }}>
-                                                {{ $member->name }}
-                                            </option>
-                                        @endforeach
-                                    @endif
-                                    <option value="Other" {{ old('project_manager', $siteSurvey->project_manager) == 'Other' ? 'selected' : '' }}>Other (specify)</option>
-                                </select>
-                            </div>
-                            <div id="otherProjectManagerContainer" class="mt-2" style="display: none;">
-                                <input type="text" 
-                                       class="form-control mt-2" 
-                                       name="other_project_manager" 
-                                       placeholder="Enter project officer's name"
-                                       value="{{ old('other_project_manager', $siteSurvey->other_project_manager ?? '') }}">
-                            </div>
-                            @error('project_manager')
-                                <div class="invalid-feedback d-block">
-                                    <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
-                                </div>
-                            @enderror
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group mb-4">
-                            <label for="conducted_by" class="form-label required-field">Conducted By</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-user-check"></i></span>
-                                <input type="text" 
-                                       class="form-control @error('conducted_by') is-invalid @enderror" 
-                                       id="conducted_by" 
-                                       name="conducted_by" 
-                                       placeholder="Name of person conducting survey"
-                                       value="{{ old('conducted_by', auth()->user()->name) }}" 
-                                       required>
-                            </div>
-                            @error('conducted_by')
-                                <div class="invalid-feedback d-block">
-                                    <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
-                                </div>
-                            @enderror
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group mb-4">
-                            <label for="client_name" class="form-label required-field">Client Name</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-building"></i></span>
-                                <input type="text" 
-                                       class="form-control @error('client_name') is-invalid @enderror" 
-                                       id="client_name" 
-                                       name="client_name" 
-                                       placeholder="Enter client's name"
-                                       value="{{ isset($enquiry) ? $enquiry->client_name : $project->client_name }}" 
-                                       required>
-                            </div>
-                            @error('client_name')
-                                <div class="invalid-feedback d-block">
-                                    <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
-                                </div>
-                            @enderror
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group mb-4">
-                            <label for="location" class="form-label required-field">Location</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
-                                <input type="text" 
-                                       class="form-control @error('location') is-invalid @enderror" 
-                                       id="location" 
-                                       name="location" 
-                                       placeholder="Enter site location"
-                                       value="{{ isset($enquiry) ? $enquiry->venue : $project->venue }}" 
-                                       required>
-                            </div>
-                            @error('location')
-                                <div class="invalid-feedback d-block">
-                                    <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
-                                </div>
-                            @enderror
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-6">
-                        <div class="form-group mb-4">
-                            <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
-                                <span><i class="fas fa-users me-1 text-primary"></i> Attendees</span>
-                                <button type="button" class="btn btn-sm btn-outline-primary" id="addAttendeeBtn">
-                                    <i class="fas fa-plus me-1"></i> Add Attendee
-                                </button>
-                            </label>
-                            
-                            <div id="attendeesContainer" class="mb-3">
-                                @php
-                                    $attendees = old('attendees', $siteSurvey->exists ? (is_array($siteSurvey->attendees) ? $siteSurvey->attendees : [$siteSurvey->attendees]) : ['']);
-                                @endphp
-                                
-                                @foreach($attendees as $index => $attendee)
-                                    <div class="input-group mb-2 attendee-row">
-                                        <span class="input-group-text">
-                                            <i class="fas fa-user"></i>
-                                        </span>
+        <div class="accordion" id="siteSurveyAccordion">
+            <!-- Basic Information -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingBasicInfo">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBasicInfo" aria-expanded="true" aria-controls="collapseBasicInfo">
+                        <i class="fas fa-info-circle me-2"></i>Basic Information
+                    </button>
+                </h2>
+                <div id="collapseBasicInfo" class="accordion-collapse collapse show" aria-labelledby="headingBasicInfo" data-bs-parent="#siteSurveyAccordion">
+                    <div class="accordion-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group mb-4">
+                                    <label for="site_visit_date" class="form-label required-field">
+                                        <i class="far fa-calendar-alt me-2"></i>Site Visit Date
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
                                         <input type="text" 
-                                               class="form-control" 
-                                               name="attendees[]" 
-                                               value="{{ $attendee }}" 
-                                               placeholder="Attendee name">
-                                        <button type="button" class="btn btn-outline-danger remove-attendee" {{ $loop->first && count($attendees) === 1 ? 'disabled' : '' }}>
-                                            <i class="fas fa-times"></i>
-                                        </button>
+                                               class="form-control datepicker @error('site_visit_date') is-invalid @enderror" 
+                                               id="site_visit_date" 
+                                               name="site_visit_date" 
+                                               placeholder="Select visit date"
+                                               data-date-format="Y-m-d"
+                                               value="{{ $siteSurvey->exists && $siteSurvey->site_visit_date ? $siteSurvey->site_visit_date->format('Y-m-d') : old('site_visit_date', '') }}" 
+                                               readonly
+                                               required>
                                     </div>
-                                @endforeach
-                            </div>
-                            
-                            @error('attendees')
-                                <div class="invalid-feedback d-flex align-items-center">
-                                    <i class="fas fa-exclamation-circle me-2"></i>
-                                    <span>{{ $message }}</span>
+                                    @error('site_visit_date')
+                                        <div class="invalid-feedback d-block">
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
+                                        </div>
+                                    @enderror
                                 </div>
-                            @enderror
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Contact Information -->
-        <div id="contact-information" class="form-section-card">
-            <div class="form-section-card-header">
-                <h5><i class="fas fa-address-card me-2"></i>Contact Information</h5>
-            </div>
-            <div class="form-section-card-body">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="form-group mb-4">
-                            <label for="client_contact_person" class="form-label required-field">Contact Person</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                <input type="text" 
-                                       class="form-control @error('client_contact_person') is-invalid @enderror" 
-                                       id="client_contact_person" 
-                                       name="client_contact_person" 
-                                       placeholder="Contact person's name"
-                                       value="{{ old('client_contact_person', $siteSurvey->client_contact_person) }}" 
-                                       required>
                             </div>
-                            @error('client_contact_person')
-                                <div class="invalid-feedback d-block">
-                                    <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
+                            <div class="col-md-4">
+                                <div class="form-group mb-4">
+                                    <label for="project_manager" class="form-label required-field">Project Officer</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                                        <select class="form-select @error('project_manager') is-invalid @enderror" 
+                                                id="project_manager" 
+                                                name="project_manager" 
+                                                required>
+                                            <option value="">Select Project Officer</option>
+                                            @if(isset($teamMembers) && $teamMembers->count() > 0)
+                                                @foreach($teamMembers as $member)
+                                                    <option value="{{ $member->name }}" 
+                                                        {{ old('project_manager', $siteSurvey->project_manager) == $member->name ? 'selected' : '' }}>
+                                                        {{ $member->name }}
+                                                    </option>
+                                                @endforeach
+                                            @endif
+                                            <option value="Other" {{ old('project_manager', $siteSurvey->project_manager) == 'Other' ? 'selected' : '' }}>Other (specify)</option>
+                                        </select>
+                                    </div>
+                                    <div id="otherProjectManagerContainer" class="mt-2" style="display: none;">
+                                        <input type="text" 
+                                               class="form-control mt-2" 
+                                               name="other_project_manager" 
+                                               placeholder="Enter project officer's name"
+                                               value="{{ old('other_project_manager', $siteSurvey->other_project_manager ?? '') }}">
+                                    </div>
+                                    @error('project_manager')
+                                        <div class="invalid-feedback d-block">
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
+                                        </div>
+                                    @enderror
                                 </div>
-                            @enderror
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group mb-4">
-                            <label for="client_phone" class="form-label required-field">Phone</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-phone"></i></span>
-                                <input type="text" 
-                                       class="form-control @error('client_phone') is-invalid @enderror" 
-                                       id="client_phone" 
-                                       name="client_phone" 
-                                       placeholder="Contact phone number"
-                                       data-inputmask="'mask': '+255 999 999 999'"
-                                       value="{{ old('client_phone', $siteSurvey->client_phone ?? (isset($enquiry) ? '' : ($project->client->Phone ?? ''))) }}" 
-                                       required>
                             </div>
-                            @error('client_phone')
-                                <div class="invalid-feedback d-block">
-                                    <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
+                            <div class="col-md-4">
+                                <div class="form-group mb-4">
+                                    <label for="conducted_by" class="form-label required-field">Conducted By</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-user-check"></i></span>
+                                        <input type="text" 
+                                               class="form-control @error('conducted_by') is-invalid @enderror" 
+                                               id="conducted_by" 
+                                               name="conducted_by" 
+                                               placeholder="Name of person conducting survey"
+                                               value="{{ old('conducted_by', auth()->user()->name) }}" 
+                                               required>
+                                    </div>
+                                    @error('conducted_by')
+                                        <div class="invalid-feedback d-block">
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
+                                        </div>
+                                    @enderror
                                 </div>
-                            @enderror
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="form-group mb-4">
-                            <label for="client_email" class="form-label">Email</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                <input type="email" 
-                                       class="form-control @error('client_email') is-invalid @enderror" 
-                                       id="client_email" 
-                                       name="client_email" 
-                                       placeholder="Contact email address"
-                                       value="{{ old('client_email', $siteSurvey->client_email ?? (isset($enquiry) ? '' : ($project->client->Email ?? ''))) }}">
                             </div>
-                            @error('client_email')
-                                <div class="invalid-feedback d-block">
-                                    <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
+                            <div class="col-md-4">
+                                <div class="form-group mb-4">
+                                    <label for="client_name" class="form-label required-field">Client Name</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-building"></i></span>
+                                        <input type="text" 
+                                               class="form-control @error('client_name') is-invalid @enderror" 
+                                               id="client_name" 
+                                               name="client_name" 
+                                               placeholder="Enter client's name"
+                                               value="{{ isset($enquiry) ? $enquiry->client_name : ($project->client_name ?? '') }}" 
+                                               required>
+                                    </div>
+                                    @error('client_name')
+                                        <div class="invalid-feedback d-block">
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
+                                        </div>
+                                    @enderror
                                 </div>
-                            @enderror
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Project Overview -->
-        <div id="project-overview" class="form-section-card">
-            <div class="form-section-card-header">
-                <h5><i class="fas fa-project-diagram me-2"></i>Project Overview</h5>
-            </div>
-            <div class="form-section-card-body">
-                <div class="form-group mb-4">
-                    <label for="project_description" class="form-label">
-                        <i class="fas fa-align-left me-2"></i>Project Description
-                    </label>
-                    <div class="input-group">
-                        <textarea class="form-control @error('project_description') is-invalid @enderror" 
-                                 id="project_description" 
-                                 name="project_description" 
-                                 rows="4"
-                                 placeholder="Provide a detailed description of the project...">{{ old('project_description', $siteSurvey->project_description ?? '') }}</textarea>
-                    </div>
-                    @error('project_description')
-                        <div class="invalid-feedback d-block">
-                            <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
-                        </div>
-                    @enderror
-                    <small class="form-text text-muted">Briefly describe the project scope and purpose</small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="objectives" class="form-label">
-                        <i class="fas fa-bullseye me-2"></i>Project Objectives
-                    </label>
-                    <div class="input-group">
-                        <textarea class="form-control @error('objectives') is-invalid @enderror" 
-                                 id="objectives" 
-                                 name="objectives" 
-                                 rows="4"
-                                 placeholder="List the main objectives of this project...">{{ old('objectives', $siteSurvey->objectives ?? '') }}</textarea>
-                    </div>
-                    @error('objectives')
-                        <div class="invalid-feedback d-block">
-                            <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
-                        </div>
-                    @enderror
-                    <small class="form-text text-muted">List the key objectives to be achieved (one per line)</small>
-                </div>
-            </div>
-        </div>
-
-        <!-- Site Assessment -->
-        <div id="site-assessment" class="form-section-card">
-            <div class="form-section-card-header">
-                <h5><i class="fas fa-clipboard-check me-2"></i>Site Assessment</h5>
-            </div>
-            <div class="form-section-card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group mb-4">
-                            <label for="current_condition" class="form-label">
-                                <i class="fas fa-clipboard-check me-2"></i>Current Condition
-                            </label>
-                            <div class="input-group">
-                                <textarea class="form-control @error('current_condition') is-invalid @enderror" 
-                                         id="current_condition" 
-                                         name="current_condition" 
-                                         rows="3"
-                                         placeholder="Describe the current condition of the site...">{{ old('current_condition', $siteSurvey->current_condition ?? '') }}</textarea>
                             </div>
-                            @error('current_condition')
-                                <div class="invalid-feedback d-block">
-                                    <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
-                                </div>
-                            @enderror
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <div class="form-group mb-4">
-                            <label for="existing_branding" class="form-label">
-                                <i class="fas fa-tags me-2"></i>Existing Branding
-                            </label>
-                            <div class="input-group">
-                                <textarea class="form-control @error('existing_branding') is-invalid @enderror" 
-                                         id="existing_branding" 
-                                         name="existing_branding" 
-                                         rows="3"
-                                         placeholder="Note any existing branding elements...">{{ old('existing_branding', $siteSurvey->existing_branding ?? '') }}</textarea>
-                            </div>
-                            @error('existing_branding')
-                                <div class="invalid-feedback d-block">
-                                    <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
-                                </div>
-                            @enderror
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="form-group mb-4">
-                    <label for="access_logistics" class="form-label">
-                        <i class="fas fa-truck-loading me-2"></i>Access & Logistics
-                    </label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-info-circle"></i></span>
-                        <textarea class="form-control @error('access_logistics') is-invalid @enderror" 
-                                 id="access_logistics" 
-                                 name="access_logistics" 
-                                 rows="2"
-                                 placeholder="Describe site access and logistics considerations...">{{ old('access_logistics', $siteSurvey->access_logistics ?? '') }}</textarea>
-                            </div>
-                            @error('access_logistics')
-                                <div class="invalid-feedback d-block">
-                                    <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
-                                </div>
-                            @enderror
                         </div>
                         
                         <div class="row">
                             <div class="col-md-6">
+                                <div class="form-group mb-4">
+                                    <label for="location" class="form-label required-field">Location</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                        <input type="text" 
+                                               class="form-control @error('location') is-invalid @enderror" 
+                                               id="location" 
+                                               name="location" 
+                                               placeholder="Enter site location"
+                                               value="{{ isset($enquiry) ? $enquiry->venue : $project->venue }}" 
+                                               required>
+                                    </div>
+                                    @error('location')
+                                        <div class="invalid-feedback d-block">
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
+                                        </div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="form-group mb-4">
+                                    <label class="form-label fw-semibold d-flex justify-content-between align-items-center">
+                                        <span><i class="fas fa-users me-1 text-primary"></i> Attendees</span>
+                                        <button type="button" class="btn btn-sm btn-outline-primary" id="addAttendeeBtn">
+                                            <i class="fas fa-plus me-1"></i> Add Attendee
+                                        </button>
+                                    </label>
+                                    
+                                    <div id="attendeesContainer" class="mb-3">
+                                        @php
+                                            $attendees = old('attendees', $siteSurvey->exists ? (is_array($siteSurvey->attendees) ? $siteSurvey->attendees : [$siteSurvey->attendees]) : ['']);
+                                        @endphp
+                                        
+                                        @foreach($attendees as $index => $attendee)
+                                            <div class="input-group mb-2 attendee-row">
+                                                <span class="input-group-text">
+                                                    <i class="fas fa-user"></i>
+                                                </span>
+                                                <input type="text" 
+                                                       class="form-control" 
+                                                       name="attendees[]" 
+                                                       value="{{ $attendee }}" 
+                                                       placeholder="Attendee name">
+                                                <button type="button" class="btn btn-outline-danger remove-attendee" {{ $loop->first && count($attendees) === 1 ? 'disabled' : '' }}>
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    
+                                    @error('attendees')
+                                        <div class="invalid-feedback d-flex align-items-center">
+                                            <i class="fas fa-exclamation-circle me-2"></i>
+                                            <span>{{ $message }}</span>
+                                        </div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingContactInfo">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseContactInfo" aria-expanded="false" aria-controls="collapseContactInfo">
+                        <i class="fas fa-address-card me-2"></i>Contact Information
+                    </button>
+                </h2>
+                <div id="collapseContactInfo" class="accordion-collapse collapse" aria-labelledby="headingContactInfo" data-bs-parent="#siteSurveyAccordion">
+                    <div class="accordion-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group mb-4">
+                                    <label for="client_contact_person" class="form-label">Contact Person</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                        <input type="text" 
+                                               class="form-control @error('client_contact_person') is-invalid @enderror" 
+                                               id="client_contact_person" 
+                                               name="client_contact_person" 
+                                               placeholder="Contact person's name"
+                                               value="{{ old('client_contact_person', $siteSurvey->client_contact_person) }}">
+                                    </div>
+                                    @error('client_contact_person')
+                                        <div class="invalid-feedback d-block">
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
+                                        </div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-4">
+                                    <label for="client_phone" class="form-label">Phone</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                        <input type="text" 
+                                               class="form-control @error('client_phone') is-invalid @enderror" 
+                                               id="client_phone" 
+                                               name="client_phone" 
+                                               placeholder="Contact phone number"
+                                               data-inputmask="'mask': '+255 999 999 999'"
+                                               value="{{ old('client_phone', $siteSurvey->client_phone ?? (isset($enquiry) ? '' : ($project->client->Phone ?? ''))) }}">
+                                    </div>
+                                    @error('client_phone')
+                                        <div class="invalid-feedback d-block">
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
+                                        </div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-4">
+                                    <label for="client_email" class="form-label">Email</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                        <input type="email" 
+                                               class="form-control @error('client_email') is-invalid @enderror" 
+                                               id="client_email" 
+                                               name="client_email" 
+                                               placeholder="Contact email address"
+                                               value="{{ old('client_email', $siteSurvey->client_email ?? (isset($enquiry) ? '' : ($project->client->Email ?? ''))) }}">
+                                    </div>
+                                    @error('client_email')
+                                        <div class="invalid-feedback d-block">
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
+                                        </div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project Overview -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingProjectOverview">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProjectOverview" aria-expanded="false" aria-controls="collapseProjectOverview">
+                        <i class="fas fa-project-diagram me-2"></i>Project Overview
+                    </button>
+                </h2>
+                <div id="collapseProjectOverview" class="accordion-collapse collapse" aria-labelledby="headingProjectOverview" data-bs-parent="#siteSurveyAccordion">
+                    <div class="accordion-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-4">
+                                    <label for="project_description" class="form-label">
+                                        <i class="fas fa-align-left me-2"></i>Project Description
+                                    </label>
+                                    <div class="input-group">
+                                        <textarea class="form-control @error('project_description') is-invalid @enderror" 
+                                                 id="project_description" 
+                                                 name="project_description" 
+                                                 rows="4"
+                                                 placeholder="Provide a detailed description of the project...">{{ old('project_description', $siteSurvey->project_description ?? '') }}</textarea>
+                                    </div>
+                                    @error('project_description')
+                                        <div class="invalid-feedback d-block">
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
+                                        </div>
+                                    @enderror
+                                    <small class="form-text text-muted">Briefly describe the project scope and purpose</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="objectives" class="form-label">
+                                        <i class="fas fa-bullseye me-2"></i>Project Objectives
+                                    </label>
+                                    <div class="input-group">
+                                        <textarea class="form-control @error('objectives') is-invalid @enderror" 
+                                                 id="objectives" 
+                                                 name="objectives" 
+                                                 rows="4"
+                                                 placeholder="List the main objectives of this project...">{{ old('objectives', $siteSurvey->objectives ?? '') }}</textarea>
+                                    </div>
+                                    @error('objectives')
+                                        <div class="invalid-feedback d-block">
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
+                                        </div>
+                                    @enderror
+                                    <small class="form-text text-muted">List the key objectives to be achieved (one per line)</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Site Assessment -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingSiteAssessment">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSiteAssessment" aria-expanded="false" aria-controls="collapseSiteAssessment">
+                        <i class="fas fa-clipboard-check me-2"></i>Site Assessment
+                    </button>
+                </h2>
+                <div id="collapseSiteAssessment" class="accordion-collapse collapse" aria-labelledby="headingSiteAssessment" data-bs-parent="#siteSurveyAccordion">
+                    <div class="accordion-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group mb-4">
+                                    <label for="current_condition" class="form-label">
+                                        <i class="fas fa-clipboard-check me-2"></i>Current Condition
+                                    </label>
+                                    <div class="input-group">
+                                        <textarea class="form-control @error('current_condition') is-invalid @enderror" 
+                                                 id="current_condition" 
+                                                 name="current_condition" 
+                                                 rows="3"
+                                                 placeholder="Describe the current condition of the site...">{{ old('current_condition', $siteSurvey->current_condition ?? '') }}</textarea>
+                                    </div>
+                                    @error('current_condition')
+                                        <div class="invalid-feedback d-block">
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
+                                        </div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-4">
+                                    <label for="existing_branding" class="form-label">
+                                        <i class="fas fa-tags me-2"></i>Existing Branding
+                                    </label>
+                                    <div class="input-group">
+                                        <textarea class="form-control @error('existing_branding') is-invalid @enderror" 
+                                                 id="existing_branding" 
+                                                 name="existing_branding" 
+                                                 rows="3"
+                                                 placeholder="Note any existing branding elements...">{{ old('existing_branding', $siteSurvey->existing_branding ?? '') }}</textarea>
+                                    </div>
+                                    @error('existing_branding')
+                                        <div class="invalid-feedback d-block">
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
+                                        </div>
+                                    @enderror
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-4">
+                                    <label for="access_logistics" class="form-label">
+                                        <i class="fas fa-truck-loading me-2"></i>Access & Logistics
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-info-circle"></i></span>
+                                        <textarea class="form-control @error('access_logistics') is-invalid @enderror" 
+                                                 id="access_logistics" 
+                                                 name="access_logistics" 
+                                                 rows="2"
+                                                 placeholder="Describe site access and logistics considerations...">{{ old('access_logistics', $siteSurvey->access_logistics ?? '') }}</textarea>
+                                    </div>
+                                    @error('access_logistics')
+                                        <div class="invalid-feedback d-block">
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
+                                        </div>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
                                 <div class="form-group mb-4">
                                     <label for="parking_availability" class="form-label">
                                         <i class="fas fa-parking me-2"></i>Parking Availability
@@ -612,7 +631,7 @@
                                     @enderror
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="form-group mb-4">
                                     <label for="lifts" class="form-label">
                                         <i class="fas fa-elevator me-2"></i>Lifts
@@ -633,10 +652,7 @@
                                     @enderror
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="form-group mb-4">
                                     <label for="door_sizes" class="form-label">
                                         <i class="fas fa-door-open me-2"></i>Door Sizes
@@ -657,7 +673,9 @@
                                     @enderror
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
                                 <div class="form-group mb-4">
                                     <label for="loading_areas" class="form-label">
                                         <i class="fas fa-truck-loading me-2"></i>Loading Areas
@@ -678,29 +696,27 @@
                                     @enderror
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="form-group mb-4">
-                            <label for="site_measurements" class="form-label">
-                                <i class="fas fa-ruler-combined me-2"></i>Site Measurements
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-ruler"></i></span>
-                                <textarea class="form-control @error('site_measurements') is-invalid @enderror" 
-                                         id="site_measurements" 
-                                         name="site_measurements" 
-                                         rows="3"
-                                         placeholder="Detailed site measurements and dimensions">{{ old('site_measurements', $siteSurvey->site_measurements ?? '') }}</textarea>
-                            </div>
-                            @error('site_measurements')
-                                <div class="invalid-feedback d-block">
-                                    <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
+                            <div class="col-md-4">
+                                <div class="form-group mb-4">
+                                    <label for="site_measurements" class="form-label">
+                                        <i class="fas fa-ruler-combined me-2"></i>Site Measurements
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-ruler"></i></span>
+                                        <textarea class="form-control @error('site_measurements') is-invalid @enderror" 
+                                                 id="site_measurements" 
+                                                 name="site_measurements" 
+                                                 rows="3"
+                                                 placeholder="Detailed site measurements and dimensions">{{ old('site_measurements', $siteSurvey->site_measurements ?? '') }}</textarea>
+                                    </div>
+                                    @error('site_measurements')
+                                        <div class="invalid-feedback d-block">
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ $message }}
+                                        </div>
+                                    @enderror
                                 </div>
-                            @enderror
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
+                            </div>
+                            <div class="col-md-4">
                                 <div class="form-group mb-4">
                                     <label for="room_size" class="form-label">
                                         <i class="fas fa-vector-square me-2"></i>Room Size
@@ -721,7 +737,9 @@
                                     @enderror
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
                                 <div class="form-group mb-4">
                                     <label for="electrical_outlets" class="form-label">
                                         <i class="fas fa-plug me-2"></i>Electrical Outlets
@@ -742,10 +760,7 @@
                                     @enderror
                                 </div>
                             </div>
-                        </div>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="form-group mb-4">
                                     <label for="constraints" class="form-label">
                                         <i class="fas fa-exclamation-triangle me-2"></i>Constraints
@@ -765,7 +780,7 @@
                                     @enderror
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="form-group mb-4">
                                     <label for="food_refreshment" class="form-label">
                                         <i class="fas fa-utensils me-2"></i>Food & Refreshment
@@ -788,13 +803,17 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Client Requirements -->
-                <div id="client-requirements" class="form-section-card">
-                    <div class="form-section-card-header">
-                        <h5><i class="fas fa-clipboard-list me-2"></i>Client Requirements</h5>
-                    </div>
-                    <div class="form-section-card-body">
+            <!-- Client Requirements -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingClientRequirements">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseClientRequirements" aria-expanded="false" aria-controls="collapseClientRequirements">
+                        <i class="fas fa-clipboard-list me-2"></i>Client Requirements
+                    </button>
+                </h2>
+                <div id="collapseClientRequirements" class="accordion-collapse collapse" aria-labelledby="headingClientRequirements" data-bs-parent="#siteSurveyAccordion">
+                    <div class="accordion-body">
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group mb-4">
@@ -898,13 +917,17 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Project Timeline -->
-                <div id="project-timeline" class="form-section-card">
-                    <div class="form-section-card-header">
-                        <h5><i class="far fa-calendar-alt me-2"></i>Project Timeline</h5>
-                    </div>
-                    <div class="form-section-card-body">
+            <!-- Project Timeline -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingProjectTimeline">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProjectTimeline" aria-expanded="false" aria-controls="collapseProjectTimeline">
+                        <i class="far fa-calendar-alt me-2"></i>Project Timeline
+                    </button>
+                </h2>
+                <div id="collapseProjectTimeline" class="accordion-collapse collapse" aria-labelledby="headingProjectTimeline" data-bs-parent="#siteSurveyAccordion">
+                    <div class="accordion-body">
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group mb-4">
@@ -974,72 +997,86 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Health and Safety -->
-                <div id="health-safety" class="form-section-card">
-                    <div class="form-section-card-header">
-                        <h5><i class="fas fa-shield-alt me-2"></i>Health and Safety</h5>
-                    </div>
-                    <div class="form-section-card-body">
-                        <div class="form-group">
-                            <label for="safety_conditions">Safety Conditions</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-exclamation-triangle"></i></span>
-                                <textarea class="form-control @error('safety_conditions') is-invalid @enderror" 
-                                         id="safety_conditions" 
-                                         name="safety_conditions" 
-                                         rows="3"
-                                         placeholder="Describe safety conditions at the site...">{{ getFormValue('safety_conditions', $siteSurvey) }}</textarea>
+            <!-- Health and Safety -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingHealthSafety">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHealthSafety" aria-expanded="false" aria-controls="collapseHealthSafety">
+                        <i class="fas fa-shield-alt me-2"></i>Health and Safety
+                    </button>
+                </h2>
+                <div id="collapseHealthSafety" class="accordion-collapse collapse" aria-labelledby="headingHealthSafety" data-bs-parent="#siteSurveyAccordion">
+                    <div class="accordion-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="safety_conditions">Safety Conditions</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-exclamation-triangle"></i></span>
+                                        <textarea class="form-control @error('safety_conditions') is-invalid @enderror" 
+                                                 id="safety_conditions" 
+                                                 name="safety_conditions" 
+                                                 rows="3"
+                                                 placeholder="Describe safety conditions at the site...">{{ getFormValue('safety_conditions', $siteSurvey) }}</textarea>
+                                    </div>
+                                    @error('safety_conditions')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
                             </div>
-                            @error('safety_conditions')
-                                <span class="invalid-feedback" role="alert">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="potential_hazards">Potential Hazards</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-radiation"></i></span>
-                                <textarea class="form-control @error('potential_hazards') is-invalid @enderror" 
-                                         id="potential_hazards" 
-                                         name="potential_hazards" 
-                                         rows="3"
-                                         placeholder="List any potential hazards...">{{ getFormValue('potential_hazards', $siteSurvey) }}</textarea>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="potential_hazards">Potential Hazards</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-radiation"></i></span>
+                                        <textarea class="form-control @error('potential_hazards') is-invalid @enderror" 
+                                                 id="potential_hazards" 
+                                                 name="potential_hazards" 
+                                                 rows="3"
+                                                 placeholder="List any potential hazards...">{{ getFormValue('potential_hazards', $siteSurvey) }}</textarea>
+                                    </div>
+                                    @error('potential_hazards')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
                             </div>
-                            @error('potential_hazards')
-                                <span class="invalid-feedback" role="alert">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="safety_required">Safety Equipment Required</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-hard-hat"></i></span>
-                                <textarea class="form-control @error('safety_required') is-invalid @enderror" 
-                                         id="safety_required" 
-                                         name="safety_required" 
-                                         rows="3"
-                                         placeholder="List required safety equipment...">{{ getFormValue('safety_required', $siteSurvey) }}</textarea>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="safety_required">Safety Equipment Required</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fas fa-hard-hat"></i></span>
+                                        <textarea class="form-control @error('safety_required') is-invalid @enderror" 
+                                                 id="safety_required" 
+                                                 name="safety_required" 
+                                                 rows="3"
+                                                 placeholder="List required safety equipment...">{{ getFormValue('safety_required', $siteSurvey) }}</textarea>
+                                    </div>
+                                    @error('safety_required')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
                             </div>
-                            @error('safety_required')
-                                <span class="invalid-feedback" role="alert">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Additional Information -->
-                <div id="additional-information" class="form-section-card">
-                    <div class="form-section-card-header">
-                        <h5><i class="fas fa-info-circle me-2"></i>Additional Information</h5>
-                    </div>
-                    <div class="form-section-card-body">
+            <!-- Additional Information -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingAdditionalInfo">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAdditionalInfo" aria-expanded="false" aria-controls="collapseAdditionalInfo">
+                        <i class="fas fa-info-circle me-2"></i>Additional Information
+                    </button>
+                </h2>
+                <div id="collapseAdditionalInfo" class="accordion-collapse collapse" aria-labelledby="headingAdditionalInfo" data-bs-parent="#siteSurveyAccordion">
+                    <div class="accordion-body">
                         <div class="form-group mb-4">
                             <label for="additional_notes" class="form-label">
                                 <i class="fas fa-notes-medical me-2"></i>Additional Notes
@@ -1198,13 +1235,17 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Signatures -->
-                <div id="signatures" class="form-section-card">
-                    <div class="form-section-card-header">
-                        <h5><i class="fas fa-signature me-2"></i>Signatures</h5>
-                    </div>
-                    <div class="form-section-card-body">
+            <!-- Signatures -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingSignatures">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSignatures" aria-expanded="false" aria-controls="collapseSignatures">
+                        <i class="fas fa-signature me-2"></i>Signatures
+                    </button>
+                </h2>
+                <div id="collapseSignatures" class="accordion-collapse collapse" aria-labelledby="headingSignatures" data-bs-parent="#siteSurveyAccordion">
+                    <div class="accordion-body">
                         <div class="row">
                             <div class="col-md-6">
                                 <h6>Prepared By</h6>
@@ -1246,6 +1287,7 @@
                 </div>
             </div>
         </div>
+    </div>
 
 @push('scripts')
 <script>
@@ -1484,6 +1526,30 @@
                     hiddenInput.value = signaturePads[inputName].toDataURL();
                 }
             }
+        });
+
+        // Sidebar links open accordion and smooth scroll
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                // Remove active from all links
+                document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+                // Open the corresponding accordion
+                const target = document.querySelector(this.dataset.bsTarget);
+                if (target) {
+                    // Use Bootstrap's Collapse API
+                    const bsCollapse = bootstrap.Collapse.getOrCreateInstance(target, {toggle: false});
+                    bsCollapse.show();
+                    // Smooth scroll to the accordion header
+                    const header = target.previousElementSibling;
+                    if (header) {
+                        header.scrollIntoView({behavior: 'smooth', block: 'start'});
+                    } else {
+                        target.scrollIntoView({behavior: 'smooth', block: 'start'});
+                    }
+                }
+            });
         });
     });
 </script>

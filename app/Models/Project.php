@@ -52,6 +52,14 @@ class Project extends Model
         'deliverables',
         'follow_up_notes',
         'contact_person',
+        'site_survey_skipped',
+        'site_survey_skip_reason',
+    ];
+
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date' => 'date',
+        'site_survey_skipped' => 'boolean',
     ];
 
     public function siteSurveys()
@@ -81,7 +89,7 @@ class Project extends Model
 
     public function enquirySource()
     {
-        return $this->hasOne(Enquiry::class, 'converted_to_project_id');
+        return $this->hasOne(Enquiry::class, 'converted_to_project_id', 'id');
     }
 
     public function materialLists()

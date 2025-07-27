@@ -18,11 +18,14 @@ class ProjectPhase extends Model
         'end_date',
         'description',
         'status',
+        'skipped',
+        'skip_reason',
     ];
 
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
+        'skipped' => 'boolean',
     ];
 
     public function phaseable()

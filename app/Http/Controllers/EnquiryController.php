@@ -76,9 +76,11 @@ class EnquiryController extends Controller
         // Calculate progress (same as project)
         $totalPhases = $phases->count();
         $completed = $phases->where('status', 'Completed')->count();
+        $skipped = $phases->where('skipped', true)->count();
         $inProgress = $phases->where('status', 'In Progress')->count();
+        $done = $completed + $skipped;
         
-        return view('projects.files.index', compact('enquiry', 'fileTypes', 'phaseCompletions', 'phases', 'totalPhases', 'completed', 'inProgress'));
+        return view('projects.files.index', compact('enquiry', 'fileTypes', 'phaseCompletions', 'phases', 'totalPhases', 'completed', 'skipped', 'done', 'inProgress'));
     }
 
     /**
@@ -105,16 +107,20 @@ class EnquiryController extends Controller
                 ] : ['No enquiry log found']
             ],
             'site_survey' => [
-                'completed' => $siteSurveys->count() > 0,
+                'completed' => $siteSurveys->count() > 0 || $enquiry->site_survey_skipped,
                 'title' => 'Site Survey Form',
-                'status' => $siteSurveys->count() > 0 ? 'Completed' : 'Not Started',
-                'date' => $siteSurveys->count() > 0 ? $siteSurveys->first()->created_at->format('M d, Y') : null,
-                'details' => $siteSurveys->count() > 0 ? [
+                'status' => $enquiry->site_survey_skipped ? 'Skipped' : ($siteSurveys->count() > 0 ? 'Completed' : 'Not Started'),
+                'date' => $enquiry->site_survey_skipped ? 'Skipped' : ($siteSurveys->count() > 0 ? $siteSurveys->first()->created_at->format('M d, Y') : null),
+                'details' => $enquiry->site_survey_skipped ? [
+                    'Status: Skipped',
+                    'Reason: ' . ($enquiry->site_survey_skip_reason ?: 'No reason provided'),
+                    'Skipped Date: ' . now()->format('M d, Y')
+                ] : ($siteSurveys->count() > 0 ? [
                     'Location: ' . ($siteSurveys->first()->location ?? 'N/A'),
                     'Visit Date: ' . ($siteSurveys->first()->site_visit_date ? $siteSurveys->first()->site_visit_date->format('M d, Y') : 'N/A'),
                     'Project Manager: ' . ($siteSurveys->first()->project_manager ?? 'N/A'),
                     'Client Approval: ' . ($siteSurveys->first()->client_approval ? 'Yes' : 'No')
-                ] : ['No site survey found']
+                ] : ['No site survey found'])
             ]
         ];
 
@@ -209,7 +215,7 @@ class EnquiryController extends Controller
                 'project_name' => 'nullable|string|max:255',
                 'project_deliverables' => 'nullable|string',
                 'contact_person' => 'nullable|string|max:255',
-                'status' => 'required|in:Open,Quoted,Approved,Declined',
+                
                 'assigned_po' => 'nullable|string|max:255',
                 'follow_up_notes' => 'nullable|string',
                 'project_id' => 'nullable|string|max:255',
@@ -264,7 +270,7 @@ class EnquiryController extends Controller
             'project_name' => 'nullable|string|max:255',
             'project_deliverables' => 'nullable|string',
             'contact_person' => 'nullable|string|max:255',
-            'status' => 'required|in:Open,Quoted,Approved,Declined',
+            
             'assigned_po' => 'nullable|string|max:255',
             'follow_up_notes' => 'nullable|string',
             'project_id' => 'nullable|string|max:255',
@@ -320,18 +326,36 @@ class EnquiryController extends Controller
                     : 'Fill out the enquiry log form with detailed information',
                 'type' => $existingEnquiryLog ? 'Existing-Enquiry-Log' : 'Enquiry-Log-Form',
             ],
-            [
-                'name' => 'Site Survey',
-                'route' => $existingSiteSurvey 
-                    ? route('enquiries.site-survey.show', [$enquiry, $existingSiteSurvey])
-                    : route('enquiries.site-survey.create', $enquiry),
-                'icon' => 'bi-clipboard2-pulse',
-                'description' => $existingSiteSurvey 
-                    ? 'View existing site survey details'
-                    : 'Complete the site survey form',
-                'type' => $existingSiteSurvey ? 'Existing-Site-Survey' : 'Site-Survey-Form',
-            ],
         ];
+
+        // Add site survey file based on status
+        if ($enquiry->site_survey_skipped) {
+            $files[] = [
+                'name' => 'Site Survey',
+                'route' => '#',
+                'icon' => 'bi-clipboard2-pulse',
+                'description' => 'Site survey was skipped for this project',
+                'type' => 'Skipped-Site-Survey',
+                'skipped' => true,
+                'skip_reason' => $enquiry->site_survey_skip_reason,
+            ];
+        } elseif ($existingSiteSurvey) {
+            $files[] = [
+                'name' => 'Site Survey',
+                'route' => route('enquiries.site-survey.show', [$enquiry, $existingSiteSurvey]),
+                'icon' => 'bi-clipboard2-pulse',
+                'description' => 'View existing site survey details',
+                'type' => 'Existing-Site-Survey',
+            ];
+        } else {
+            $files[] = [
+                'name' => 'Site Survey',
+                'route' => route('enquiries.site-survey.create', $enquiry),
+                'icon' => 'bi-clipboard2-pulse',
+                'description' => 'Complete the site survey form',
+                'type' => 'Site-Survey-Form',
+        ];
+        }
 
         return view('projects.files.client-engagement', compact('enquiry', 'files'));
     }
@@ -363,7 +387,6 @@ class EnquiryController extends Controller
             'client_name' => 'required|string|max:255',
             'project_scope_summary' => 'required|string',
             'contact_person' => 'nullable|string|max:255',
-            'status' => 'required|in:Open,Quoted,Approved,Declined',
             'assigned_to' => 'nullable|string|max:255',
             'follow_up_notes' => 'nullable|string',
         ]);
@@ -671,6 +694,38 @@ class EnquiryController extends Controller
         $siteSurvey->delete();
         return redirect()->route('enquiries.files', $enquiry)
             ->with('success', 'Site survey deleted successfully!');
+    }
+
+    /**
+     * Skip site survey for enquiry
+     */
+    public function skipSiteSurvey(Request $request, Enquiry $enquiry)
+    {
+        $validated = $request->validate([
+            'site_survey_skip_reason' => 'nullable|string|max:255',
+        ]);
+
+        $enquiry->update([
+            'site_survey_skipped' => true,
+            'site_survey_skip_reason' => $validated['site_survey_skip_reason'],
+        ]);
+
+        return redirect()->route('enquiries.files.client-engagement', $enquiry)
+            ->with('success', 'Site survey skipped successfully.');
+    }
+
+    /**
+     * Unskip site survey for enquiry
+     */
+    public function unskipSiteSurvey(Enquiry $enquiry)
+    {
+        $enquiry->update([
+            'site_survey_skipped' => false,
+            'site_survey_skip_reason' => null,
+        ]);
+
+        return redirect()->route('enquiries.files.client-engagement', $enquiry)
+            ->with('success', 'Site survey unskipped successfully.');
     }
 
     public function showMockups(Enquiry $enquiry)

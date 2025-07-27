@@ -14,6 +14,7 @@ class LabourItem extends Model
         'particular',
         'unit',
         'quantity',
+        'unit_price',
         'comment',
     ];
     

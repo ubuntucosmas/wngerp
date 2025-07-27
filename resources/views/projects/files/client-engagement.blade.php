@@ -51,8 +51,35 @@
                             </div>
                         </div>
                     </div>
+                @elseif(isset($file['skipped']) && $file['skipped'])
+                    <div class="file-card h-100 skipped-file">
+                        <div class="d-flex align-items-start">
+                            <div class="file-card-icon me-3 skipped-icon">
+                                <i class="bi {{ $file['icon'] }}"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h3 class="file-card-title text-warning">{{ $file['name'] }}</h3>
+                                <p class="file-card-description">
+                                    {{ $file['description'] }}
+                                </p>
+                                @if($file['skip_reason'])
+                                    <p class="text-muted small mb-2">
+                                        <strong>Reason:</strong> {{ $file['skip_reason'] }}
+                                    </p>
+                                @endif
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <span class="badge bg-warning text-dark">Skipped</span>
+                                    <form action="{{ isset($enquiry) ? route('enquiries.files.unskip-site-survey', $enquiry) : route('projects.files.unskip-site-survey', $project) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-arrow-counterclockwise"></i> Unskip
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 @else
-                <a href="{{ $file['route'] }}" class="text-decoration-none">
                     <div class="file-card h-100">
                         <div class="d-flex align-items-start">
                             <div class="file-card-icon me-3">
@@ -65,14 +92,59 @@
                                 </p>
                                 <div class="d-flex justify-content-between align-items-center mt-2">
                                     <span class="badge bg-light text-dark">{{ $file['type'] }}</span>
+                                    @if($file['name'] === 'Site Survey')
+                                        <div class="d-flex gap-2">
+                                            <a href="{{ $file['route'] }}" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-arrow-right"></i> Open
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#skipSiteSurveyModal">
+                                                <i class="bi bi-skip-forward"></i> Skip
+                                            </button>
+                                        </div>
+                                    @else
+                                        <a href="{{ $file['route'] }}" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-arrow-right"></i> Open
+                                        </a>
+                                    @endif
                                 </div>
                             </div>
                         </div>
                     </div>
-                </a>
                 @endif
             </div>
         @endforeach
+    </div>
+
+    <!-- Skip Site Survey Modal -->
+    <div class="modal fade" id="skipSiteSurveyModal" tabindex="-1" aria-labelledby="skipSiteSurveyModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="skipSiteSurveyModalLabel">
+                        <i class="bi bi-exclamation-triangle text-warning me-2"></i>Skip Site Survey
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ isset($enquiry) ? route('enquiries.files.skip-site-survey', $enquiry) : route('projects.files.skip-site-survey', $project) }}" method="POST">
+                    @csrf
+                    <div class="modal-body">
+                        <p class="text-muted mb-3">
+                            Are you sure you want to skip the site survey? This will mark the site survey as completed for the client engagement phase.
+                        </p>
+                        <div class="mb-3">
+                            <label for="site_survey_skip_reason" class="form-label">Reason for skipping (optional)</label>
+                            <textarea class="form-control" id="site_survey_skip_reason" name="site_survey_skip_reason" rows="3" placeholder="e.g., No physical site visit required, Client provided all necessary information, etc."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-skip-forward me-2"></i>Skip Site Survey
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -97,6 +169,21 @@
         cursor: not-allowed;
         background-color: #f8f9fa;
         border-color: #dee2e6;
+    }
+    
+    .skipped-file {
+        background-color: #fff3cd;
+        border-color: #ffeaa7;
+        opacity: 0.9;
+    }
+    
+    .skipped-file:hover {
+        border-color: #fdcb6e;
+        box-shadow: 0 0.5rem 1rem rgba(253, 203, 110, 0.1);
+    }
+    
+    .skipped-icon {
+        color: #f39c12;
     }
     
     .disabled-file:hover {

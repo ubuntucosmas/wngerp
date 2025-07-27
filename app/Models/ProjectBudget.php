@@ -37,4 +37,13 @@ class ProjectBudget extends Model
     {
         return $this->hasOne(Quote::class);
     }
+
+    public function getBudgetTotalAttribute($value)
+    {
+        // If the stored value is null or 0, calculate from items
+        if (!$value || $value == 0) {
+            return $this->items->sum('budgeted_cost');
+        }
+        return $value;
+    }
 }

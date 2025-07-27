@@ -9,17 +9,20 @@
         <div>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                    @if(isset($enquiry))
+                    @if(isset($enquiry) && $enquiry)
                         <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
                         <li class="breadcrumb-item"><a href="{{ route('enquiries.files', $enquiry) }}">{{ $enquiry->project_name }}</a></li>
                         <li class="breadcrumb-item"><a href="{{ route('enquiries.files.quotation', $enquiry) }}">Budget & Quotation</a></li>
                         <li class="breadcrumb-item"><a href="{{ route('enquiries.quotes.index', $enquiry) }}">Quotes</a></li>
                         <li class="breadcrumb-item active" aria-current="page">View Quote #{{ $quote->id }}</li>
-                    @else
+                    @elseif(isset($project) && $project)
                         <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
                         <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">{{ $project->name }}</a></li>
                         <li class="breadcrumb-item"><a href="{{ route('projects.quotation.index', $project) }}">Budget & Quotation</a></li>
                         <li class="breadcrumb-item"><a href="{{ route('quotes.index', $project) }}">Quotes</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">View Quote #{{ $quote->id }}</li>
+                    @else
+                        <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
                         <li class="breadcrumb-item active" aria-current="page">View Quote #{{ $quote->id }}</li>
                     @endif
                 </ol>
@@ -27,21 +30,43 @@
             <h2 class="mb-0">View Quote #{{ $quote->id }}</h2>
         </div>
         <div class="page-actions">
-            <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.quotes.index', $enquiry) : route('quotes.index', $project) }}" class="btn btn-primary me-2">
-                <i class="bi bi-arrow-left me-2"></i>Back to Quotes
-            </a>
-            <a href="{{ isset($enquiry) ? route('enquiries.quotes.edit', ['enquiry' => $enquiry->id, 'quote' => $quote->id]) : route('quotes.edit', ['project' => $project->id, 'quote' => $quote->id]) }}" class="btn btn-info me-2">
-                <i class="bi bi-pencil me-2"></i>Edit
-            </a>
-            <a href="{{ isset($enquiry) ? route('enquiries.quotes.print', [$enquiry->id, $quote->id]) : route('quotes.print', [$project->id, $quote->id]) }}" class="btn btn-secondary me-2" target="_blank">
-                <i class="bi bi-printer me-2"></i>Print
-            </a>
-            <a href="{{ isset($enquiry) ? route('enquiries.quotes.excel', [$enquiry->id, $quote->id]) : route('quotes.excel', [$project->id, $quote->id]) }}" class="btn btn-secondary me-2">
-                <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
-            </a>
-            <a href="{{ isset($enquiry) ? route('enquiries.quotes.download', [$enquiry->id, $quote->id]) : route('quotes.download', [$project->id, $quote->id]) }}" class="btn btn-secondary">
-                <i class="bi bi-file-earmark-pdf me-2"></i>Download PDF
-            </a>
+            @if(isset($enquiry) && $enquiry)
+                <a href="{{ route('enquiries.quotes.index', $enquiry) }}" class="btn btn-primary me-2">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Quotes
+                </a>
+                <a href="{{ route('enquiries.quotes.edit', ['enquiry' => $enquiry->id, 'quote' => $quote->id]) }}" class="btn btn-info me-2">
+                    <i class="bi bi-pencil me-2"></i>Edit
+                </a>
+                <a href="{{ route('enquiries.quotes.print', [$enquiry->id, $quote->id]) }}" class="btn btn-secondary me-2" target="_blank">
+                    <i class="bi bi-printer me-2"></i>Print
+                </a>
+                <a href="{{ route('enquiries.quotes.excel', [$enquiry->id, $quote->id]) }}" class="btn btn-secondary me-2">
+                    <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
+                </a>
+                <a href="{{ route('enquiries.quotes.download', [$enquiry->id, $quote->id]) }}" class="btn btn-secondary">
+                    <i class="bi bi-file-earmark-pdf me-2"></i>Download PDF
+                </a>
+            @elseif(isset($project) && $project)
+                <a href="{{ route('quotes.index', $project) }}" class="btn btn-primary me-2">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Quotes
+                </a>
+                <a href="{{ route('quotes.edit', ['project' => $project->id, 'quote' => $quote->id]) }}" class="btn btn-info me-2">
+                    <i class="bi bi-pencil me-2"></i>Edit
+                </a>
+                <a href="{{ route('quotes.print', [$project->id, $quote->id]) }}" class="btn btn-secondary me-2" target="_blank">
+                    <i class="bi bi-printer me-2"></i>Print
+                </a>
+                <a href="{{ route('quotes.excel', [$project->id, $quote->id]) }}" class="btn btn-secondary me-2">
+                    <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
+                </a>
+                <a href="{{ route('quotes.download', [$project->id, $quote->id]) }}" class="btn btn-secondary">
+                    <i class="bi bi-file-earmark-pdf me-2"></i>Download PDF
+                </a>
+            @else
+                <a href="{{ route('projects.index') }}" class="btn btn-primary me-2">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Projects
+                </a>
+            @endif
         </div>
     </div>
 
@@ -67,10 +92,10 @@
                                     </div>
                                 </div>
                                 <address class="mb-0 text-muted small" style="line-height: 1.6;">
-                                    @if(isset($enquiry))
+                                    @if(isset($enquiry) && $enquiry)
                                     Enquiry ID: {{ $enquiry->id }}<br>
                                     Enquiry Name: {{ $enquiry->project_name }}<br>
-                                    @else
+                                    @elseif(isset($project) && $project)
                                     Project ID: {{ $project->project_id }}<br>
                                     Project Name: {{ $project->name }}<br>
                                     @endif

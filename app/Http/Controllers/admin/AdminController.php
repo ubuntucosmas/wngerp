@@ -66,10 +66,11 @@ class AdminController extends Controller
                     'name' => $validated['name'],
                     'email' => $validated['email'],
                     'password' => Hash::make($validated['password']),
+                    'role' => $validated['role'],  // Add this line to update the role column
                     'department' => $validated['department'] ?? null,
                     'level' => $validated['level'],
                 ]);
-                $user->assignRole($validated['role']);
+                $user->assignRole($validated['role']);  // This is for Spatie's role management
 
         return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
     }
@@ -93,13 +94,14 @@ class AdminController extends Controller
 
         $user->name = $validated['name'];
         $user->email = $validated['email'];
+        $user->role = $validated['role'];  // Update the role column
         $user->department = $validated['department'] ?? null;
         $user->level = $validated['level'];
         if (!empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);
         }
         $user->save();
-        $user->syncRoles([$validated['role']]);
+        $user->syncRoles([$validated['role']]);  // This is for Spatie's role management
 
         return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
     }

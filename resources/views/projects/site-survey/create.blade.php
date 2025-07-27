@@ -28,6 +28,7 @@
                             @endif
                         </ol>
                     </nav>
+                    
                     <h2 class="mb-0">Create Site Survey</h2>
                 </div>
                 <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.files.client-engagement', $enquiry) : route('projects.files.client-engagement', $project) }}" class="btn btn-primary">
@@ -39,9 +40,9 @@
                 
                 @include('projects.site-survey.partials.form', ['project' => isset($enquiry) ? $enquiry : $project])
                 
-                <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+                <div class="text-center mt-4">
                     <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Save Site Survey
+                         <i class="fas fa-save"></i> Save Site Survey
                     </button>
                 </div>
             </form>

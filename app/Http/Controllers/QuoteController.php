@@ -18,8 +18,17 @@ use App\Models\Enquiry;
 
 class QuoteController extends Controller
 {
-    public function index(Project $project = null, Enquiry $enquiry = null)
+    public function index(Request $request, $projectOrEnquiryId)
     {
+        $project = null;
+        $enquiry = null;
+
+        if (str_contains($request->route()->getName(), 'enquiries.')) {
+            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+        } else {
+            $project = Project::findOrFail($projectOrEnquiryId);
+        }
+
         $quotes = collect(); // Initialize as an empty collection
         $parentModel = null;
 
@@ -46,8 +55,17 @@ class QuoteController extends Controller
         return view('projects.quotes.index', compact('quotes', 'parentModel', 'project', 'enquiry'));
     }
 
-    public function create(Request $request, Project $project = null, Enquiry $enquiry = null)
+    public function create(Request $request, $projectOrEnquiryId)
     {
+        $project = null;
+        $enquiry = null;
+
+        if (str_contains($request->route()->getName(), 'enquiries.')) {
+            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+        } else {
+            $project = Project::findOrFail($projectOrEnquiryId);
+        }
+
         $budget = null;
         if ($request->has('project_budget_id')) {
             $budget = ProjectBudget::with('items')->findOrFail($request->input('project_budget_id'));
@@ -119,8 +137,17 @@ class QuoteController extends Controller
         }
     }
 
-    public function store(Request $request, Project $project = null, Enquiry $enquiry = null)
+    public function store(Request $request, $projectOrEnquiryId)
     {
+        $project = null;
+        $enquiry = null;
+
+        if (str_contains($request->route()->getName(), 'enquiries.')) {
+            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+        } else {
+            $project = Project::findOrFail($projectOrEnquiryId);
+        }
+
         DB::beginTransaction();
         
         try {
@@ -279,8 +306,17 @@ class QuoteController extends Controller
         }
     }
 
-    public function show(Project $project = null, Enquiry $enquiry = null, Quote $quote)
+    public function show(Request $request, $projectOrEnquiryId, Quote $quote)
     {
+        $project = null;
+        $enquiry = null;
+
+        if (str_contains($request->route()->getName(), 'enquiries.')) {
+            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+        } else {
+            $project = Project::findOrFail($projectOrEnquiryId);
+        }
+
         $subtotal = $quote->lineItems->sum('quote_price');
     
         $vatRate = 0.16; // 16% VAT - you can make this configurable
@@ -294,8 +330,17 @@ class QuoteController extends Controller
         }
     }
 
-    public function edit(Project $project = null, Enquiry $enquiry = null, Quote $quote)
+    public function edit(Request $request, $projectOrEnquiryId, Quote $quote)
     {
+        $project = null;
+        $enquiry = null;
+
+        if (str_contains($request->route()->getName(), 'enquiries.')) {
+            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+        } else {
+            $project = Project::findOrFail($projectOrEnquiryId);
+        }
+
         $quote->load('lineItems');
         if ($enquiry) {
             return view('projects.quotes.edit', compact('quote', 'enquiry'));
@@ -304,8 +349,17 @@ class QuoteController extends Controller
         }
     }
 
-    public function update(Request $request, Project $project = null, Enquiry $enquiry = null, Quote $quote)
-{
+    public function update(Request $request, $projectOrEnquiryId, Quote $quote)
+    {
+        $project = null;
+        $enquiry = null;
+
+        if (str_contains($request->route()->getName(), 'enquiries.')) {
+            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+        } else {
+            $project = Project::findOrFail($projectOrEnquiryId);
+        }
+
     DB::beginTransaction();
 
     try {
@@ -458,8 +512,17 @@ class QuoteController extends Controller
     }
 }
 
-    public function destroy(Project $project = null, Enquiry $enquiry = null, Quote $quote)
+    public function destroy(Request $request, $projectOrEnquiryId, Quote $quote)
     {
+        $project = null;
+        $enquiry = null;
+
+        if (str_contains($request->route()->getName(), 'enquiries.')) {
+            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+        } else {
+            $project = Project::findOrFail($projectOrEnquiryId);
+        }
+
         try {
             // Ensure the quote belongs to the project or enquiry
             if ($project && $quote->project_id !== $project->id) {
@@ -482,8 +545,17 @@ class QuoteController extends Controller
         }
     }
 
-    public function downloadQuote(Project $project = null, Enquiry $enquiry = null, Quote $quote)
+    public function downloadQuote(Request $request, $projectOrEnquiryId, Quote $quote)
     {
+        $project = null;
+        $enquiry = null;
+
+        if (str_contains($request->route()->getName(), 'enquiries.')) {
+            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+        } else {
+            $project = Project::findOrFail($projectOrEnquiryId);
+        }
+
         // Verify the quote belongs to the project or enquiry
         if ($project && $quote->project_id !== $project->id) {
             abort(404);
@@ -501,8 +573,17 @@ class QuoteController extends Controller
         }
     }
     
-    public function printQuote(Project $project = null, Enquiry $enquiry = null, Quote $quote)
+    public function printQuote(Request $request, $projectOrEnquiryId, Quote $quote)
     {
+        $project = null;
+        $enquiry = null;
+
+        if (str_contains($request->route()->getName(), 'enquiries.')) {
+            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+        } else {
+            $project = Project::findOrFail($projectOrEnquiryId);
+        }
+
         // Verify the quote belongs to the project or enquiry
         if ($project && $quote->project_id !== $project->id) {
             abort(404);
@@ -523,8 +604,17 @@ class QuoteController extends Controller
     /**
      * Export the quote to Excel.
      */
-    public function exportExcel(Project $project = null, Enquiry $enquiry = null, Quote $quote)
+    public function exportExcel(Request $request, $projectOrEnquiryId, Quote $quote)
     {
+        $project = null;
+        $enquiry = null;
+
+        if (str_contains($request->route()->getName(), 'enquiries.')) {
+            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+        } else {
+            $project = Project::findOrFail($projectOrEnquiryId);
+        }
+
         // Verify the quote belongs to the project or enquiry
         if ($project && $quote->project_id !== $project->id) {
             abort(404);

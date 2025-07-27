@@ -3,14 +3,12 @@
 namespace App\Http\Controllers\projects;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
 use App\Models\Project;
 use App\Models\HandoverReport;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class HandoverController extends Controller
@@ -24,53 +22,54 @@ class HandoverController extends Controller
         return view('projects.handover.index', compact('project', 'reports'));
     }
 
+    public function getHandoverData(Project $project)
+    {
+        $reports = $project->handoverReports()->get()->map(function ($report) {
+            return [
+                'id' => $report->id,
+                'client_name' => $report->client_name,
+                'contact_person' => $report->contact_person,
+                'acknowledgment_date' => $report->formatted_date,
+                'client_comments' => $report->client_comments,
+            ];
+        });
+        
+        return response()->json(['data' => $reports]);
+    }
+
     /**
      * Store a newly created handover report
      */
     public function store(Request $request, Project $project)
     {
-        \DB::enableQueryLog();
-        \Log::info('Handover store method called', ['request' => $request->all()]);
-        
         try {
             $validated = $request->validate([
-                'title' => ['required', 'string', 'max:255'],
-                'description' => ['nullable', 'string'],
-                'google_drive_link' => [
-                    'required', 
-                    'url',
-                ],
+                'client_name' => ['required', 'string', 'max:255'],
+                'contact_person' => ['nullable', 'string', 'max:255'],
+                'acknowledgment_date' => ['required', 'date'],
+                'client_comments' => ['nullable', 'string'],
             ]);
-            
-            \Log::info('Handover validation passed', ['validated' => $validated]);
 
             $report = new HandoverReport([
-                'title' => $validated['title'],
-                'description' => $validated['description'] ?? null,
-                'google_drive_link' => $validated['google_drive_link'],
+                'client_name' => $validated['client_name'],
+                'contact_person' => $validated['contact_person'] ?? null,
+                'acknowledgment_date' => $validated['acknowledgment_date'],
+                'client_comments' => $validated['client_comments'] ?? null,
                 'uploaded_by' => Auth::id(),
             ]);
-            
-            $saved = $project->handoverReports()->save($report);
-            
-            \Log::info('Handover queries executed:', \DB::getQueryLog());
-            \Log::info('Handover report saved status:', ['saved' => $saved, 'report' => $report->toArray()]);
 
-            if ($saved) {
-                return redirect()->back()->with('success', 'Handover document added successfully.');
-            } else {
-                throw new \Exception('Failed to save handover document to database');
-            }
-        } catch (\Exception $e) {
-            \Log::error('Error creating handover document', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'input' => $request->all()
+            $project->handoverReports()->save($report);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Handover acknowledgment saved successfully',
+                'report' => $report
             ]);
-            
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Failed to save handover document. Please try again. ' . $e->getMessage());
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to save handover acknowledgment. Please try again. ' . $e->getMessage()
+            ], 422);
         }
     }
 
@@ -79,12 +78,12 @@ class HandoverController extends Controller
      */
     public function destroy(Project $project, HandoverReport $handoverReport)
     {
-        // Check if the authenticated user is authorized to delete
-        if (Auth::user()->cannot('delete', $handoverReport)) {
+        // Only allow deletion if user is admin or the uploader
+        if (Auth::id() !== $handoverReport->uploaded_by && Auth::user()->role !== 'admin') {
             return redirect()->back()->with('error', 'You are not authorized to delete this handover document.');
         }
         
         $handoverReport->delete();
-        return redirect()->back()->with('success', 'Handover document deleted successfully.');
+        return redirect()->back()->with('success', 'Handover acknowledgment deleted successfully.');
     }
 }

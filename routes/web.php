@@ -107,6 +107,10 @@ Route::prefix('projects/{project}/handover')->name('projects.handover.')->group(
     // Delete handover report
     Route::delete('/{handoverReport}', [\App\Http\Controllers\projects\HandoverController::class, 'destroy'])
         ->name('destroy');
+    
+    // Load handover data
+    Route::get('/data', [\App\Http\Controllers\projects\HandoverController::class, 'getHandoverData'])
+        ->name('data');
 });
 
 // Set Down & Return Module Routes
@@ -201,6 +205,8 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
     
     // Additional enquiry routes for phase functionality
     Route::get('/projects/enquiry/{enquiry}/files/client-engagement', [EnquiryController::class, 'showClientEngagement'])->name('enquiries.files.client-engagement');
+    Route::post('/projects/enquiry/{enquiry}/files/skip-site-survey', [EnquiryController::class, 'skipSiteSurvey'])->name('enquiries.files.skip-site-survey');
+    Route::post('/projects/enquiry/{enquiry}/files/unskip-site-survey', [EnquiryController::class, 'unskipSiteSurvey'])->name('enquiries.files.unskip-site-survey');
     Route::get('/projects/enquiry/{enquiry}/files/design-concept', [EnquiryController::class, 'showDesignConcept'])->name('enquiries.files.design-concept');
     Route::get('/projects/enquiry/{enquiry}/files/setup', [EnquiryController::class, 'showSetup'])->name('enquiries.files.setup');
     Route::get('/projects/enquiry/{enquiry}/files/archival', [EnquiryController::class, 'showArchival'])->name('enquiries.files.archival');
@@ -363,6 +369,8 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
 
 
         Route::get('files/client-engagement', [ProjectFileController::class, 'showClientEngagement'])->name('projects.files.client-engagement');
+        Route::post('files/skip-site-survey', [ProjectFileController::class, 'skipSiteSurvey'])->name('projects.files.skip-site-survey');
+        Route::post('files/unskip-site-survey', [ProjectFileController::class, 'unskipSiteSurvey'])->name('projects.files.unskip-site-survey');
         Route::get('files/design-concept', [ProjectFileController::class, 'showDesignConcept'])->name('projects.files.design-concept');
                 // Logistics Routes
         Route::prefix('logistics')->name('projects.logistics.')->group(function () {
@@ -470,11 +478,11 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
             Route::post('/', [QuoteController::class, 'store'])->name('store');
             Route::get('/{quote}', [QuoteController::class, 'show'])->name('show');
             Route::get('/{quote}/edit', [QuoteController::class, 'edit'])->name('edit');
-            Route::put('/{quote}', [QuoteController::class, 'update'])->name('update');
-            Route::delete('/{quote}', [QuoteController::class, 'destroy'])->name('destroy');
-            Route::get('/{quote}/download', [QuoteController::class, 'downloadQuote'])->name('download');
-            Route::get('/{quote}/print', [QuoteController::class, 'printQuote'])->name('print');
-            Route::get('/{quote}/excel', [QuoteController::class, 'exportExcel'])->name('excel');
+            Route::put('quotes/{quote}', [QuoteController::class, 'update'])->name('update');
+            Route::delete('quotes/{quote}', [QuoteController::class, 'destroy'])->name('destroy');
+            Route::get('quotes/{quote}/download', [QuoteController::class, 'downloadQuote'])->name('download');
+            Route::get('quotes/{quote}/print', [QuoteController::class, 'printQuote'])->name('print');
+            Route::get('quotes/{quote}/excel', [QuoteController::class, 'exportExcel'])->name('excel');
         });
 
         
@@ -489,10 +497,10 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
         Route::put('budgets/{budget}', [ProjectBudgetController::class, 'update'])->name('budget.update');
         Route::delete('budgets/{budget}', [ProjectBudgetController::class, 'destroy'])->name('budget.destroy');
         
-        Route::get('budgets/{budget}/export', [\App\Http\Controllers\projects\ProjectBudgetController::class, 'export'])->name('budget.export');
-        Route::get('budgets/{budget}/download', [\App\Http\Controllers\projects\ProjectBudgetController::class, 'download'])->name('budget.download');
-        Route::get('budgets/{budget}/print', [\App\Http\Controllers\projects\ProjectBudgetController::class, 'print'])->name('budget.print');
-        Route::post('budgets/{budget}/approve', [\App\Http\Controllers\projects\ProjectBudgetController::class, 'approve'])->name('budget.approve');
+        Route::get('budgets/{budget}/export', [ProjectBudgetController::class, 'export'])->name('budget.export');
+        Route::get('budgets/{budget}/download', [ProjectBudgetController::class, 'download'])->name('budget.download');
+        Route::get('budgets/{budget}/print', [ProjectBudgetController::class, 'print'])->name('budget.print');
+        Route::post('budgets/{budget}/approve', [ProjectBudgetController::class, 'approve'])->name('budget.approve');
         
         });
 
@@ -588,6 +596,31 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     
+        // Client Management Routes
+    Route::prefix('clients')->name('clients.')->group(function () {
+        // List all clients (GET /clients)
+        Route::get('/', [ClientController::class, 'index'])->name('index');
+        
+        // Show single client (GET /clients/{id})
+        Route::get('/{client}', [ClientController::class, 'show'])->name('show');
+        
+        // Show create client form (GET /clients/create)
+        Route::get('/create', [ClientController::class, 'create'])->name('create');
+        
+        // Store new client (POST /clients)
+        Route::post('/', [ClientController::class, 'store'])->name('store');
+        
+        // Show edit client form (GET /clients/{client}/edit)
+        Route::get('/{client}/edit', [ClientController::class, 'edit'])->name('edit');
+        
+        // Update client (PUT/PATCH /clients/{client})
+        Route::put('/{client}', [ClientController::class, 'update'])->name('update');
+        
+        // Delete client (DELETE /clients/{client})
+        Route::delete('/{client}', [ClientController::class, 'destroy'])->name('destroy');
+    });
+    
+    
     // Global Item Templates Management Routes
     Route::prefix('templates')->name('templates.')->group(function () {
         // Categories
@@ -625,3 +658,7 @@ require __DIR__ . '/auth.php';
 Route::get('/', function () {
     return redirect()->route('projects.index');
 })->middleware(['auth'])->name('home');
+
+// Phase skip/unskip routes
+Route::post('/phases/{phaseId}/skip', [\App\Http\Controllers\projects\PhaseStatusController::class, 'skipPhase'])->name('phases.skip')->middleware(['auth']);
+Route::post('/phases/{phaseId}/unskip', [\App\Http\Controllers\projects\PhaseStatusController::class, 'unskipPhase'])->name('phases.unskip')->middleware(['auth']);

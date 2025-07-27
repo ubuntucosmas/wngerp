@@ -14,6 +14,7 @@ class ProductionParticular extends Model
         'particular',            //  Add this
         'unit',
         'quantity',
+        'unit_price',
         'comment',
     ];
 

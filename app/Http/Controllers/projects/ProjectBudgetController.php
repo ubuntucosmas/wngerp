@@ -18,7 +18,12 @@ class ProjectBudgetController extends Controller
     public function index(Project $project = null, Enquiry $enquiry = null)
     {
         if ($enquiry) {
-            $budgets = ProjectBudget::where('enquiry_id', $enquiry->id)->with('items')->get();
+            $budgets = ProjectBudget::where('enquiry_id', $enquiry->id)->with('items')->paginate(10);
+            \Log::info('Enquiry budgets loaded', [
+                'enquiry_id' => $enquiry->id,
+                'budget_count' => $budgets->count(),
+                'total_budgets' => $budgets->total()
+            ]);
             return view('projects.budget.index', compact('enquiry', 'budgets'));
         } else {
             // Check if this project was converted from an enquiry
@@ -26,18 +31,27 @@ class ProjectBudgetController extends Controller
             
             if ($enquirySource) {
                 // For converted projects, get budgets from enquiry source
-                $budgets = ProjectBudget::where('enquiry_id', $enquirySource->id)->with('items')->get();
+                $budgets = ProjectBudget::where('enquiry_id', $enquirySource->id)->with('items')->paginate(10);
             } else {
                 // For regular projects, get budgets from project
-                $budgets = ProjectBudget::where('project_id', $project->id)->with('items')->get();
+                $budgets = ProjectBudget::where('project_id', $project->id)->with('items')->paginate(10);
             }
             
             return view('projects.budget.index', compact('project', 'budgets'));
         }
     }
 
-    public function create(Request $request, Project $project = null, Enquiry $enquiry = null)
+    public function create(Request $request, $projectOrEnquiryId)
     {
+        $project = null;
+        $enquiry = null;
+
+        if (str_contains($request->route()->getName(), 'enquiries.')) {
+            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+        } else {
+            $project = Project::findOrFail($projectOrEnquiryId);
+        }
+
         $materialList = null;
         if ($request->has('material_list_id')) {
             $materialList = \App\Models\MaterialList::findOrFail($request->input('material_list_id'));
@@ -58,6 +72,7 @@ class ProjectBudgetController extends Controller
                         'particular' => $particular->particular,
                         'unit' => $particular->unit,
                         'quantity' => $particular->quantity,
+                        'unit_price' => $particular->unit_price ?? 0,
                         'comment' => $particular->comment ?? ''
                     ];
                 }
@@ -69,6 +84,7 @@ class ProjectBudgetController extends Controller
                     'particular' => $hire->particular,
                     'unit' => $hire->unit,
                     'quantity' => $hire->quantity,
+                    'unit_price' => $hire->unit_price ?? 0,
                     'comment' => $hire->comment ?? ''
                 ];
             }
@@ -79,6 +95,7 @@ class ProjectBudgetController extends Controller
                     'particular' => $labour->particular,
                     'unit' => $labour->unit,
                     'quantity' => $labour->quantity,
+                    'unit_price' => $labour->unit_price ?? 0,
                     'comment' => $labour->comment ?? ''
                 ];
             }
@@ -93,7 +110,7 @@ class ProjectBudgetController extends Controller
         }
     }
 
-    public function show(Project $project = null, Enquiry $enquiry = null, ProjectBudget $budget)
+    public function show(Request $request, $projectOrEnquiryId, ProjectBudget $budget)
     {
         $budget->load([
             'items.template.name',
@@ -101,26 +118,46 @@ class ProjectBudgetController extends Controller
             'items.template.category'
         ]);
         
-        // Check if this project was converted from an enquiry
-        $enquirySource = $project ? $project->enquirySource : null;
+        $project = null;
+        $enquiry = null;
         
-        if ($enquiry) {
-            return view('projects.budget.show', compact('enquiry', 'budget'));
+        if (str_contains($request->route()->getName(), 'enquiries.')) {
+            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+            if ($budget->enquiry_id != $enquiry->id) {
+                abort(404);
+            }
         } else {
-            // For converted projects, we need to pass the enquiry source for proper navigation
-            if ($enquirySource) {
-                return view('projects.budget.show', compact('project', 'budget', 'enquirySource'));
-            } else {
-                return view('projects.budget.show', compact('project', 'budget'));
+            $project = Project::findOrFail($projectOrEnquiryId);
+            if ($budget->project_id != $project->id) {
+                abort(404);
             }
         }
+
+        return view('projects.budget.show', compact('project', 'enquiry', 'budget'));
     }
 
-    public function store(Request $request, Project $project = null, Enquiry $enquiry = null)
+    public function store(Request $request, $projectOrEnquiryId)
     {
-        if (!auth()->user()->hasRole('po|pm|super-admin')) {
-            alert()->error('Only Project Officers, Project Managers and Super Admins can submit budgets.');
+        $project = null;
+        $enquiry = null;
+
+        if (str_contains($request->route()->getName(), 'enquiries.')) {
+            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+        } else {
+            $project = Project::findOrFail($projectOrEnquiryId);
         }
+
+        if (!auth()->user()->hasRole('po|pm|super-admin')) {
+            return back()->with('error', 'Only Project Officers, Project Managers and Super Admins can submit budgets.');
+        }
+    
+        // Validate required fields
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'approved_by' => 'required|string|max:255',
+            'approved_departments' => 'required|string|max:255',
+        ]);
     
         $productionItems = $request->input('production_items', []);
         foreach ($productionItems as $idx => $prod) {
@@ -217,6 +254,15 @@ class ProjectBudgetController extends Controller
             }
     
             DB::commit();
+            
+            \Log::info('Budget created successfully', [
+                'budget_id' => $budget->id,
+                'project_id' => $project->id ?? null,
+                'enquiry_id' => $enquiry->id ?? null,
+                'total_cost' => $totalCost,
+                'user_id' => auth()->id()
+            ]);
+            
             if ($enquiry) {
                 return redirect()->route('enquiries.budget.index', $enquiry)->with('success', 'Budget submitted successfully.');
             } else {
@@ -224,13 +270,28 @@ class ProjectBudgetController extends Controller
             }
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Budget creation failed: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
+            ]);
             return back()->with('error', 'Failed to save budget: ' . $e->getMessage())->withInput();
         }
     }
     
 
-public function edit(Project $project = null, Enquiry $enquiry = null, ProjectBudget $budget)
+    public function edit(Request $request, $projectOrEnquiryId, ProjectBudget $budget)
 {
+        $project = null;
+        $enquiry = null;
+
+        if (str_contains($request->route()->getName(), 'enquiries.')) {
+            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+        } else {
+            $project = Project::findOrFail($projectOrEnquiryId);
+        }
+
     if (!auth()->user()->hasAnyRole(['finance', 'accounts', 'super-admin'])) {
         abort(403, 'Only Finance or Accounts can edit budgets.');
     }
@@ -260,8 +321,17 @@ public function edit(Project $project = null, Enquiry $enquiry = null, ProjectBu
     }
 }
 
-public function update(Request $request, Project $project = null, Enquiry $enquiry = null, ProjectBudget $budget)
+    public function update(Request $request, $projectOrEnquiryId, ProjectBudget $budget)
 {
+        $project = null;
+        $enquiry = null;
+
+        if (str_contains($request->route()->getName(), 'enquiries.')) {
+            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+        } else {
+            $project = Project::findOrFail($projectOrEnquiryId);
+        }
+
     if (!auth()->user()->hasAnyRole(['finance', 'accounts', 'super-admin'])) {
         abort(403, 'Not authorized.');
     }
@@ -341,8 +411,17 @@ public function update(Request $request, Project $project = null, Enquiry $enqui
     }
 }
 
-public function destroy(Project $project = null, Enquiry $enquiry = null, ProjectBudget $budget)
+    public function destroy(Request $request, $projectOrEnquiryId, ProjectBudget $budget)
 {
+        $project = null;
+        $enquiry = null;
+
+        if (str_contains($request->route()->getName(), 'enquiries.')) {
+            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+        } else {
+            $project = Project::findOrFail($projectOrEnquiryId);
+        }
+
     try {
         $budget->delete();
         if ($enquiry) {
@@ -362,8 +441,17 @@ public function destroy(Project $project = null, Enquiry $enquiry = null, Projec
 /**
  * Export the specified budget to Excel.
  */
-public function export(Project $project = null, Enquiry $enquiry = null, ProjectBudget $budget)
+    public function export(Request $request, $projectOrEnquiryId, ProjectBudget $budget)
 {
+        $project = null;
+        $enquiry = null;
+
+        if (str_contains($request->route()->getName(), 'enquiries.')) {
+            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+        } else {
+            $project = Project::findOrFail($projectOrEnquiryId);
+        }
+
     if ($enquiry) {
         return Excel::download(new ProjectBudgetExport($budget, $enquiry, null), 'enquiry_budget_' . $budget->id . '.xlsx');
     } else {
@@ -371,11 +459,45 @@ public function export(Project $project = null, Enquiry $enquiry = null, Project
     }
 }
 
+    /**
+     * Download the specified budget as PDF.
+     */
+    public function download(Request $request, $projectOrEnquiryId, ProjectBudget $budget)
+    {
+        $project = null;
+        $enquiry = null;
+
+        if (str_contains($request->route()->getName(), 'enquiries.')) {
+            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+        } else {
+            $project = Project::findOrFail($projectOrEnquiryId);
+        }
+
+        $budget->load(['items']);
+        
+        if ($enquiry) {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.project-budget', compact('budget', 'enquiry'));
+            return $pdf->download('enquiry_budget_' . $budget->id . '.pdf');
+        } else {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.project-budget', compact('budget', 'project'));
+            return $pdf->download('project_budget_' . $budget->id . '.pdf');
+        }
+    }
+
 /**
  * Approve the specified budget.
  */
-public function approve(Project $project = null, Enquiry $enquiry = null, ProjectBudget $budget)
+    public function approve(Request $request, $projectOrEnquiryId, ProjectBudget $budget)
 {
+        $project = null;
+        $enquiry = null;
+
+        if (str_contains($request->route()->getName(), 'enquiries.')) {
+            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+        } else {
+            $project = Project::findOrFail($projectOrEnquiryId);
+        }
+
     if (!auth()->user()->hasRole('super-admin')) {
         abort(403, 'Only Super Admins can approve budgets.');
     }
@@ -389,8 +511,17 @@ public function approve(Project $project = null, Enquiry $enquiry = null, Projec
     /**
      * Print the specified budget (render printable view).
      */
-    public function print(Project $project = null, Enquiry $enquiry = null, ProjectBudget $budget)
+    public function print(Request $request, $projectOrEnquiryId, ProjectBudget $budget)
     {
+        $project = null;
+        $enquiry = null;
+
+        if (str_contains($request->route()->getName(), 'enquiries.')) {
+            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+        } else {
+            $project = Project::findOrFail($projectOrEnquiryId);
+        }
+
         $budget->load(['items']);
         if ($enquiry) {
             return view('projects.budget.print', compact('enquiry', 'budget'));

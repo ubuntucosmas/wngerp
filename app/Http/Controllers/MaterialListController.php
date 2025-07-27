@@ -314,6 +314,11 @@ class MaterialListController extends Controller
 
     public function destroy(Request $request, $projectOrEnquiryId, $materialListId)
     {
+        // Check authorization
+        if (!auth()->user()->hasAnyRole(['pm', 'po', 'super-admin'])) {
+            abort(403, 'You do not have permission to delete material lists.');
+        }
+
         $materialList = MaterialList::findOrFail($materialListId);
 
         if (str_contains($request->route()->getName(), 'enquiries.')) {
@@ -407,6 +412,7 @@ class MaterialListController extends Controller
                             'particular' => $particular['particular'],
                             'unit' => $particular['unit'] ?? null,
                             'quantity' => $particular['quantity'] ?? 0,
+                            'unit_price' => $particular['unit_price'] ?? 0,
                             'comment' => $particular['comment'] ?? null,
 
                             'created_at' => now(),

@@ -11,15 +11,25 @@ class HandoverReport extends Model
     use SoftDeletes;
 
     /**
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'acknowledgment_date' => 'date',
+    ];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
     protected $fillable = [
         'project_id',
-        'title',
-        'description',
-        'google_drive_link',
+        'client_name',
+        'contact_person',
+        'acknowledgment_date',
+        'client_comments',
         'uploaded_by',
     ];
 
@@ -37,5 +47,15 @@ class HandoverReport extends Model
     public function uploadedBy()
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    public function getFormattedDateAttribute()
+    {
+        return $this->acknowledgment_date ? $this->acknowledgment_date->format('Y-m-d') : null;
+    }
+
+    public function getAcknowledgmentDateAttribute($value)
+    {
+        return $value ? \Carbon\Carbon::parse($value) : null;
     }
 }

@@ -15,6 +15,7 @@ class ItemTemplateParticular extends Model
         'particular',
         'unit',
         'default_quantity',
+        'unit_price',
         'comment',
     ];
 

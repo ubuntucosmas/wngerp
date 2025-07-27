@@ -24,11 +24,14 @@ class Enquiry extends Model
         'enquiry_number',
         'converted_to_project_id',
         'venue',
+        'site_survey_skipped',
+        'site_survey_skip_reason',
     ];
 
    protected $casts = [
         'date_received' => 'date:Y-m-d',
         'expected_delivery_date' => 'date:Y-m-d',
+        'site_survey_skipped' => 'boolean',
     ];
 
     protected static function boot()

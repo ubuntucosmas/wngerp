@@ -121,4 +121,22 @@ class PhaseStatusController extends Controller
             return redirect()->back()->with('error', 'Failed to create remaining phases: ' . $e->getMessage());
         }
     }
+
+    public function skipPhase(Request $request, $phaseId)
+    {
+        $phase = ProjectPhase::findOrFail($phaseId);
+        $phase->skipped = true;
+        $phase->skip_reason = $request->input('skip_reason');
+        $phase->save();
+        return redirect()->back()->with('success', 'Phase skipped successfully.');
+    }
+
+    public function unskipPhase($phaseId)
+    {
+        $phase = ProjectPhase::findOrFail($phaseId);
+        $phase->skipped = false;
+        $phase->skip_reason = null;
+        $phase->save();
+        return redirect()->back()->with('success', 'Phase unskipped successfully.');
+    }
 } 

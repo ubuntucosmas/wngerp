@@ -18,6 +18,7 @@ class Quote extends Model
         'quote_date',
         'project_start_date',
         'reference',
+        'status',
     ];
 
     protected $casts = [

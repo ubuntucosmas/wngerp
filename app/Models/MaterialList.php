@@ -110,6 +110,7 @@ class MaterialList extends Model
             'production_items' => $this->productionItems->count(),
             'materials_hire' => $this->materialsHire->count(),
             'labour_items' => $this->labourItems->count(),
+            'outsourced_items' => $this->labourItems->where('category', 'Outsourced')->count(),
         ];
     }
 

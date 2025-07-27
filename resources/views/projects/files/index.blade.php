@@ -441,47 +441,18 @@
     </div>
 </div>
 
-<!-- Progress Bar -->
-<div class="mt-3 px-3" data-{{ isset($enquiry) ? 'enquiry' : 'project' }}-id="{{ isset($enquiry) ? $enquiry->id : $project->id }}">
-    @php
-        // Ensure variables exist with defaults
-        $totalPhases = $totalPhases ?? 0;
-        $completed = $completed ?? 0;
-        $inProgress = $inProgress ?? 0;
-        
-        $progress = $totalPhases > 0
-            ? round((($completed + 0.5 * $inProgress) / $totalPhases) * 100)
-            : 0;
-        if ($progress >= 80) {
-            $progressBarClass = 'bg-success'; // Green
-        } elseif ($progress >= 40) {
-            $progressBarClass = 'bg-warning'; // Orange
-        } else {
-            $progressBarClass = 'bg-danger'; // Blue
-        }
-        if ($progress >= 80) {
-            $progressTextClass = 'text-success'; // Green
-        } elseif ($progress >= 40) {
-            $progressTextClass = 'text-warning'; // Orange
-        } else {
-            $progressTextClass = 'text-danger'; // Red
-        }
-    @endphp
-    <div class="d-flex justify-content-between align-items-center mb-2">
-        <h6 class="mb-0 text-primary">{{ isset($enquiry) ? 'Enquiry' : 'Project' }} Progress</h6>
-        <span class="progress-text fw-bold {{ $progressTextClass }}">{{ $progress }}%</span>
+{{-- Overall Progress Bar (at the top, or wherever appropriate) --}}
+<div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-1">
+        <small class="fw-medium">Overall Progress</small>
+        <small class="text-muted">
+            {{ $totalPhases > 0 ? round((($done ?? 0) / $totalPhases) * 100) : 0 }}%
+            ({{ $done ?? 0 }} of {{ $totalPhases }} phases done)
+        </small>
     </div>
     <div class="progress" style="height: 10px;">
-        <div class="progress-bar {{ $progressBarClass }}" role="progressbar" 
-             style="width: {{ $progress }}%" 
-             aria-valuenow="{{ $progress }}" 
-             aria-valuemin="0" 
-             aria-valuemax="100">
+        <div class="progress-bar bg-success" style="width: {{ $totalPhases > 0 ? (($done ?? 0) / $totalPhases) * 100 : 0 }}%"></div>
         </div>
-    </div>
-    <small class="text-muted">
-        {{ $completed }} completed, {{ $inProgress }} in progress, {{ $totalPhases - $completed - $inProgress }} not started
-    </small>
 </div>
     <hr>
     
@@ -526,8 +497,8 @@
                     $summary = $phase->summary ?? ($config['summary'] ?? 'No summary available for this phase.');
                 @endphp
                 <div class="col-lg-2_4 col-md-4 col-sm-6 mb-2">
-                    <div class="phase-card h-100 p-2 position-relative">
-                        <!-- Tooltip Bubble -->
+                    <div class="phase-card h-100 p-3 d-flex flex-column justify-content-between position-relative">
+                        <!-- Tooltip Bubble (Phase Details) -->
                         <div class="tooltip-bubble">
                             @if($phase->name == 'Client Engagement & Briefing')
                                 <div class="tooltip-title">Client Engagement & Briefing</div>
@@ -616,195 +587,103 @@
                                 </div>
                             @endif
                         </div>
-                        
-                        <div class="position-absolute top-0 end-0 m-2" style="z-index:2;">
-                            <div class="d-flex align-items-center gap-1">
-
-                                <form method="POST" action="{{ route('phases.update-status-simple', ['phaseId' => $phase->id]) }}" class="d-inline">
-                                    @csrf
-                                    <select name="status" class="form-select form-select-sm phase-status-dropdown" 
-                                            onchange="this.form.submit()"
-                                            data-status="{{ $phase->status }}"
-                                            style="font-size:0.75rem; min-width:120px; background:{{ $color['bg'] }}; color:{{ $color['text'] }}; border:1px solid {{ $color['border'] }};">
-                                        <option value="Not Started" {{ $phase->status == 'Not Started' ? 'selected' : '' }}>Not Started</option>
-                                        <option value="In Progress" {{ $phase->status == 'In Progress' ? 'selected' : '' }}>In Progress</option>
-                                        <option value="Completed" {{ $phase->status == 'Completed' ? 'selected' : '' }}>Completed</option>
-                                    </select>
-                                </form>
-                            </div>
-                        </div>
-                        <div class="position-relative">
-                            <div class="d-flex align-items-center mb-1">
+                        <!-- Top: Icon and Title -->
+                        <div class="d-flex align-items-center mb-2">
                                 <div class="phase-icon me-2">
                                     <i class="bi {{ $icon }} fs-5"></i>
                                 </div>
-                                <h5 class="phase-title mb-0">{{ $phase->name }}</h5>
-                        </div>
-                        <div class="mt-auto">
-                            <button class="summary-toggle" onclick="toggleSummary(this)">
-                                <span>View Summary</span>
-                                <i class="bi bi-chevron-down"></i>
-                            </button>
-                            <div class="summary-content" style="display: none;">
-                                <div class="small text-muted">
-                                    @if(isset($phaseCompletions[$phase->name]))
-                                        @php
-                                            $totalItems = count($phaseCompletions[$phase->name]);
-                                            $completedItems = collect($phaseCompletions[$phase->name])->where('completed', true)->count();
-                                            $completionPercentage = $totalItems > 0 ? round(($completedItems / $totalItems) * 100) : 0;
-                                        @endphp
-                                        
-                                        <!-- Progress Bar -->
-                                        <div class="mb-3">
-                                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                                <small class="fw-medium">Progress</small>
-                                                <small class="text-muted">{{ $completionPercentage }}%</small>
-                                            </div>
-                                            <div class="progress" style="height: 6px;">
-                                                <div class="progress-bar {{ $completionPercentage >= 100 ? 'bg-success' : ($completionPercentage >= 25 ? 'bg-warning' : 'bg-secondary') }}" 
-                                                     style="width: {{ $completionPercentage }}%"></div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Items List -->
-                                        @foreach($phaseCompletions[$phase->name] as $item)
-                                            <div class="mb-3 p-2 border rounded {{ $item['completed'] ? 'bg-light-success' : 'bg-light-secondary' }}">
-                                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                                    <span class="fw-medium">{{ $item['title'] }}</span>
-                                                    <!-- <span class="badge {{ $item['completed'] ? 'bg-success' : 'bg-secondary' }} fs-6">
-                                                        {{ $item['status'] }}
-                                                    </span> -->
-                                                </div>
-                                                
-                                                @if(isset($item['date']) && $item['date'])
-                                                    <small class="text-muted d-block mb-2">
-                                                        <i class="bi bi-calendar3"></i> {{ $item['date'] }}
-                                                    </small>
-                                                @endif
-
-                                                @if(isset($item['details']) && is_array($item['details']))
-                                                    <div class="mt-2">
-                                                        @foreach($item['details'] as $detail)
-                                                            <small class="d-block text-muted mb-1">
-                                                                <i class="bi bi-info-circle me-1"></i> {{ $detail }}
-                                                            </small>
-                                                        @endforeach
-                                                    </div>
-                                                @endif
-                                            </div>
-                                        @endforeach
-
-                                        <!-- Summary Footer -->
-                                        <div class="mt-3 pt-2 border-top">
-                                            <small class="text-muted">
-                                                <i class="bi bi-check-circle me-1"></i>
-                                                {{ $completedItems }} of {{ $totalItems }} items completed
-                                            </small>
-                                        </div>
+                            <h5 class="phase-title mb-0 flex-grow-1">{{ $phase->name }}</h5>
+                            @if($phase->skipped)
+                                <span class="badge bg-warning text-dark ms-2" data-bs-toggle="tooltip" title="{{ $phase->skip_reason ? 'Reason: ' . $phase->skip_reason : 'This phase was skipped.' }}">
+                                    <i class="bi bi-skip-forward-circle"></i> Skipped
+                                </span>
+                            @elseif($phase->status == 'Completed')
+                                <span class="badge bg-success ms-2"><i class="bi bi-check-circle"></i> Completed</span>
+                            @elseif($phase->status == 'In Progress')
+                                <span class="badge bg-warning text-dark ms-2"><i class="bi bi-hourglass-split"></i> In Progress</span>
                                     @else
-                                        {{ $summary }}
+                                <span class="badge bg-primary ms-2"><i class="bi bi-clock"></i> Not Started</span>
                                     @endif
                                 </div>
-                            </div>
-                            </div>
-                        </div>
-                        @if($phase->name == 'Client Engagement & Briefing')
+                        <!-- Middle: Description and Open Button -->
+                        <div class="mb-2">
                             <p class="phase-description small text-muted mb-2">
-                                View and manage client engagement documents
+                                {{ $summary }}
                             </p>
+                            @if($phase->name == 'Client Engagement & Briefing')
                             <a href="{{ isset($enquiry) ? route('enquiries.files.client-engagement', $enquiry) : route('projects.files.client-engagement', $project) }}" class="btn btn-sm btn-outline-primary w-100">
                                 <span>Open</span>
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>
                         @elseif($phase->name == 'Design & Concept Development')
-                            <p class="phase-description small text-muted mb-2">
-                                View and manage design assets and mockups
-                            </p>
                             <a href="{{ isset($enquiry) ? route('enquiries.files.design-concept', $enquiry) : route('projects.files.design-concept', $project) }}" class="btn btn-sm btn-outline-primary w-100">
                                 <span>Open</span>
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>
                         @elseif($phase->name == 'Project Material List')
-                            <p class="phase-description small text-muted mb-2">
-                                View and manage Project Materials
-                            </p>
                             <a href="{{ isset($enquiry) ? route('enquiries.material-list.index', $enquiry) : route('projects.material-list.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
                                 <span>Open</span>
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>
                         @elseif($phase->name == 'Logistics')
-                            <p class="phase-description small text-muted mb-2">
-                                View and manage logistics documents
-                            </p>
                             <a href="{{ isset($enquiry) ? route('enquiries.logistics.index', $enquiry) : route('projects.logistics.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
                                 <span>Open</span>
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>
                         @elseif($phase->name == 'Budget & Quotation')
-                            <p class="phase-description small text-muted mb-2">
-                                View and manage quotation documents
-                            </p>
                             <a href="{{ isset($enquiry) ? route('enquiries.files.quotation', $enquiry) : route('projects.quotation.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
                                 <span>Open</span>
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>
-
                             @elseif($phase->name == 'Event Setup & Execution')
-                            <p class="phase-description small text-muted mb-2">
-                                View and manage setup and execution documents
-                            </p>
                             <a href="{{ isset($enquiry) ? route('enquiries.files.setup', $enquiry) : route('projects.files.setup', $project) }}" class="btn btn-sm btn-outline-primary w-100">
                                 <span>Open</span>
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>
                         @elseif($phase->name == 'Client Handover')
-                            <p class="phase-description small text-muted mb-2">
-                                View and manage client handover documents
-                            </p>
                             <a href="{{ isset($enquiry) ? route('enquiries.handover.index', $enquiry) : route('projects.handover.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
                                 <span>Open</span>
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>
                         @elseif($phase->name == 'Set Down & Return')
-                            <p class="phase-description small text-muted mb-2">
-                                View and manage set down and return documents
-                            </p>
                             <a href="{{ isset($enquiry) ? route('enquiries.set-down-return.index', $enquiry) : route('projects.set-down-return.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
                                 <span>Open</span>
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>
                         @elseif($phase->name == 'Production')
-                            <p class="phase-description small text-muted mb-2">
-                                Manage job briefs and production workflows
-                            </p>
                             <a href="{{ isset($enquiry) ? route('enquiries.production.index', $enquiry) : route('projects.production.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
                                 <span>Open</span>
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>
-                        @elseif($phase->name == 'Client Handover')
-                            <p class="phase-description small text-muted mb-2">
-                                Manage client handover documents and sign-offs
-                            </p>
-                            <a href="{{ isset($enquiry) ? route('enquiries.handover.index', $enquiry) : route('projects.handover.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
-                                <span>Open</span>
-                                <i class="bi bi-arrow-right ms-1"></i>
-                            </a>
                         @elseif($phase->name == 'Archival & Reporting')
-                            <p class="phase-description small text-muted mb-2">
-                                Access final project reports and archives
-                            </p>
                             <a href="{{ isset($enquiry) ? route('enquiries.files.archival', $enquiry) : route('projects.archival.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
                                 <span>Open</span>
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>
                         @else
-                            <p class="phase-description small text-muted mb-2">
-                                Coming soon
-                            </p>
                             <button class="btn btn-sm btn-outline-secondary w-100" disabled>
                                 <span>Coming Soon</span>
                             </button>
                         @endif
+                        </div>
+                        <!-- Bottom: Status/Skip Controls -->
+                        <div class="mt-auto pt-2 border-top d-flex flex-column align-items-stretch gap-2">
+                            @if(!$phase->skipped)
+                                <form method="POST" action="{{ route('phases.skip', ['phaseId' => $phase->id]) }}" class="d-flex align-items-center gap-2">
+                                    @csrf
+                                    <input type="text" name="skip_reason" class="form-control form-control-sm flex-grow-1" placeholder="Reason (optional)" />
+                                    <button type="submit" class="btn btn-info btn-sm">Skip</button>
+                                </form>
+                            @else
+                                <form method="POST" action="{{ route('phases.unskip', ['phaseId' => $phase->id]) }}" class="d-flex align-items-center gap-2">
+                                    @csrf
+                                    <button type="submit" class="btn btn-info btn-sm">Unskip</button>
+                                    @if($phase->skip_reason)
+                                        <span class="text-primary fw-semibold ms-2">Reason: {{ $phase->skip_reason }}</span>
+                                    @endif
+                                </form>
+                            @endif
+                        </div>
                     </div>
                 </div>
             @endforeach

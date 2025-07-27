@@ -82,14 +82,15 @@
                                         </tr>
                                     </thead>
                                     <tbody id="handoverTableBody">
-                                        <!-- Sample row - replace with dynamic data from your backend -->
-                                        <tr>
-                                            <td>1</td>
-                                            <td>Sample Client</td>
-                                            <td>John Doe</td>
-                                            <td>2025-07-04</td>
-                                            <td>All good, thanks!</td>
-                                        </tr>
+                                        @foreach ($reports as $report)
+                                            <tr>
+                                                <td>{{ $loop->iteration }}</td>
+                                                <td>{{ $report->client_name }}</td>
+                                                <td>{{ $report->contact_person }}</td>
+                                                <td>{{ $report->formatted_date }}</td>
+                                                <td>{{ $report->client_comments }}</td>
+                                            </tr>
+                                        @endforeach
                                     </tbody>
                                 </table>
                             </div>
@@ -104,65 +105,105 @@
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Any initialization code can go here
-    });
+document.addEventListener('DOMContentLoaded', function() {
+    // Load existing handover records
+    loadHandoverRecords();
+});
 
-    function recordAcknowledgment() {
-        const clientName = document.querySelector('.form-control-plaintext').textContent.trim();
-        const contactPerson = document.getElementById('contactPerson').value.trim();
-        const acknowledgmentDate = document.getElementById('acknowledgmentDate').value;
-        const clientComment = document.getElementById('clientComment').value.trim();
+function loadHandoverRecords() {
+    fetch(`{{ route('projects.handover.data', $project) }}`)
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById('handoverTableBody');
+            tableBody.innerHTML = '';
+            
+            // Check if data exists and is an array
+            const reports = data.data || [];
+            
+            reports.forEach((report, index) => {
+                const row = tableBody.insertRow();
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${report.client_name || 'N/A'}</td>
+                    <td>${report.contact_person || 'N/A'}</td>
+                    <td>${report.acknowledgment_date || 'N/A'}</td>
+                    <td>${report.client_comments || 'N/A'}</td>
+                `;
+            });
+        })
+        .catch(error => {
+            console.error('Error loading handover records:', error);
+            showToast('error', 'Failed to load handover records');
+        });
+}
 
-        if (clientName === 'Client Name Not Found' && !contactPerson) {
-            alert('Please enter a contact person since client name is not available');
-            return;
-        }
-
-        const acknowledgedBy = contactPerson || clientName;
-        
-        // Create new table row
-        const tableBody = document.getElementById('handoverTableBody');
-        const newRow = tableBody.insertRow(0); // Insert at the top
-        
-        // Add cells to the new row
-        const rowCount = tableBody.rows.length;
-        newRow.innerHTML = `
-            <td>${rowCount}</td>
-            <td>${clientName === 'Client Name Not Found' ? 'N/A' : clientName}</td>
-            <td>${contactPerson || 'N/A'}</td>
-            <td>${acknowledgmentDate}</td>
-            <td>${clientComment || 'No comments'}</td>
-        `;
-
-        // Show success message
-        const toast = `
-            <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
-                <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
-                    <div class="toast-header bg-success text-white">
-                        <strong class="me-auto">Success</strong>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                    </div>
-                    <div class="toast-body">
-                        Handover acknowledgment saved successfully!
-                    </div>
+function showToast(type, message) {
+    const toast = `
+        <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+            <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header bg-${type === 'success' ? 'success' : 'danger'} text-white">
+                    <strong class="me-auto">${type === 'success' ? 'Success' : 'Error'}</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    ${message}
                 </div>
             </div>
-        `;
-        
-        // Add toast to body
-        const toastContainer = document.createElement('div');
-        toastContainer.innerHTML = toast;
-        document.body.appendChild(toastContainer);
-        
-        // Remove toast after 3 seconds
-        setTimeout(() => {
-            toastContainer.remove();
-        }, 3000);
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', toast);
+    setTimeout(() => {
+        document.querySelector('.toast').classList.remove('show');
+    }, 5000);
+}
 
-        // Reset form
-        document.getElementById('contactPerson').value = '';
-        document.getElementById('clientComment').value = '';
+function recordAcknowledgment() {
+    const clientName = document.querySelector('.form-control-plaintext').textContent.trim();
+    const contactPerson = document.getElementById('contactPerson').value.trim();
+    const acknowledgmentDate = document.getElementById('acknowledgmentDate').value;
+    const clientComment = document.getElementById('clientComment').value.trim();
+
+    if (clientName === 'Client Name Not Found' && !contactPerson) {
+        alert('Please enter a contact person since client name is not available');
+        return;
     }
+
+    const formData = {
+        client_name: clientName,
+        contact_person: contactPerson,
+        acknowledgment_date: acknowledgmentDate,
+        client_comments: clientComment
+    };
+
+    fetch(`{{ route('projects.handover.store', $project) }}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Clear form
+            document.getElementById('contactPerson').value = '';
+            document.getElementById('clientComment').value = '';
+            
+            // Reload the table
+            loadHandoverRecords();
+            
+            // Show success message
+            showToast('success', 'Handover acknowledgment saved successfully!');
+        } else {
+            showToast('error', data.message || 'Failed to save handover acknowledgment');
+        }
+    })
+    .catch(error => {
+        showToast('error', 'An error occurred while saving the acknowledgment');
+        console.error('Error:', error);
+    });
+}
 </script>
 @endpush

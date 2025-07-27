@@ -143,11 +143,11 @@ class Project extends Model
 public function getProgressAttribute()
 {
     $total = $this->phases->count();
-    $complete = $this->phases->filter(function ($phase) {
-        return strtolower($phase->status) === 'complete';
+    $completeOrSkipped = $this->phases->filter(function ($phase) {
+        return strtolower($phase->status) === 'completed' || $phase->skipped;
     })->count();
 
-    $progress = $total > 0 ? round(($complete / $total) * 100) : 0;
+    $progress = $total > 0 ? round(($completeOrSkipped / $total) * 100) : 0;
 
     return $progress;
 }

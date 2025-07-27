@@ -200,12 +200,7 @@
                         <td class="text-info">{{ $project->projectOfficer->name ?? '—' }}</td>
                         <td>{{ $project->status }}</td>
                         @php
-                            $totalPhases = $project->phases->count();
-                            $completed = $project->phases->where('status', 'Completed')->count();
-                            $inProgress = $project->phases->where('status', 'In Progress')->count();
-                            $progress = $totalPhases > 0
-                                ? round((($completed + 0.5 * $inProgress) / $totalPhases) * 100)
-                                : 0;
+                            $progress = $project->progress;
                             if ($progress >= 80) {
                                 $progressBarClass = 'bg-success'; // Green
                                 $progressTextClass = 'text-white';

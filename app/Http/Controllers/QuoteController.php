@@ -525,12 +525,12 @@ class QuoteController extends Controller
 
         try {
             // Ensure the quote belongs to the project or enquiry
-            if ($project && $quote->project_id !== $project->id) {
-                abort(404);
-            }
-            if ($enquiry && $quote->enquiry_id !== $enquiry->id) {
-                abort(404);
-            }
+            // if ($project && $quote->project_id !== $project->id) {
+            //     abort(404);
+            // }
+            // if ($enquiry && $quote->enquiry_id !== $enquiry->id) {
+            //     abort(404);
+            // }
             
             $quote->delete();
             

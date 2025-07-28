@@ -458,7 +458,7 @@ $(document).ready(function() {
     function loadInventoryDropdown(selectElement, selectedValue = '') {
         selectElement.prop('disabled', true).html('<option value="">Loading items...</option>');
         $.ajax({
-            url: '{{ route("api.inventory.items") }}',
+            url: '{{ route("api.inventory.particulars-items") }}',
             type: 'GET',
             dataType: 'json',
             success: function (data) {

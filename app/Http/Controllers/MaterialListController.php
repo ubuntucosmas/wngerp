@@ -88,7 +88,10 @@ class MaterialListController extends Controller
             $project = Project::findOrFail($projectOrEnquiryId);
         }
 
-        $inventoryItems = Inventory::select('item_name', 'unit_of_measure')
+        $inventoryItems = Inventory::whereHas('category', function($query) {
+                $query->whereIn('category_name', ['Consumables', 'Hire', 'Electricals']);
+            })
+            ->select('item_name', 'unit_of_measure')
             ->distinct('item_name')
             ->orderBy('item_name')
             ->get()
@@ -219,7 +222,10 @@ class MaterialListController extends Controller
         
         $labourItemsByCategory = $materialList->labourItems->groupBy('category');
         
-        $inventoryItems = Inventory::select('item_name', 'unit_of_measure')
+        $inventoryItems = Inventory::whereHas('category', function($query) {
+                $query->whereIn('category_name', ['Consumables', 'Hire', 'Electricals']);
+            })
+            ->select('item_name', 'unit_of_measure')
             ->distinct('item_name')
             ->orderBy('item_name')
             ->get()

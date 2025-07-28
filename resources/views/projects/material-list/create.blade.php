@@ -110,8 +110,13 @@
                                                                 @if(isset($item['particulars']))
                                                                     @foreach($item['particulars'] as $particularIndex => $particular)
                                                                         <tr>
-                                                                            <td><input type="text" name="production_items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][particular]" class="form-control" value="{{ $particular['particular'] ?? '' }}" required></td>
-                                                                            <td><input type="text" name="production_items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][unit]" class="form-control unit-field" value="{{ $particular['unit'] ?? '' }}"></td>
+                                                                            <td>
+                                                                                <select name="production_items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][particular]" class="form-select inventory-dropdown" required>
+                                                                                    <option value="" disabled>-- Loading items --</option>
+                                                                                    <option value="{{ $particular['particular'] ?? '' }}" selected>{{ $particular['particular'] ?? '' }}</option>
+                                                                                </select>
+                                                                            </td>
+                                                                            <td><input type="text" name="production_items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][unit]" class="form-control unit-field" value="{{ $particular['unit'] ?? '' }}" readonly></td>
                                                                             <td><input type="number" step="0.01" name="production_items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][quantity]" class="form-control" value="{{ $particular['quantity'] ?? '' }}" required></td>
                                                                             <td><input type="number" step="0.01" name="production_items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][unit_price]" class="form-control" value="{{ $particular['unit_price'] ?? '' }}" required></td>
                                                                             <td><input type="text" name="production_items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][comment]" class="form-control" value="{{ $particular['comment'] ?? '' }}"></td>
@@ -455,24 +460,18 @@
     function fetchInventoryItems() {
         return new Promise((resolve, reject) => {
             // Force refresh for debugging - remove caching temporarily
-            console.log('Fetching inventory items with material-list filter...');
-            console.log('API URL:', '{{ route("api.inventory.items") }}');
+            console.log('Fetching inventory items for material-list (consumables, hire, electricals)...');
             $.ajax({
-                url: '{{ route("api.inventory.items") }}',
+                url: '{{ route("api.inventory.particulars-items") }}',
                 type: 'GET',
-                data: { filter: 'material-list' }, // Add filter parameter for material list
                 dataType: 'json',
-                cache: false, // Disable caching
                 success: function(data) {
                     console.log('Received filtered inventory items:', data);
-                    console.log('Number of items received:', data.length);
                     inventoryItems = data;
                     resolve(data);
                 },
                 error: function(xhr, status, error) {
                     console.error('Error loading inventory items:', error);
-                    console.error('Status:', status);
-                    console.error('Response:', xhr.responseText);
                     reject(error);
                 }
             });
@@ -1058,6 +1057,7 @@
             try {
                 await Promise.all([
                     fetchInventoryItems(),
+                    fetchParticularsItems(),
                     fetchTemplates()
                 ]);
                 initializeDropdowns();

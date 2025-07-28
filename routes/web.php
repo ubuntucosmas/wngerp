@@ -460,11 +460,11 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
             Route::get('/booking-sheet', [\App\Http\Controllers\projects\LogisticsController::class, 'showBookingSheet'])->name('booking-sheet');
         });
 
-        // Show inquiry log for a specific project 
-        Route::get('enquiry-log/{enquiryLog}/edit', [EnquiryLogController::class, 'edit'])->name('projects.enquiry-log.edit');
+        // Enquiry log routes for projects
         Route::get('enquiry-log', [EnquiryLogController::class, 'show'])->name('projects.enquiry-log.show');
         Route::get('enquiry-log/create', [EnquiryLogController::class, 'create'])->name('projects.enquiry-log.create');
         Route::post('enquiry-log', [EnquiryLogController::class, 'store'])->name('projects.enquiry-log.store');
+        Route::get('enquiry-log/{enquiryLog}/edit', [EnquiryLogController::class, 'edit'])->name('projects.enquiry-log.edit');
         Route::put('enquiry-log/{enquiryLog}', [EnquiryLogController::class, 'update'])->name('projects.enquiry-log.update');
         Route::delete('enquiry-log/{enquiryLog}', [EnquiryLogController::class, 'destroy'])->name('projects.enquiry-log.destroy');
         Route::get('enquiry-log/download', [EnquiryLogController::class, 'downloadEnquiryLog'])->name('projects.enquiry-log.download');

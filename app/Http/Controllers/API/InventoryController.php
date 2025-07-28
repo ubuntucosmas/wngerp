@@ -14,22 +14,16 @@ class InventoryController extends Controller
     public function index(Request $request)
     {
         $query = Inventory::query()
-            ->select('inventory.item_name as name', 'inventory.unit_of_measure')
-            ->distinct('inventory.item_name')
-            ->orderBy('inventory.item_name');
-
-        // Check if filtering is requested for material list creation
-        if ($request->input('filter') === 'material-list') {
-            $query->join('categories', 'inventory.category_id', '=', 'categories.id')
-                  ->whereIn('categories.category_name', ['Consumables', 'Hire', 'Electricals']);
-        }
+            ->select('item_name as name', 'unit_of_measure')
+            ->distinct('item_name')
+            ->orderBy('item_name');
 
         // Optional search parameter
         if ($search = $request->input('q')) {
-            $query->where('inventory.item_name', 'like', "%{$search}%");
+            $query->where('item_name', 'like', "%{$search}%");
         }
 
-        // Get results
+        // Get results with pagination
         $items = $query->get()
             ->map(function ($item) {
                 return [
@@ -38,7 +32,6 @@ class InventoryController extends Controller
                 ];
             });
 
-        \Log::info('Returning ' . count($items) . ' inventory items');
         return response()->json($items);
     }
 
@@ -71,7 +64,7 @@ class InventoryController extends Controller
     }
 
     /**
-     * Get inventory items for particulars (consumable, hire, electricals only)
+     * Get inventory items for particulars (consumable, hire, electricals)
      */
     public function particularsItems(Request $request)
     {

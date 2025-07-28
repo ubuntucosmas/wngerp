@@ -291,7 +291,7 @@
                                             <i class="bi bi-info-circle text-info ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="This email will be used for communication"></i>
                                         @endif
                                     </label>
-                                    <input type="{{ $field[2] ?? 'text' }}" name="{{ $field[0] }}" class="form-control" {{ in_array($field[0], ['FullName', 'Email', 'Phone']) ? 'required' : '' }}>
+                                    <input type="{{ $field[2] ?? 'text' }}" name="{{ $field[0] }}" class="form-control" {{ in_array($field[0], ['FullName', 'Email', 'Phone']) ? 'required' : '' }} required>
                                     @error('{{ $field[0] }}')
                                         <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
@@ -312,7 +312,7 @@
                                             <i class="bi bi-info-circle text-info ms-1" data-bs-toggle="tooltip" data-bs-placement="top" title="Include postal code"></i>
                                         @endif
                                     </label>
-                                    <input type="{{ $field[2] ?? 'text' }}" name="{{ $field[0] }}" class="form-control">
+                                    <input type="{{ $field[2] ?? 'text' }}" name="{{ $field[0] }}" class="form-control" required>
                                     @error('{{ $field[0] }}')
                                         <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
@@ -329,7 +329,7 @@
                             @if(in_array($field[0], ['LeadSource', 'Industry']))
                                 <div class="col-md-6">
                                     <label class="form-label">{{ $field[1] }}@if(in_array($field[0], ['FullName', 'Email', 'Phone'])) <span class="text-danger">*</span>@endif</label>
-                                    <input type="{{ $field[2] ?? 'text' }}" name="{{ $field[0] }}" class="form-control">
+                                    <input type="{{ $field[2] ?? 'text' }}" name="{{ $field[0] }}" class="form-control" required>
                                     @error('{{ $field[0] }}')
                                         <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror

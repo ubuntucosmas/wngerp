@@ -134,13 +134,16 @@ class ProjectFileController extends Controller
         ];
 
         // Project Material List
+        $projectMaterialLists = $project->materialLists;
+        $enquiryMaterialLists = collect();
+        
         if ($enquirySource) {
-            // For converted projects, get data from enquiry source
-            $materialLists = \App\Models\MaterialList::where('enquiry_id', $enquirySource->id)->get();
-        } else {
-            // For regular projects, get data from project
-            $materialLists = $project->materialLists;
+            // For converted projects, get data from enquiry source as well
+            $enquiryMaterialLists = \App\Models\MaterialList::where('enquiry_id', $enquirySource->id)->get();
         }
+        
+        // Combine both sources
+        $materialLists = $projectMaterialLists->merge($enquiryMaterialLists);
         
         $completions['Project Material List'] = [
             'material_list' => [
@@ -188,15 +191,20 @@ class ProjectFileController extends Controller
         ];
 
         // Budget & Quotation
+        $projectBudgets = \App\Models\ProjectBudget::where('project_id', $project->id)->get();
+        $projectQuotes = $project->quotes;
+        $enquiryBudgets = collect();
+        $enquiryQuotes = collect();
+        
         if ($enquirySource) {
-            // For converted projects, get data from enquiry source
-            $budgets = \App\Models\ProjectBudget::where('enquiry_id', $enquirySource->id)->get();
-            $quotes = \App\Models\Quote::where('enquiry_id', $enquirySource->id)->get();
-        } else {
-            // For regular projects, get data from project
-            $budgets = \App\Models\ProjectBudget::where('project_id', $project->id)->get();
-            $quotes = $project->quotes;
+            // For converted projects, get data from enquiry source as well
+            $enquiryBudgets = \App\Models\ProjectBudget::where('enquiry_id', $enquirySource->id)->get();
+            $enquiryQuotes = \App\Models\Quote::where('enquiry_id', $enquirySource->id)->get();
         }
+        
+        // Combine both sources
+        $budgets = $projectBudgets->merge($enquiryBudgets);
+        $quotes = $projectQuotes->merge($enquiryQuotes);
         
         $completions['Budget & Quotation'] = [
             'budget' => [
@@ -318,33 +326,62 @@ class ProjectFileController extends Controller
      */
     private function updatePhaseStatuses(Project $project, $completions)
     {
-        foreach ($completions as $phaseName => $phaseData) {
-            $phase = $project->phases()->where('name', $phaseName)->first();
-            if (!$phase) continue;
+        try {
+            foreach ($completions as $phaseName => $phaseData) {
+                $phase = $project->phases()->where('name', $phaseName)->first();
+                if (!$phase) {
+                    \Log::warning("Phase not found: {$phaseName} for project {$project->id}");
+                    continue;
+                }
 
-            $totalItems = count($phaseData);
-            $completedItems = 0;
+                $totalItems = count($phaseData);
+                $completedItems = 0;
 
-            foreach ($phaseData as $item) {
-                if ($item['completed']) {
-                    $completedItems++;
+                foreach ($phaseData as $item) {
+                    if (isset($item['completed']) && $item['completed'] === true) {
+                        $completedItems++;
+                    }
+                }
+
+                $completionPercentage = $totalItems > 0 ? ($completedItems / $totalItems) * 100 : 0;
+
+                // Determine new status based on completion
+                $newStatus = 'Not Started';
+                if ($completionPercentage >= 100) {
+                    $newStatus = 'Completed';
+                } elseif ($completionPercentage >= 25) {
+                    $newStatus = 'In Progress';
+                }
+
+                // Log the calculation for debugging
+                \Log::info("Phase status calculation", [
+                    'project_id' => $project->id,
+                    'phase_name' => $phaseName,
+                    'total_items' => $totalItems,
+                    'completed_items' => $completedItems,
+                    'completion_percentage' => $completionPercentage,
+                    'old_status' => $phase->status,
+                    'new_status' => $newStatus,
+                    'phase_data_keys' => array_keys($phaseData)
+                ]);
+
+                // Only update if status has changed
+                if ($phase->status !== $newStatus) {
+                    $phase->update(['status' => $newStatus]);
+                    \Log::info("Phase status updated", [
+                        'project_id' => $project->id,
+                        'phase_name' => $phaseName,
+                        'from' => $phase->status,
+                        'to' => $newStatus
+                    ]);
                 }
             }
-
-            $completionPercentage = $totalItems > 0 ? ($completedItems / $totalItems) * 100 : 0;
-
-            // Determine new status based on completion
-            $newStatus = 'Not Started';
-            if ($completionPercentage >= 100) {
-                $newStatus = 'Completed';
-            } elseif ($completionPercentage >= 25) {
-                $newStatus = 'In Progress';
-            }
-
-            // Only update if status has changed
-            if ($phase->status !== $newStatus) {
-                $phase->update(['status' => $newStatus]);
-            }
+        } catch (\Exception $e) {
+            \Log::error('Error updating phase statuses', [
+                'project_id' => $project->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
         }
     }
 

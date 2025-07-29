@@ -415,6 +415,11 @@ class ProjectBudgetController extends Controller
         ]);
 
         DB::commit();
+        if ($project) {
+            $this->updateProjectPhaseStatus($project);
+        } elseif ($enquiry) {
+            $this->updateEnquiryPhaseStatus($enquiry);
+        }
         if ($enquiry) {
             return redirect()->route('enquiries.budget.show', [$enquiry, $budget])->with('success', 'Budget updated successfully.');
         } else {
@@ -542,6 +547,36 @@ class ProjectBudgetController extends Controller
             return view('projects.budget.print', compact('enquiry', 'budget'));
         } else {
             return view('projects.budget.print', compact('project', 'budget'));
+        }
+    }
+
+    private function updateProjectPhaseStatus(Project $project)
+    {
+        $phase = $project->phases()->where('name', 'Budget & Quotation')->first();
+        if ($phase) {
+            $budgets = $project->budgets()->get();
+            if ($budgets->where('status', 'approved')->count() > 0) {
+                $phase->update(['status' => 'Completed']);
+            } elseif ($budgets->count() > 0) {
+                $phase->update(['status' => 'In Progress']);
+            } else {
+                $phase->update(['status' => 'Not Started']);
+            }
+        }
+    }
+
+    private function updateEnquiryPhaseStatus(Enquiry $enquiry)
+    {
+        $phase = $enquiry->phases()->where('name', 'Budget & Quotation')->first();
+        if ($phase) {
+            $budgets = $enquiry->budgets()->get();
+            if ($budgets->where('status', 'approved')->count() > 0) {
+                $phase->update(['status' => 'Completed']);
+            } elseif ($budgets->count() > 0) {
+                $phase->update(['status' => 'In Progress']);
+            } else {
+                $phase->update(['status' => 'Not Started']);
+            }
         }
     }
 }

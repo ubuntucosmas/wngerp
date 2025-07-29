@@ -179,6 +179,7 @@ class MaterialListController extends Controller
                 // Update phase status after successful creation
                 if ($project) {
                     $this->updateProjectPhaseStatus($project);
+                    
                 } elseif ($enquiry) {
                     $this->updateEnquiryPhaseStatus($enquiry);
                 }
@@ -660,11 +661,9 @@ class MaterialListController extends Controller
     private function updateProjectPhaseStatus(Project $project)
     {
         $phase = $project->phases()->where('name', 'Project Material List')->first();
-        
         if ($phase) {
-            $materialListsCount = $project->materialLists()->count();
-            
-            if ($materialListsCount > 0) {
+            $materialLists = $project->materialLists;
+            if ($materialLists->count() > 0) {
                 $phase->update(['status' => 'Completed']);
             } else {
                 $phase->update(['status' => 'Not Started']);
@@ -678,11 +677,9 @@ class MaterialListController extends Controller
     private function updateEnquiryPhaseStatus(Enquiry $enquiry)
     {
         $phase = $enquiry->phases()->where('name', 'Project Material List')->first();
-        
         if ($phase) {
-            $materialListsCount = $enquiry->materialLists()->count();
-            
-            if ($materialListsCount > 0) {
+            $materialLists = $enquiry->materialLists;
+            if ($materialLists->count() > 0) {
                 $phase->update(['status' => 'Completed']);
             } else {
                 $phase->update(['status' => 'Not Started']);

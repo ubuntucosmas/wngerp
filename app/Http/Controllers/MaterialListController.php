@@ -176,6 +176,13 @@ class MaterialListController extends Controller
                 
                 DB::commit();
 
+                // Update phase status after successful creation
+                if ($project) {
+                    $this->updateProjectPhaseStatus($project);
+                } elseif ($enquiry) {
+                    $this->updateEnquiryPhaseStatus($enquiry);
+                }
+
                 if ($enquiry) {
                     return redirect()->route('enquiries.material-list.show', [$enquiry, $materialList])->with('success', 'Material list created successfully!');
                 } else {
@@ -313,6 +320,13 @@ class MaterialListController extends Controller
             
             DB::commit();
 
+            // Update phase status after successful update
+            if ($project) {
+                $this->updateProjectPhaseStatus($project);
+            } elseif ($enquiry) {
+                $this->updateEnquiryPhaseStatus($enquiry);
+            }
+
             if ($enquiry) {
                 return redirect()->route('enquiries.material-list.show', [$enquiry, $materialList])->with('success', 'Material list updated successfully!');
             } else {
@@ -345,6 +359,10 @@ class MaterialListController extends Controller
                 abort(404);
             }
             $materialList->delete();
+            
+            // Update phase status after deletion
+            $this->updateEnquiryPhaseStatus($enquiry);
+            
             return redirect()->route('enquiries.material-list.index', $enquiry)->with('success', 'Material list deleted successfully!');
         } else {
             $project = Project::findOrFail($projectOrEnquiryId);
@@ -352,6 +370,10 @@ class MaterialListController extends Controller
                 abort(404);
             }
             $materialList->delete();
+            
+            // Update phase status after deletion
+            $this->updateProjectPhaseStatus($project);
+            
             return redirect()->route('projects.material-list.index', $project)->with('success', 'Material list deleted successfully!');
         }
     }
@@ -630,5 +652,41 @@ class MaterialListController extends Controller
 
         $fileName = $fileNamePrefix . $parentId . '_' . $materialList->id . '.xlsx';
         return Excel::download(new MaterialListExport($materialList, $enquiry, $project), $fileName);
+    }
+
+    /**
+     * Update project phase status after material list changes
+     */
+    private function updateProjectPhaseStatus(Project $project)
+    {
+        $phase = $project->phases()->where('name', 'Project Material List')->first();
+        
+        if ($phase) {
+            $materialListsCount = $project->materialLists()->count();
+            
+            if ($materialListsCount > 0) {
+                $phase->update(['status' => 'Completed']);
+            } else {
+                $phase->update(['status' => 'Not Started']);
+            }
+        }
+    }
+
+    /**
+     * Update enquiry phase status after material list changes
+     */
+    private function updateEnquiryPhaseStatus(Enquiry $enquiry)
+    {
+        $phase = $enquiry->phases()->where('name', 'Project Material List')->first();
+        
+        if ($phase) {
+            $materialListsCount = $enquiry->materialLists()->count();
+            
+            if ($materialListsCount > 0) {
+                $phase->update(['status' => 'Completed']);
+            } else {
+                $phase->update(['status' => 'Not Started']);
+            }
+        }
     }
 }

@@ -263,6 +263,13 @@ class ProjectBudgetController extends Controller
     
             DB::commit();
             
+            // Update phase status after successful creation
+            if ($project) {
+                $this->updateProjectPhaseStatus($project);
+            } elseif ($enquiry) {
+                $this->updateEnquiryPhaseStatus($enquiry);
+            }
+            
             \Log::info('Budget created successfully', [
                 'budget_id' => $budget->id,
                 'project_id' => $project->id ?? null,

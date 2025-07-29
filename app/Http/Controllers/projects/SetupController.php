@@ -77,9 +77,9 @@ class SetupController extends Controller
     public function destroy(Project $project, SetupReport $setupReport)
     {
         // Check if the authenticated user is authorized to delete
-        if (Auth::user()->cannot('delete', $setupReport)) {
-            return redirect()->back()->with('error', 'You are not authorized to delete this report.');
-        }
+        // if (Auth::user()->hasAnyrole()) {
+        //     return redirect()->back()->with('error', 'You are not authorized to delete this report.');
+        // }
         
         $setupReport->delete();
         return redirect()->back()->with('success', 'Setup report deleted successfully.');

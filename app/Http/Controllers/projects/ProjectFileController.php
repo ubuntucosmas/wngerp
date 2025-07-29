@@ -152,9 +152,9 @@ class ProjectFileController extends Controller
                     'Total Lists: ' . $materialLists->count(),
                     'Latest List: ' . $materialLists->sortByDesc('created_at')->first()->date_range,
                     'Approved By: ' . ($materialLists->sortByDesc('created_at')->first()->approved_by ?? 'Pending'),
-                    'Items Count: ' . $materialLists->sortByDesc('created_at')->first()->item_counts['production_items'] . ' production, ' . 
-                                   $materialLists->sortByDesc('created_at')->first()->item_counts['materials_hire'] . ' hire, ' . 
-                                   $materialLists->sortByDesc('created_at')->first()->item_counts['labour_items'] . ' labour'
+                    'Items Count: ' . ($materialLists->sortByDesc('created_at')->first()->item_counts['production_items'] ?? 0) . ' production, ' . 
+                                   ($materialLists->sortByDesc('created_at')->first()->item_counts['materials_hire'] ?? 0) . ' hire, ' . 
+                                   ($materialLists->sortByDesc('created_at')->first()->item_counts['labour_items'] ?? 0) . ' labour'
                 ] : ['No material lists found']
             ]
         ];
@@ -422,7 +422,7 @@ class ProjectFileController extends Controller
         }
     }
 
-    public function updateDesignAsset(Request $request, Project $project = null, Enquiry $enquiry = null, $designAssetId)
+    public function updateDesignAsset(Request $request, Project $project = null, Enquiry $enquiry = null, $design_asset = null)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -442,7 +442,7 @@ class ProjectFileController extends Controller
         ];
 
         if ($enquiry) {
-            $asset = $enquiry->designAssets()->findOrFail($designAssetId);
+            $asset = $enquiry->designAssets()->findOrFail($design_asset);
             $asset->update($assetData);
             return redirect()->route('enquiries.files.mockups', $enquiry)->with('success', 'Design asset updated successfully');
         } else {
@@ -452,20 +452,20 @@ class ProjectFileController extends Controller
             if ($enquirySource) {
                 // For converted projects, find asset from enquiry source
                 $asset = \App\Models\DesignAsset::where('enquiry_id', $enquirySource->id)
-                    ->findOrFail($designAssetId);
+                    ->findOrFail($design_asset);
             } else {
                 // For regular projects, find asset from project
-                $asset = $project->designAssets()->findOrFail($designAssetId);
+                $asset = $project->designAssets()->findOrFail($design_asset);
             }
             $asset->update($assetData);
             return redirect()->route('projects.files.mockups', $project)->with('success', 'Design asset updated successfully');
         }
     }
 
-    public function destroyDesignAsset(Project $project = null, Enquiry $enquiry = null, $designAssetId)
+    public function destroyDesignAsset(Project $project = null, Enquiry $enquiry = null, $design_asset = null)
     {
         if ($enquiry) {
-            $asset = $enquiry->designAssets()->findOrFail($designAssetId);
+            $asset = $enquiry->designAssets()->findOrFail($design_asset);
             $asset->delete();
             return redirect()->route('enquiries.files.mockups', $enquiry)->with('success', 'Design asset deleted successfully');
         } else {
@@ -475,10 +475,10 @@ class ProjectFileController extends Controller
             if ($enquirySource) {
                 // For converted projects, find asset from enquiry source
                 $asset = \App\Models\DesignAsset::where('enquiry_id', $enquirySource->id)
-                    ->findOrFail($designAssetId);
+                    ->findOrFail($design_asset);
             } else {
                 // For regular projects, find asset from project
-                $asset = $project->designAssets()->findOrFail($designAssetId);
+                $asset = $project->designAssets()->findOrFail($design_asset);
             }
             $asset->delete();
             return redirect()->route('projects.files.mockups', $project)->with('success', 'Design asset deleted successfully');

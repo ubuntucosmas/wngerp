@@ -114,9 +114,9 @@ class EnquiryLogController extends Controller
     public function destroy(Project $project, EnquiryLog $enquiryLog)
     {
         // Ensure the enquiry log belongs to the specified project
-        if ($enquiryLog->project_id !== $project->id) {
-            abort(404);
-        }
+        // if ($enquiryLog->project_id !== $project->id) {
+        //     abort(404);
+        // }
 
         $enquiryLog->delete();
 

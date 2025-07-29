@@ -215,8 +215,43 @@ class ProjectController extends Controller
 
     public function destroy($id)
     {
+        // Only PMs and super-admins can delete projects
+        if (!auth()->user()->hasAnyRole(['pm', 'super-admin'])) {
+            abort(403, 'You do not have permission to delete projects. Only Project Managers and Super Admins can delete projects.');
+        }
+
         $project = Project::findOrFail($id);
-        $project->delete();
-        return redirect()->route('projects.index')->with('success', 'Project deleted successfully.');
+        
+        // Check if this project was converted from an enquiry
+        $enquiry = Enquiry::where('converted_to_project_id', $project->id)->first();
+        
+        if ($enquiry) {
+            // Revert the project back to an enquiry
+            $enquiry->update([
+                'converted_to_project_id' => null,
+                'status' => 'Open', // Reset status to allow further processing
+            ]);
+            
+            // Transfer any project phases back to the enquiry
+            $project->phases()->update([
+                'phaseable_id' => $enquiry->id,
+                'phaseable_type' => Enquiry::class,
+            ]);
+            
+            // Transfer material lists back to the enquiry
+            $project->materialLists()->update([
+                'project_id' => null,
+                'enquiry_id' => $enquiry->id,
+            ]);
+            
+            // Delete the project
+            $project->delete();
+            
+            return redirect()->route('enquiries.index')->with('success', 'Project deleted successfully and reverted back to enquiry.');
+        } else {
+            // If no associated enquiry, just delete the project normally
+            $project->delete();
+            return redirect()->route('projects.index')->with('success', 'Project deleted successfully.');
+        }
     }
 }

@@ -59,7 +59,7 @@
         };
     @endphp
 
-    @if(auth()->user()->hasAnyRole(['super-admin', 'admin', 'finance']))
+    @if(auth()->user()->hasAnyRole(['super-admin', 'po', 'admin', 'finance']))
         {{-- Full access cards for authorized roles --}}
         <div class="row">
             <div class="col-lg-6 col-md-6 mb-4">

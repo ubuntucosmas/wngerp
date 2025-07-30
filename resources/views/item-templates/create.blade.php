@@ -39,7 +39,7 @@
         @csrf
         
         <div class="row">
-            <div class="col-lg-8">
+            <div class="col-lg-10">
                 <!-- Template Information -->
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-header bg-white border-bottom">
@@ -109,7 +109,7 @@
                 </div>
             </div>
 
-            <div class="col-lg-4">
+            <div class="col-lg-2">
                 <!-- Quick Actions -->
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-header bg-white border-bottom">

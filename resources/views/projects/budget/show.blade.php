@@ -128,7 +128,7 @@
                                 <span class="fw-medium">{{ $budget->approved_by ?? 'N/A' }}</span>
                             </div>
                             <div class="d-flex justify-content-between mb-1">
-                                <span><i class="bi bi-building me-1"></i>Departments:</span>
+                                <span><i class="bi bi-building me-1"></i>Department:</span>
                                 <span class="fw-medium">{{ $budget->approved_departments ?? 'N/A' }}</span>
                             </div>
                             <div class="d-flex justify-content-between">

@@ -307,7 +307,7 @@ class ProjectBudgetController extends Controller
             $project = Project::findOrFail($projectOrEnquiryId);
         }
 
-    if (!auth()->user()->hasAnyRole(['finance', 'accounts', 'super-admin'])) {
+    if (!auth()->user()->hasAnyRole(['finance', 'accounts', 'super-admin','po','pm'])) {
         abort(403, 'Only Finance or Accounts can edit budgets.');
     }
     if ($budget->status === 'approved') {
@@ -518,8 +518,8 @@ class ProjectBudgetController extends Controller
             $project = Project::findOrFail($projectOrEnquiryId);
         }
 
-    if (!auth()->user()->hasRole('super-admin')) {
-        abort(403, 'Only Super Admins can approve budgets.');
+    if (!auth()->user()->hasAnyRole('super-admin|finance|')) {
+        abort(403, 'Only Super Admins and Finance can approve budgets.');
     }
     $budget->status = 'approved';
     $budget->approved_by = auth()->user()->name;

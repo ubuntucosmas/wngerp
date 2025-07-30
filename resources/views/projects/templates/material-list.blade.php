@@ -203,8 +203,8 @@
                         <th>Particular</th>
                         <th>Unit</th>
                         <th>Quantity</th>
-                        <th>Unit Price</th>
-                        <th>Subtotal</th>
+                        <!-- <th>Unit Price</th>
+                        <th>Subtotal</th> -->
                     </tr>
                     @foreach($filteredParticulars as $index => $particular)
                         <tr>
@@ -212,14 +212,14 @@
                             <td>{{ $particular->particular }}</td>
                             <td>{{ $particular->unit }}</td>
                             <td>{{ number_format($particular->quantity, 2) }}</td>
-                            <td>{{ number_format($particular->unit_price, 2) }}</td>
-                            <td>{{ number_format(($particular->quantity ?? 0) * ($particular->unit_price ?? 0), 2) }}</td>
+                            <!-- <td>{{ number_format($particular->unit_price, 2) }}</td>
+                            <td>{{ number_format(($particular->quantity ?? 0) * ($particular->unit_price ?? 0), 2) }}</td> -->
                         </tr>
                     @endforeach
-                    <tr class="subtotal-row">
+                    <!-- <tr class="subtotal-row">
                         <td colspan="5" class="text-end">Subtotal for {{ $item->item_name }}</td>
                         <td>{{ number_format($itemTotal, 2) }}</td>
-                    </tr>
+                    </tr> -->
                 </table>
                 @endif
             @endforeach
@@ -228,15 +228,15 @@
 
     @if($nonEmptyMaterialsHire->count() > 0)
         <div style="margin-top: 5px;">
-            <div class="section-title">MATERIALS FOR HIRE</div>
+            <div class="section-title">ITEMS FOR HIRE</div>
             <table class="data-table">
                 <tr>
                     <th>#</th>
                     <th>Particular</th>
                     <th>Unit</th>
                     <th>Quantity</th>
-                    <th>Unit Price</th>
-                    <th>Subtotal</th>
+                    <!-- <th>Unit Price</th>
+                    <th>Subtotal</th> -->
                 </tr>
                 @foreach($nonEmptyMaterialsHire as $index => $item)
                     <tr>
@@ -244,14 +244,14 @@
                         <td>{{ $item->particular }}</td>
                         <td>{{ $item->unit }}</td>
                         <td>{{ number_format($item->quantity, 2) }}</td>
-                        <td>{{ number_format($item->unit_price, 2) }}</td>
-                        <td>{{ number_format(($item->quantity ?? 0) * ($item->unit_price ?? 0), 2) }}</td>
+                        <!-- <td>{{ number_format($item->unit_price, 2) }}</td>
+                        <td>{{ number_format(($item->quantity ?? 0) * ($item->unit_price ?? 0), 2) }}</td> -->
                         </tr>
                 @endforeach
-                <tr class="subtotal-row">
+                <!-- <tr class="subtotal-row">
                     <td colspan="5" class="text-end">Subtotal for Hire</td>
                     <td>{{ number_format($nonEmptyMaterialsHire->sum(function($item) { return ($item->quantity ?? 0) * ($item->unit_price ?? 0); }), 2) }}</td>
-                </tr>
+                </tr> -->
             </table>
             @php $grandTotal += $nonEmptyMaterialsHire->sum(function($item) { return ($item->quantity ?? 0) * ($item->unit_price ?? 0); }); @endphp
         </div>
@@ -275,8 +275,8 @@
                         <th>Description</th>
                         <th>Unit</th>
                         <th>Quantity</th>
-                        <th>Unit Price</th>
-                        <th>Subtotal</th>
+                        <!-- <th>Unit Price</th>
+                        <th>Subtotal</th> -->
                         </tr>
                     @foreach($filteredItems as $index => $item)
                         <tr>
@@ -284,14 +284,14 @@
                             <td>{{ $item->particular }}</td>
                             <td>{{ $item->unit }}</td>
                             <td>{{ number_format($item->quantity, 2) }}</td>
-                            <td>{{ number_format($item->unit_price, 2) }}</td>
-                            <td>{{ number_format(($item->quantity ?? 0) * ($item->unit_price ?? 0), 2) }}</td>
+                            <!-- <td>{{ number_format($item->unit_price, 2) }}</td>
+                            <td>{{ number_format(($item->quantity ?? 0) * ($item->unit_price ?? 0), 2) }}</td> -->
                         </tr>
                     @endforeach
-                    <tr class="subtotal-row">
+                    <!-- <tr class="subtotal-row">
                         <td colspan="5" class="text-end">Subtotal for {{ strtoupper(str_replace('_', ' ', $category)) }}</td>
                         <td>{{ number_format($catTotal, 2) }}</td>
-                    </tr>
+                    </tr> -->
                 </table>
             </div>
             @endif

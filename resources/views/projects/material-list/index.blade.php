@@ -57,8 +57,8 @@
                                         </p>
                                     </div>
                                     <div class="dropdown">
-                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                            <i class="bi bi-three-dots-vertical"></i>
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle text-info" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical">Actions</i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end">
                                             <li>

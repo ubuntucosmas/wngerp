@@ -94,7 +94,7 @@
                                 <span class="fw-medium">{{ $materialList->approved_by ?? 'N/A' }}</span>
                         </div>
                             <div class="d-flex justify-content-between mb-1">
-                                <span><i class="bi bi-building me-1"></i>Departments:</span>
+                                <span><i class="bi bi-building me-1"></i>Department:</span>
                                 <span class="fw-medium">{{ $materialList->approved_departments ?? 'N/A' }}</span>
                         </div>
                             <div class="d-flex justify-content-between">
@@ -144,22 +144,22 @@
                                                         <th class="border-0">Particular</th>
                                                         <th class="border-0">Unit</th>
                                                         <th class="border-0 text-end">Quantity</th>
-                                                        <th class="border-0 text-end">Unit Price</th>
-                                                        <th class="border-0 text-end">Total</th>
-                                                        <th class="border-0">Comment</th>
+                                                        <!-- <th class="border-0 text-end">Unit Price</th>
+                                                        <th class="border-0 text-end">Total</th> -->
+                                                        <th class="border-0 text-end">Comment</th>
                                                     </tr>
-                                                </thead>
+                                                </thead> 
                                                 <tbody>
                                                     @foreach($filteredParticulars as $particular)
                                                         <tr>
                                                             <td class="fw-medium">{{ $particular->particular }}</td>
                                                             <td class="text-muted">{{ $particular->unit ?? '-' }}</td>
                                                             <td class="text-end">{{ number_format($particular->quantity, 2) }}</td>
-                                                            <td class="text-end">{{ $particular->unit_price ? 'KES ' . number_format($particular->unit_price, 2) : '-' }}</td>
+                                                            <!-- <td class="text-end">{{ $particular->unit_price ? 'KES ' . number_format($particular->unit_price, 2) : '-' }}</td>
                                                             <td class="text-end fw-semibold">
                                                                 {{ $particular->quantity && $particular->unit_price ? 'KES ' . number_format($particular->quantity * $particular->unit_price, 2) : '-' }}
-                                                            </td>
-                                                            <td class="text-muted small">{{ $particular->comment ?? '-' }}</td>
+                                                            </td> -->
+                                                            <td class="text-muted text-end small">{{ $particular->comment ?? '-' }}</td>
                                                         </tr>
                                                     @endforeach
                                                 </tbody>
@@ -184,7 +184,7 @@
                     <div class="card border-0 shadow-sm">
                         <div class="card-header bg-success bg-opacity-10 border-0 py-3">
                             <h6 class="mb-0 fw-semibold text-success">
-                                <i class="bi bi-tools me-2"></i>Materials for Hire
+                                <i class="bi bi-tools me-2"></i>Items for Hire
                             </h6>
                         </div>
                         <div class="card-body p-0">
@@ -195,8 +195,8 @@
                                             <th class="border-0">Particular</th>
                                             <th class="border-0">Unit</th>
                                             <th class="border-0 text-end">Quantity</th>
-                                            <th class="border-0 text-end">Unit Price</th>
-                                            <th class="border-0 text-end">Total</th>
+                                            <!-- <th class="border-0 text-end">Unit Price</th>
+                                            <th class="border-0 text-end">Total</th> -->
                                             <th class="border-0">Comment</th>
                                         </tr>
                                     </thead>
@@ -206,11 +206,11 @@
                                                 <td class="fw-medium">{{ $item->particular }}</td>
                                                 <td class="text-muted">{{ $item->unit ?? '-' }}</td>
                                                 <td class="text-end">{{ number_format($item->quantity, 2) }}</td>
-                                                <td class="text-end">{{ $item->unit_price ? 'KES ' . number_format($item->unit_price, 2) : '-' }}</td>
+                                                <!-- <td class="text-end">{{ $item->unit_price ? 'KES ' . number_format($item->unit_price, 2) : '-' }}</td>
                                                 <td class="text-end fw-semibold">
                                                     {{ $item->quantity && $item->unit_price ? 'KES ' . number_format($item->quantity * $item->unit_price, 2) : '-' }}
-                                                </td>
-                                                <td class="text-muted small">{{ $item->comment ?? '-' }}</td>
+                                                </td> -->
+                                                <td class="text-muted text-end small">{{ $item->comment ?? '-' }}</td>
                                             </tr>
                                         @endforeach
                                     </tbody>
@@ -279,8 +279,8 @@
                                                 <th class="border-0">Particular</th>
                                                 <th class="border-0">Unit</th>
                                                 <th class="border-0 text-end">Quantity</th>
-                                                <th class="border-0 text-end">Unit Price</th>
-                                                <th class="border-0 text-end">Total</th>
+                                                <!-- <th class="border-0 text-end">Unit Price</th>
+                                                <th class="border-0 text-end">Total</th> -->
                                                 <th class="border-0">Comment</th>
                                                 </tr>
                                             </thead>
@@ -290,10 +290,10 @@
                                                     <td class="fw-medium">{{ $item->particular }}</td>
                                                     <td class="text-muted">{{ $item->unit ?? '-' }}</td>
                                                     <td class="text-end">{{ number_format($item->quantity, 2) }}</td>
-                                                    <td class="text-end">{{ $item->unit_price ? 'KES ' . number_format($item->unit_price, 2) : '-' }}</td>
+                                                    <!-- <td class="text-end">{{ $item->unit_price ? 'KES ' . number_format($item->unit_price, 2) : '-' }}</td>
                                                     <td class="text-end fw-semibold">
                                                         {{ $item->quantity && $item->unit_price ? 'KES ' . number_format($item->quantity * $item->unit_price, 2) : '-' }}
-                                                        </td>
+                                                        </td> -->
                                                     <td class="text-muted small">{{ $item->comment ?? '-' }}</td>
                                                     </tr>
                                                 @endforeach

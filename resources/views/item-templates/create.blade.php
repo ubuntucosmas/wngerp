@@ -291,7 +291,7 @@ $(document).ready(function() {
                     <div class="col-md-2">
                         <label class="form-label fw-semibold">Unit Price *</label>
                         <input type="number" step="0.01" name="particulars[${particularIndex}][unit_price]"
-                               class="form-control" value="0.00" required min="0">
+                               class="form-control" value="0.00" required min="0" readonly>
                     </div>
                     <div class="col-md-1">
                         <label class="form-label fw-semibold">Comment</label>

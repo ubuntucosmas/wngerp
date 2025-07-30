@@ -66,6 +66,10 @@ class QuoteController extends Controller
             $project = Project::findOrFail($projectOrEnquiryId);
         }
 
+        if (!auth()->user()->hasAnyRole(['finance', 'accounts', 'super-admin'])) {
+            abort(403, 'Only Finance or Accounts can create budgets.');
+        }
+
         $budget = null;
         if ($request->has('project_budget_id')) {
             $budget = ProjectBudget::with('items')->findOrFail($request->input('project_budget_id'));

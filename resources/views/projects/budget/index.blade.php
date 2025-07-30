@@ -56,7 +56,7 @@
                                         <h6 class="card-title mb-1 fw-semibold text-dark">
                                             Budget #{{ $budget->id }}
                                             @if($budget->status)
-                                                <span class="badge bg-{{ $budget->status === 'approved' ? 'success' : ($budget->status === 'draft' ? 'warning' : 'secondary') }} ms-2">
+                                                Status:<span class="bg-{{ $budget->status === 'approved' ? 'success' : ($budget->status === 'draft' ? 'info' : 'secondary') }} ms-2">
                                 {{ ucfirst($budget->status) }}
                             </span>
                                             @endif
@@ -67,8 +67,8 @@
                                         </p>
                                     </div>
                                     <div class="dropdown">
-                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                            <i class="bi bi-three-dots-vertical"></i>
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle text-info" type="button" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical">Actions</i>
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end">
                                             <li>
@@ -99,7 +99,7 @@
                                                     <i class="bi bi-printer me-2"></i>Print
                                                 </a>
                                             </li>
-                                @if(auth()->user()->hasRole('super-admin'))
+                                @if(auth()->user()->hasAnyRole('super-admin|pm|po|finance'))
                                             <li><hr class="dropdown-divider"></li>
                                             @if($budget->status !== 'approved')
                                             <li>

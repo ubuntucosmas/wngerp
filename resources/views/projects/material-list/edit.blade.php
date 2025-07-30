@@ -14,8 +14,8 @@
         </div>
         <div class="card-body p-0">
             <div class="row g-0">
-                <div class="col-md-3 sidebar-col">
-                    <nav class="sidebar-nav sticky-top card h-100 shadow-sm mb-0" style="top: 80px; z-index: 1020; border-radius: 12px 0 0 12px;">
+                <div class="col-md-2 sidebar-col">
+                    <nav class="sidebar-nav sticky-top card h-100 shadow-sm mb-0" style="top: 80px; z-index: 100; border-radius: 12px 0 0 12px;">
                         <ul class="nav flex-column py-3 px-2">
                             <li class="nav-item"><a href="#basic-details" class="nav-link active" data-bs-toggle="tooltip" title="Go to Basic Details" aria-label="Go to Basic Details">Basic Details</a></li>
                             <li class="nav-item"><a href="#materials-production" class="nav-link" data-bs-toggle="tooltip" title="Go to Materials - Production" aria-label="Go to Materials - Production">Materials - Production</a></li>
@@ -29,7 +29,7 @@
                         </ul>
                     </nav>
                 </div>
-                <div class="col-md-9 form-content-col">
+                <div class="col-md-10 form-content-col">
                     <form action="{{ isset($enquiry) ? route('enquiries.material-list.update', [$enquiry, $materialList]) : route('projects.material-list.update', [$project, $materialList]) }}" method="POST" class="p-3 position-relative" id="materialListForm">
                         @csrf
                         @method('PUT')
@@ -78,13 +78,13 @@
                                                         <div class="col-md-6">
                                                             <label class="form-label fw-semibold">Select Template</label>
                                                             <select class="form-select template-select" name="production_items[{{ $piIndex }}][template_id]" data-item-index="{{ $piIndex }}">
-                                                                <option value="">-- Choose a template or enter manually --</option>
+                                                                <option value="">-- Select Project Items --</option>
                                                             </select>
-                                                            <small class="form-text text-muted">Select a template to auto-fill particulars, or leave empty to enter manually</small>
+                                                            <!-- <small class="form-text text-muted">Select a template to auto-fill particulars, or leave empty to enter manually</small> -->
                                                         </div>
                                                         <div class="col-md-6">
                                                             <label class="form-label fw-semibold">Item Name</label>
-                                                            <input type="text" name="production_items[{{ $piIndex }}][item_name]" class="form-control item-name" value="{{ old('production_items.'.$piIndex.'.item_name', $item->item_name) }}" required>
+                                                            <input type="text" name="production_items[{{ $piIndex }}][item_name]" class="form-control item-name" value="{{ old('production_items.'.$piIndex.'.item_name', $item->item_name) }}" readonly>
                                                         </div>
                                                     </div>
                                                     <table class="table table-bordered">
@@ -542,7 +542,7 @@ $(document).ready(function() {
                 </td>
                 <td><input type="text" name="materials_hire[${hireIndex}][unit]" class="form-control unit-field" readonly></td>
                 <td><input type="number" step="0.01" name="materials_hire[${hireIndex}][quantity]" class="form-control"></td>
-                <td><input type="number" step="0.01" name="materials_hire[${hireIndex}][unit_price]" class="form-control"></td>
+               <-- <td><input type="number" step="0.01" name="materials_hire[${hireIndex}][unit_price]" class="form-control"></td> -->
                 <td><input type="text" name="materials_hire[${hireIndex}][comment]" class="form-control"></td>
                 <td><button type="button" class="btn btn-danger btn-sm remove-row">Remove</button></td>
             </tr>`;

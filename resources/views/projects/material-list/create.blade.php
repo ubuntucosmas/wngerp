@@ -3,7 +3,7 @@
 
 @section('content')
 <div class="container-fluid d-flex justify-content-center align-items-start py-4" style="min-height: 100vh; background: #f4f6fa;">
-    <div class="material-list-card card shadow-sm w-100" style="max-width: 1100px;">
+    <div class="material-list-card card shadow-sm w-100" style="max-width: 1600px;">
         <div class="card-header bg-white d-flex justify-content-between align-items-center border-bottom-0" style="border-radius: 16px 16px 0 0;">
             <h2 class="mb-0 fs-5 fw-bold">Create Material List</h2>
             <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.material-list.index', $enquiry) : route('projects.material-list.index', $project) }}"
@@ -14,8 +14,8 @@
         </div>
         <div class="card-body p-0">
             <div class="row g-0">
-                <div class="col-md-3 sidebar-col">
-                    <nav class="sidebar-nav sticky-top card h-100 shadow-sm mb-0" style="top: 80px; z-index: 1020; border-radius: 12px 0 0 12px;">
+                <div class="col-md-1 sidebar-col">
+                    <nav class="sidebar-nav sticky-top card h-100 shadow-sm mb-0" style="top: 80px; z-index: 100; border-radius: 12px 0 0 12px;">
                         <ul class="nav flex-column py-3 px-2">
                             <li class="nav-item"><a href="#basic-details" class="nav-link active" data-bs-toggle="tooltip" title="Go to Basic Details" aria-label="Go to Basic Details">Basic Details</a></li>
                             <li class="nav-item"><a href="#materials-production" class="nav-link" data-bs-toggle="tooltip" title="Go to Materials - Production" aria-label="Go to Materials - Production">Materials - Production</a></li>
@@ -29,7 +29,7 @@
                         </ul>
                     </nav>
                 </div>
-                <div class="col-md-9 form-content-col">
+                <div class="col-md-11 form-content-col">
                     <form action="{{ isset($enquiry) ? route('enquiries.material-list.store', $enquiry) : route('projects.material-list.store', $project) }}" method="POST" class="p-3 position-relative" id="materialListForm">
                         @csrf
                         <div class="accordion compact-accordion" id="materialListAccordion">
@@ -86,16 +86,16 @@
                                                             <div class="col-md-6">
                                                                 <label class="form-label fw-semibold">Select Template</label>
                                                                 <select class="form-select template-select" name="production_items[{{ $itemIndex }}][template_id]" data-item-index="{{ $itemIndex }}">
-                                                                    <option value="">-- Choose a template or enter manually --</option>
+                                                                    <option value="">-- Select Project Items --</option>
                                                                 </select>
-                                                                <small class="form-text text-muted">Select a template to auto-fill particulars, or leave empty to enter manually</small>
+                                                                <!-- <small class="form-text text-info">Select Project Items</small> -->
                                                             </div>
                                                             <div class="col-md-6">
                                                                 <label class="form-label fw-semibold">Item Name</label>
                                                                 <input type="text" name="production_items[{{ $itemIndex }}][item_name]" class="form-control item-name" value="{{ $item['item_name'] ?? '' }}" required>
                                                             </div>
                                                         </div>
-                                                        <table class="table table-bordered">
+                                                        <!-- <table class="table table-bordered">
                                                             <thead class="table-light">
                                                                 <tr>
                                                                     <th>Particular</th>
@@ -133,7 +133,7 @@
                                                             <button type="button" class="btn btn-outline-danger btn-sm remove-item-group">
                                                                 <i class="bi bi-trash me-1"></i>Remove Item
                                                             </button>
-                                                        </div>
+                                                        </div> -->
                                                     </div>
                                                 @endforeach
                                             @endif
@@ -568,7 +568,7 @@
             const $select = $(this);
             if (!$select.data('templates-loaded')) {
                 $select.empty();
-                $select.append('<option value="">-- Choose a template or enter manually --</option>');
+                $select.append('<option value="">-- Select project Item --</option>');
                 templates.forEach(template => {
                     const option = $('<option>', {
                         value: template.id,
@@ -793,10 +793,8 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Select Template</label>
                                 <select class="form-select template-select" name="production_items[${itemIndex}][template_id]" data-item-index="${itemIndex}">
-                                    <option value="">-- Choose a template or enter manually --</option>
+                                    <option value="">-- Select project Item --</option>
                                 </select>
-                                <small class="form-text text-muted">Select a template to auto-fill particulars, or leave empty to enter manually</small>
-                            </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Item Name</label>
                                 <input type="text" name="production_items[${itemIndex}][item_name]" class="form-control item-name" value="${template.name}" required>
@@ -904,9 +902,9 @@
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Select Template</label>
                             <select class="form-select template-select" name="production_items[${itemIndex}][template_id]" data-item-index="${itemIndex}">
-                                <option value="">-- Choose a template or enter manually --</option>
+                                <option value="">-- Select project Item--</option>
                             </select>
-                            <small class="form-text text-muted">Select a template to auto-fill particulars, or leave empty to enter manually</small>
+                            
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Item Name</label>

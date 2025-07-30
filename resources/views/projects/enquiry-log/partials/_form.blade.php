@@ -78,6 +78,21 @@
         </div>
     </div>
     
+    @if(isset($enquiry))
+    <div class="col-12 col-md-6 col-lg-4">
+        <div class="form-group">
+            <label for="status" class="form-label small text-muted mb-1">Status</label>
+            <select name="status" class="form-control form-control-sm" required>
+                <option value="">Select Status</option>
+                <option value="Open" {{ old('status', $enquiryLog->status ?? '') == 'Open' ? 'selected' : '' }}>Open</option>
+                <option value="Quoted" {{ old('status', $enquiryLog->status ?? '') == 'Quoted' ? 'selected' : '' }}>Quoted</option>
+                <option value="Approved" {{ old('status', $enquiryLog->status ?? '') == 'Approved' ? 'selected' : '' }}>Approved</option>
+                <option value="Declined" {{ old('status', $enquiryLog->status ?? '') == 'Declined' ? 'selected' : '' }}>Declined</option>
+            </select>
+        </div>
+    </div>
+    @endif
+    
     <!-- Third Row - Full width fields -->
     <div class="col-12">
         <div class="form-group">

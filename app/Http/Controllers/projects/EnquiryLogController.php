@@ -85,27 +85,60 @@ class EnquiryLogController extends Controller
      */
     public function update(Request $request, Project $project, EnquiryLog $enquiryLog)
     {
-        $data = $request->validate([
-            'venue' => 'required|string|max:255',
-            'date_received' => 'required|date',
-            'client_name' => 'required|string|max:255',
-            'project_scope_summary' => 'required|string',
-            'contact_person' => 'nullable|string|max:255',
-            'assigned_to' => 'nullable|string|max:255',
-            'follow_up_notes' => 'nullable|string',
+        \Log::info('Project enquiry log update started', [
+            'project_id' => $project->id,
+            'enquiry_log_id' => $enquiryLog->id,
+            'request_data' => $request->all(),
+            'user_id' => auth()->id()
         ]);
-    
-        // Ensure the project_id is set to the current project
-        $data['project_id'] = $project->id;
-        $data['project_name'] = $project->name;
-        $data['project_scope_summary'] = json_encode(
-            array_filter(array_map('trim', explode(',', $data['project_scope_summary'])))
-        );
-    
-        $enquiryLog->update($data);
-    
-        return redirect()->route('projects.enquiry-log.show', $project)
-            ->with('success', 'Enquiry log updated successfully.');
+
+        try {
+            $data = $request->validate([
+                'venue' => 'required|string|max:255',
+                'date_received' => 'required|date',
+                'client_name' => 'required|string|max:255',
+                'project_scope_summary' => 'required|string',
+                'contact_person' => 'nullable|string|max:255',
+                'assigned_to' => 'nullable|string|max:255',
+                'follow_up_notes' => 'nullable|string',
+            ]);
+        
+            // Ensure the project_id is set to the current project
+            $data['project_id'] = $project->id;
+            $data['project_name'] = $project->name;
+            $data['project_scope_summary'] = json_encode(
+                array_filter(array_map('trim', explode(',', $data['project_scope_summary'])))
+            );
+        
+            $enquiryLog->update($data);
+            
+            \Log::info('Project enquiry log updated successfully', [
+                'project_id' => $project->id,
+                'enquiry_log_id' => $enquiryLog->id,
+                'updated_data' => $data
+            ]);
+        
+            return redirect()->route('projects.enquiry-log.show', $project)
+                ->with('success', 'Enquiry log updated successfully.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Project enquiry log validation failed', [
+                'project_id' => $project->id,
+                'enquiry_log_id' => $enquiryLog->id,
+                'validation_errors' => $e->errors(),
+                'request_data' => $request->all()
+            ]);
+            throw $e;
+        } catch (\Exception $e) {
+            \Log::error('Project enquiry log update failed', [
+                'project_id' => $project->id,
+                'enquiry_log_id' => $enquiryLog->id,
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'request_data' => $request->all()
+            ]);
+            return back()->with('error', 'Failed to update enquiry log: ' . $e->getMessage())->withInput();
+        }
     }
 
     /**

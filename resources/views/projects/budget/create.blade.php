@@ -5,7 +5,7 @@
 @section('content')
 @hasanyrole('finance|po|pm|super-admin')
 <div class="container-fluid d-flex justify-content-center align-items-start py-4" style="min-height: 100vh; background: #f4f6fa;">
-    <div class="material-list-card card shadow-sm w-100" style="max-width: 1100px;">
+    <div class="material-list-card card shadow-sm w-100" style="max-width: 1600px;">
         <div class="card-header bg-white d-flex justify-content-between align-items-center border-bottom-0" style="border-radius: 16px 16px 0 0;">
             <h2 class="mb-0 fs-5 fw-bold">Create {{ isset($enquiry) ? 'Enquiry' : 'Project' }} Budget</h2>
             <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.files', $enquiry) : (isset($project) && is_object($project) && isset($project->id) ? route('projects.files.index', $project->id) : '#') }}"
@@ -16,12 +16,12 @@
         </div>
         <div class="card-body p-0">
             <div class="row g-0">
-                <div class="col-md-3 sidebar-col">
+                <div class="col-md-1 sidebar-col">
                     <nav class="sidebar-nav sticky-top card h-100 shadow-sm mb-0" style="top: 80px; z-index: 1020; border-radius: 12px 0 0 12px;">
                         <ul class="nav flex-column py-3 px-2">
                             <li class="nav-item"><a href="#basic-details" class="nav-link active" data-bs-toggle="tooltip" title="Go to Basic Details" aria-label="Go to Basic Details">Basic Details</a></li>
                             <li class="nav-item"><a href="#materials-production" class="nav-link" data-bs-toggle="tooltip" title="Go to Materials - Production" aria-label="Go to Materials - Production">Materials - Production</a></li>
-                            <li class="nav-item"><a href="#materials-hire" class="nav-link" data-bs-toggle="tooltip" title="Go to Materials for Hire" aria-label="Go to Materials for Hire">Materials for Hire</a></li>
+                            <li class="nav-item"><a href="#materials-hire" class="nav-link" data-bs-toggle="tooltip" title="Go to Materials for Hire" aria-label="Go to Materials for Hire">Items for Hire</a></li>
                             <li class="nav-item"><a href="#workshop-labour" class="nav-link" data-bs-toggle="tooltip" title="Go to Workshop Labour" aria-label="Go to Workshop Labour">Workshop Labour</a></li>
                             <li class="nav-item"><a href="#site" class="nav-link" data-bs-toggle="tooltip" title="Go to Site" aria-label="Go to Site">Site</a></li>
                             <li class="nav-item"><a href="#set-down" class="nav-link" data-bs-toggle="tooltip" title="Go to Set Down" aria-label="Go to Set Down">Set Down</a></li>
@@ -30,7 +30,7 @@
                         </ul>
                     </nav>
                 </div>
-                <div class="col-md-9 form-content-col">
+                <div class="col-md-11 form-content-col">
                     <form action="{{ isset($enquiry) ? route('enquiries.budget.store', $enquiry) : (isset($project) ? route('budget.store', $project) : '#') }}" method="POST" class="p-3 position-relative" id="budgetForm">
                         @csrf
                         @if(isset($materialList))
@@ -59,11 +59,11 @@
                                         <div class="row mb-4">
                                             <div class="col-md-6">
                                                 <label for="start_date">Start Date</label>
-                                                <input type="date" class="form-control" name="start_date" value="{{ isset($enquiry) ? $enquiry->start_date : (isset($project) ? $project->start_date : '') }}">
+                                                <input type="date" class="form-control" name="start_date" value="{{ isset($enquiry) ? $enquiry->start_date : (isset($project) ? $project->start_date : '') }}" required>
                                             </div>
                                             <div class="col-md-6">
                                                 <label for="end_date">End Date</label>
-                                                <input type="date" class="form-control" name="end_date" value="{{ isset($enquiry) ? $enquiry->end_date : (isset($project) ? $project->end_date : '') }}">
+                                                <input type="date" class="form-control" name="end_date" value="{{ isset($enquiry) ? $enquiry->end_date : (isset($project) ? $project->end_date : '') }}" required>
                                             </div>
                                         </div>
                                     </div>
@@ -127,7 +127,7 @@
                                 </div>
                             </div>
                             @php
-                                $otherCategories = ['Materials for Hire', 'Workshop labour', 'Site', 'Set down', 'Logistics', 'Outsourced'];
+                                $otherCategories = ['Items for Hire', 'Workshop labour', 'Site', 'Set down', 'Logistics', 'Outsourced'];
                             @endphp
                             @foreach($otherCategories as $cat)
                                 <div class="accordion-item">

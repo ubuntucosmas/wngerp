@@ -263,23 +263,6 @@
                         @endif
                     </h1>
                 </div>
-                
-                <!-- Enquiry Toggle Buttons -->
-                @hasanyrole('po|super-admin')
-                <div class="d-flex align-items-center gap-2 ms-3" role="group">
-                    <a href="{{ route('enquiries.index') }}" 
-                       class="btn {{ (!isset($viewType) || $viewType === 'assigned') ? 'btn-primary' : 'btn-outline-primary' }} btn-sm d-flex align-items-center gap-1">
-                        <i class="bi bi-person-check-fill"></i>
-                        <span>My Enquiries</span>
-                    </a>
-                    <span class="text-muted">|</span>
-                    <a href="{{ route('enquiries.all') }}" 
-                       class="btn {{ (isset($viewType) && $viewType === 'all') ? 'btn-primary' : 'btn-outline-primary' }} btn-sm d-flex align-items-center gap-1">
-                        <i class="bi bi-people-fill"></i>
-                        <span>All Enquiries</span>
-                    </a>
-                </div>
-                @endhasanyrole
             </div>
             
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createEnquiryModal">
@@ -288,22 +271,48 @@
         </div>
     <hr class="mb-4">
     
-    <!-- Search Form -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <form method="GET" action="{{ isset($viewType) && $viewType === 'all' ? route('enquiries.all') : route('enquiries.index') }}" class="d-flex">
-                <input type="text" name="search" class="form-control me-2" placeholder="Search enquiries..." value="{{ request('search') }}">
+<!-- Search Form and Toggle Buttons Row -->
+<div class="col mb-4">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <!-- Search Form -->
+        <form method="GET" 
+              action="{{ isset($viewType) && $viewType === 'all' ? route('enquiries.all') : route('enquiries.index') }}" 
+              class="d-flex align-items-center flex-wrap gap-2">
+
+            <div class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="Search enquiries..." value="{{ request('search') }}">
                 <button type="submit" class="btn btn-outline-primary">
                     <i class="bi bi-search"></i>
                 </button>
                 @if(request('search'))
-                    <a href="{{ isset($viewType) && $viewType === 'all' ? route('enquiries.all') : route('enquiries.index') }}" class="btn btn-outline-secondary ms-2">
+                    <a href="{{ isset($viewType) && $viewType === 'all' ? route('enquiries.all') : route('enquiries.index') }}" 
+                       class="btn btn-outline-secondary">
                         <i class="bi bi-x-circle"></i>
                     </a>
                 @endif
-            </form>
+            </div>
+        </form>
+
+        <!-- Enquiry Toggle Buttons -->
+        @hasanyrole('po|super-admin')
+        <div class="d-flex align-items-center gap-2">
+            <a href="{{ route('enquiries.index') }}" 
+               class="btn {{ (!isset($viewType) || $viewType === 'assigned') ? 'btn-primary' : 'btn-outline-primary' }} btn-sm d-flex align-items-center gap-1">
+                <i class="bi bi-person-check-fill"></i>
+                <span>My Enquiries</span>
+            </a>
+            <span class="text-muted">|</span>
+            <a href="{{ route('enquiries.all') }}" 
+               class="btn {{ (isset($viewType) && $viewType === 'all') ? 'btn-primary' : 'btn-outline-primary' }} btn-sm d-flex align-items-center gap-1">
+                <i class="bi bi-people-fill"></i>
+                <span>All Enquiries</span>
+            </a>
         </div>
+        @endhasanyrole
     </div>
+</div>
+
+
 
         <!-- Create Enquiry Modal -->
         <div class="modal fade" id="createEnquiryModal" tabindex="-1" aria-labelledby="createEnquiryModalLabel" aria-hidden="true">

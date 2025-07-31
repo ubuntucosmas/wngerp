@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('enquiry_logs', function (Blueprint $table) {
-            $table->enum('status', ['Open', 'Quoted', 'Approved', 'Declined'])->default('Open')->after('contact_person');
-        });
+        if (!Schema::hasColumn('enquiry_logs', 'status')) {
+            Schema::table('enquiry_logs', function (Blueprint $table) {
+                $table->enum('status', ['Open', 'Quoted', 'Approved', 'Declined'])->default('Open')->after('contact_person');
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('enquiry_logs', function (Blueprint $table) {
-            $table->dropColumn('status');
-        });
+        if (Schema::hasColumn('enquiry_logs', 'status')) {
+            Schema::table('enquiry_logs', function (Blueprint $table) {
+                $table->dropColumn('status');
+            });
+        }
     }
 };

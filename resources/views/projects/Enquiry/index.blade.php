@@ -258,6 +258,8 @@
                     <h1 class="mb-0">
                         @if(isset($viewType) && $viewType === 'all')
                             All Enquiries
+                        @elseif(isset($viewType) && $viewType === 'trashed')
+                            Deleted Enquiries
                         @else
                             {{ auth()->user()->hasRole('po') ? 'My Enquiries' : 'Enquiries' }}
                         @endif
@@ -306,6 +308,12 @@
                class="btn {{ (isset($viewType) && $viewType === 'all') ? 'btn-primary' : 'btn-outline-primary' }} btn-sm d-flex align-items-center gap-1">
                 <i class="bi bi-people-fill"></i>
                 <span>All Enquiries</span>
+            </a>
+            <span class="text-muted">|</span>
+            <a href="{{ route('enquiries.trashed') }}" 
+               class="btn {{ (isset($viewType) && $viewType === 'trashed') ? 'btn-danger' : 'btn-outline-danger' }} btn-sm d-flex align-items-center gap-1">
+                <i class="bi bi-trash"></i>
+                <span>Deleted</span>
             </a>
         </div>
         @endhasanyrole
@@ -545,17 +553,39 @@
                                 @endif
                             </td>
                             <td class="actions">
-                                <div class="btn-group">
-                                    <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.files', $enquiry) : '#' }}" class="btn btn-xs btn-outline-primary" title="Files & Phases">
-                                        <i class="bi bi-folder"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-xs btn-outline-info" data-bs-toggle="modal" data-bs-target="#editEnquiryModal{{ $enquiry->id }}" title="Edit">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <x-delete-button :action="route('enquiries.destroy', ['enquiry' => $enquiry->id])">
-                                            Delete
-                                        </x-delete-button>
-                                </div>
+                                @if(isset($viewType) && $viewType === 'trashed')
+                                    <!-- Actions for trashed enquiries -->
+                                    <div class="btn-group">
+                                        <form action="{{ route('enquiries.restore', $enquiry->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            <button type="submit" class="btn btn-xs btn-outline-success" title="Restore" onclick="return confirm('Are you sure you want to restore this enquiry?')">
+                                                <i class="bi bi-arrow-clockwise"></i>
+                                            </button>
+                                        </form>
+                                        @hasrole('super-admin')
+                                        <form action="{{ route('enquiries.force-delete', $enquiry->id) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-xs btn-outline-danger" title="Permanently Delete" onclick="return confirm('Are you sure you want to permanently delete this enquiry? This action cannot be undone!')">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </button>
+                                        </form>
+                                        @endhasrole
+                                    </div>
+                                @else
+                                    <!-- Actions for active enquiries -->
+                                    <div class="btn-group">
+                                        <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.files', $enquiry) : '#' }}" class="btn btn-xs btn-outline-primary" title="Files & Phases">
+                                            <i class="bi bi-folder"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-xs btn-outline-info" data-bs-toggle="modal" data-bs-target="#editEnquiryModal{{ $enquiry->id }}" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <x-delete-button :action="route('enquiries.destroy', ['enquiry' => $enquiry->id])">
+                                                Delete
+                                            </x-delete-button>
+                                    </div>
+                                @endif
                             </td>
                             <td class="text-center">
                                 @if ($enquiry->converted_to_project_id)

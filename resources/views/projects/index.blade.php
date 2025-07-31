@@ -127,6 +127,8 @@
             <h2 class="mb-0 fw-bold me-4" style="letter-spacing:0.01em;">
                 @if(isset($viewType) && $viewType === 'all')
                     All Projects
+                @elseif(isset($viewType) && $viewType === 'trashed')
+                    Deleted Projects
                 @else
                     {{ auth()->user()->hasRole('po') ? 'My Projects' : 'Projects' }}
                 @endif
@@ -168,6 +170,12 @@
            class="btn {{ (isset($viewType) && $viewType === 'all') ? 'btn-primary' : 'btn-outline-primary' }} d-flex align-items-center gap-1">
             <i class="bi bi-people-fill"></i>
             <span>All Projects</span>
+        </a>
+        <span class="text-muted">|</span>
+        <a href="{{ route('projects.trashed') }}" 
+           class="btn {{ (isset($viewType) && $viewType === 'trashed') ? 'btn-danger' : 'btn-outline-danger' }} d-flex align-items-center gap-1">
+            <i class="bi bi-trash"></i>
+            <span>Deleted</span>
         </a>
     </div>
     @endhasanyrole
@@ -220,27 +228,51 @@
                             </div>
                         </td>
                         <td class="text-end">
-                            @if($project->status === 'closed')
-                                <span class="bg-danger mb-1" title="This project is finalized and read-only">Project Closed</span>
-                            @else
+                            @if(isset($viewType) && $viewType === 'trashed')
+                                <!-- Actions for trashed projects -->
                                 @hasanyrole('pm|super-admin')
-                                    @if(auth()->user()->hasRole('super-admin') || auth()->user()->level >= 4)
-                                        <button class="btn btn-sm btn-outline-secondary mb-1" data-bs-toggle="modal" data-bs-target="#assignOfficerModal{{ $project->id }}">
-                                            Re-Assign
-                                        </button>
-                                        <x-delete-button :action="route('projects.destroy', $project->id)">
-                                            Delete
-                                        </x-delete-button>
-                                    @endif
-                                @endhasanyrole
                                 <div class="btn-group" role="group">
-                                    <a href="{{ route('projects.files.index', $project->id) }}" class="btn btn-sm btn-info">
-                                        Project Files
-                                    </a>
-                                    <!-- <button class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" data-bs-target="#phasesCollapse{{ $project->id }}">
-                                        Phases
-                                    </button> -->
+                                    <form action="{{ route('projects.restore', $project->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Restore" onclick="return confirm('Are you sure you want to restore this project?')">
+                                            <i class="bi bi-arrow-clockwise"></i> Restore
+                                        </button>
+                                    </form>
+                                    @hasrole('super-admin')
+                                    <form action="{{ route('projects.force-delete', $project->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Permanently Delete" onclick="return confirm('Are you sure you want to permanently delete this project? This action cannot be undone!')">
+                                            <i class="bi bi-trash-fill"></i> Delete Forever
+                                        </button>
+                                    </form>
+                                    @endhasrole
                                 </div>
+                                @endhasanyrole
+                            @else
+                                <!-- Actions for active projects -->
+                                @if($project->status === 'closed')
+                                    <span class="bg-danger mb-1" title="This project is finalized and read-only">Project Closed</span>
+                                @else
+                                    @hasanyrole('pm|super-admin')
+                                        @if(auth()->user()->hasRole('super-admin') || auth()->user()->level >= 4)
+                                            <button class="btn btn-sm btn-outline-secondary mb-1" data-bs-toggle="modal" data-bs-target="#assignOfficerModal{{ $project->id }}">
+                                                Re-Assign
+                                            </button>
+                                            <x-delete-button :action="route('projects.destroy', $project->id)">
+                                                Delete
+                                            </x-delete-button>
+                                        @endif
+                                    @endhasanyrole
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ route('projects.files.index', $project->id) }}" class="btn btn-sm btn-info">
+                                            Project Files
+                                        </a>
+                                        <!-- <button class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" data-bs-target="#phasesCollapse{{ $project->id }}">
+                                            Phases
+                                        </button> -->
+                                    </div>
+                                @endif
                             @endif
                         </td>
                     </tr>

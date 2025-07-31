@@ -364,7 +364,85 @@ class EnquiryController extends Controller
     public function destroy(Enquiry $enquiry)
     {
         $enquiry->delete();
-        return redirect()->route('enquiries.index');
+        return redirect()->route('enquiries.index')->with('success', 'Enquiry deleted successfully.');
+    }
+
+    /**
+     * Show trashed enquiries
+     */
+    public function trashed(Request $request)
+    {
+        // Get the currently authenticated user
+        $user = auth()->user();
+
+        // Start building the base query to fetch trashed enquiries
+        $query = Enquiry::onlyTrashed()->with('enquiryLog')->orderBy('deleted_at', 'desc');
+
+        // If the user is a project officer, show only their assigned enquiries
+        if ($user->hasRole('po')) {
+            $query->where('assigned_po', $user->name);
+        }
+
+        // Keyword search across multiple fields
+        $search = $request->input('search');
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('client_name', 'like', "%{$search}%")
+                    ->orWhere('project_name', 'like', "%{$search}%")
+                    ->orWhere('venue', 'like', "%{$search}%")
+                    ->orWhere('contact_person', 'like', "%{$search}%");
+            });
+        }
+
+        // Paginate results
+        $enquiries = $query->paginate(10)->withQueryString();
+        
+        $statuses = ['Open', 'Quoted', 'Approved', 'Declined'];
+        $users = User::where('role', 'po')->get();
+        $clients = Client::all();
+        
+        // Set view type to trashed
+        $viewType = 'trashed';
+
+        return view('projects.Enquiry.index', compact('enquiries', 'statuses', 'users', 'clients', 'viewType'));
+    }
+
+    /**
+     * Restore a soft deleted enquiry
+     */
+    public function restore($id)
+    {
+        $enquiry = Enquiry::onlyTrashed()->findOrFail($id);
+        $enquiry->restore();
+
+        return redirect()->route('enquiries.trashed')->with('success', 'Enquiry restored successfully.');
+    }
+
+    /**
+     * Permanently delete an enquiry
+     */
+    public function forceDelete($id)
+    {
+        // Only super-admins can permanently delete enquiries
+        if (!auth()->user()->hasRole('super-admin')) {
+            abort(403, 'You do not have permission to permanently delete enquiries. Only Super Admins can permanently delete enquiries.');
+        }
+
+        $enquiry = Enquiry::onlyTrashed()->findOrFail($id);
+        
+        // If this enquiry was converted to a project, we need to handle that
+        if ($enquiry->converted_to_project_id) {
+            $project = Project::find($enquiry->converted_to_project_id);
+            if ($project) {
+                // The project should also be deleted if we're permanently deleting the enquiry
+                $project->forceDelete();
+            }
+        }
+        
+        // Permanently delete the enquiry
+        $enquiry->forceDelete();
+        
+        return redirect()->route('enquiries.trashed')->with('success', 'Enquiry permanently deleted.');
     }
 
     /**

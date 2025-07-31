@@ -163,7 +163,9 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
     Route::get('/projects/overview', [ProjectController::class, 'overview'])->name('projects.overview');
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
     Route::get('/projects/all', [ProjectController::class, 'allProjects'])->name('projects.all');
-    Route::get('/projects/all', [ProjectController::class, 'allProjects'])->name('projects.all');
+    Route::get('/projects/trashed', [ProjectController::class, 'trashed'])->name('projects.trashed');
+    Route::post('/projects/{id}/restore', [ProjectController::class, 'restore'])->name('projects.restore');
+    Route::delete('/projects/{id}/force-delete', [ProjectController::class, 'forceDelete'])->name('projects.force-delete');
     Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
     Route::put('/projects/{project}/assign', [ProjectController::class, 'assignProjectOfficer'])->name('projects.assign');
     Route::delete('/projects/{id}', [ProjectController::class, 'destroy'])->name('projects.destroy');
@@ -174,6 +176,9 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
     // Enquiries Routes
     Route::get('/projects/enquiry', [EnquiryController::class, 'index'])->name('enquiries.index');
     Route::get('/projects/enquiry/all', [EnquiryController::class, 'allEnquiries'])->name('enquiries.all');
+    Route::get('/projects/enquiry/trashed', [EnquiryController::class, 'trashed'])->name('enquiries.trashed');
+    Route::post('/projects/enquiry/{id}/restore', [EnquiryController::class, 'restore'])->name('enquiries.restore');
+    Route::delete('/projects/enquiry/{id}/force-delete', [EnquiryController::class, 'forceDelete'])->name('enquiries.force-delete');
     Route::post('/projects/enquiry', [EnquiryController::class, 'store'])->name('enquiries.store');
     Route::get('/projects/enquiry/create', [EnquiryController::class, 'create'])->name('enquiries.create');
 

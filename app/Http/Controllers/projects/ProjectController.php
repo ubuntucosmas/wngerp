@@ -229,7 +229,6 @@ class ProjectController extends Controller
             // Revert the project back to an enquiry
             $enquiry->update([
                 'converted_to_project_id' => null,
-                'status' => 'Open', // Reset status to allow further processing
             ]);
             
             // Transfer any project phases back to the enquiry
@@ -253,5 +252,94 @@ class ProjectController extends Controller
             $project->delete();
             return redirect()->route('projects.index')->with('success', 'Project deleted successfully.');
         }
+    }
+
+    /**
+     * Show trashed projects
+     */
+    public function trashed(Request $request)
+    {
+        // Only PMs and super-admins can view trashed projects
+        if (!auth()->user()->hasAnyRole(['pm', 'super-admin'])) {
+            abort(403, 'You do not have permission to view trashed projects.');
+        }
+
+        $query = Project::onlyTrashed()->with(['projectManager', 'projectOfficer'])
+            ->orderBy('deleted_at', 'desc');
+
+        // Search functionality
+        $search = $request->input('search');
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('project_id', 'like', "%{$search}%")
+                    ->orWhere('name', 'like', "%{$search}%")
+                    ->orWhere('client_name', 'like', "%{$search}%")
+                    ->orWhere('venue', 'like', "%{$search}%");
+            });
+        }
+
+        $projects = $query->paginate(10)->withQueryString();
+        $users = User::where('role', 'po')->get();
+        $clients = Client::all();
+        $enquiryprojects = Enquiry::all();
+        $viewType = 'trashed';
+
+        return view('projects.index', compact('projects', 'enquiryprojects', 'users', 'clients', 'viewType'));
+    }
+
+    /**
+     * Restore a soft deleted project
+     */
+    public function restore($id)
+    {
+        // Only PMs and super-admins can restore projects
+        if (!auth()->user()->hasAnyRole(['pm', 'super-admin'])) {
+            abort(403, 'You do not have permission to restore projects.');
+        }
+
+        $project = Project::onlyTrashed()->findOrFail($id);
+        $project->restore();
+
+        return redirect()->route('projects.trashed')->with('success', 'Project restored successfully.');
+    }
+
+    /**
+     * Permanently delete a project
+     */
+    public function forceDelete($id)
+    {
+        // Only super-admins can permanently delete projects
+        if (!auth()->user()->hasRole('super-admin')) {
+            abort(403, 'You do not have permission to permanently delete projects. Only Super Admins can permanently delete projects.');
+        }
+
+        $project = Project::onlyTrashed()->findOrFail($id);
+        
+        // Check if this project was converted from an enquiry
+        $enquiry = Enquiry::where('converted_to_project_id', $project->id)->first();
+        
+        if ($enquiry) {
+            // Revert the project back to an enquiry before permanent deletion
+            $enquiry->update([
+                'converted_to_project_id' => null,
+            ]);
+            
+            // Transfer any project phases back to the enquiry
+            $project->phases()->update([
+                'phaseable_id' => $enquiry->id,
+                'phaseable_type' => Enquiry::class,
+            ]);
+            
+            // Transfer material lists back to the enquiry
+            $project->materialLists()->update([
+                'project_id' => null,
+                'enquiry_id' => $enquiry->id,
+            ]);
+        }
+        
+        // Permanently delete the project
+        $project->forceDelete();
+        
+        return redirect()->route('projects.trashed')->with('success', 'Project permanently deleted.');
     }
 }

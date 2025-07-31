@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Enquiry;
 use App\Models\DesignAsset;
 use App\Models\SiteSurvey;
@@ -24,7 +25,7 @@ use App\Models\ProjectBudget;
 
 class Project extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * Get the enquiry associated with the project.

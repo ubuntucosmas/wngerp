@@ -465,7 +465,7 @@ class EnquiryController extends Controller
         // Create or update the enquiry log
         $enquiryLog = $enquiry->enquiryLog()->updateOrCreate([], $data);
     
-        return redirect()->route('enquiries.files', $enquiry)
+        return redirect()->route('enquiries.enquiry-log.show', [$enquiry, $enquiryLog])
                          ->with('success', 'Enquiry Log created successfully.');
     }
 

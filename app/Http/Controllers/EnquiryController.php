@@ -885,6 +885,7 @@ class EnquiryController extends Controller
         $data = [
             'enquiry' => $enquiry,
             'enquiryLog' => $enquiryLog,
+            'project' => $enquiry->project, // This will be null for non-converted enquiries
         ];
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('projects.templates.enquiry-log', $data);
@@ -900,6 +901,7 @@ class EnquiryController extends Controller
         $data = [
             'enquiry' => $enquiry,
             'enquiryLog' => $enquiryLog,
+            'project' => $enquiry->project, // This will be null for non-converted enquiries
         ];
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('projects.templates.enquiry-log', $data);

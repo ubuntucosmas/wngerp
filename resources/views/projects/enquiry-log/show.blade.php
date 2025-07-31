@@ -224,6 +224,27 @@
                                     <div class="fs-6 text-dark">{{ $enquiryLog->assigned_to ?? '—' }}</div>
                                 </div>
                                 <div class="col-12">
+                                    <div class="text-primary small fw-bold text-uppercase">Status</div>
+                                    <div class="fs-6">
+                                        @if($enquiryLog->status)
+                                            @php
+                                                $statusColors = [
+                                                    'Open' => 'bg-info text-white',
+                                                    'Quoted' => 'bg-warning text-dark',
+                                                    'Approved' => 'bg-success text-white',
+                                                    'Declined' => 'bg-danger text-white'
+                                                ];
+                                                $statusClass = $statusColors[$enquiryLog->status] ?? 'bg-secondary text-white';
+                                            @endphp
+                                            <span class="{{ $statusClass }} px-2 py-1">
+                                                {{ $enquiryLog->status }}
+                                            </span>
+                                        @else
+                                            <span class="text-muted">—</span>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="col-12">
                                     <div class="text-primary small fw-bold text-uppercase">Project Type</div>
                                     <div class="fs-6 text-dark">{{ isset($project) && $project ? 'Converted Project' : 'Enquiry Log' }}</div>
                                 </div>

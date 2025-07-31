@@ -13,7 +13,8 @@
 
 @php
     $enquiry = $enquiryLog->enquiry;
-    // $project is already passed from controller, don't override it
+    // Ensure $project is defined, default to null if not passed
+    $project = $project ?? null;
     $dateReceived = $enquiryLog->date_received ? \Carbon\Carbon::parse($enquiryLog->date_received) : null;
     $expectedDelivery = $enquiry && $enquiry->expected_delivery_date ? \Carbon\Carbon::parse($enquiry->expected_delivery_date) : null;
     $scopeItems = is_array($enquiryLog->project_scope_summary) ? $enquiryLog->project_scope_summary : (json_decode($enquiryLog->project_scope_summary, true) ?: array_filter(explode(',', $enquiryLog->project_scope_summary ?? '')));
@@ -38,10 +39,10 @@
         <td style="font-size: 11px;">{{ $enquiryLog->assigned_to ?? 'Unassigned' }}</td>
     </tr>
     <tr>
+        <th align="left" style="font-size: 11px; font-weight: 600;">Status:</th>
+        <td style="font-size: 11px;">{{ $enquiryLog->status ?? 'Open' }}</td>
         <th align="left" style="font-size: 11px; font-weight: 600;">Project Type:</th>
         <td style="font-size: 11px;">{{ $project ? 'Converted Project' : 'Enquiry Log' }}</td>
-        <th align="left" style="font-size: 11px; font-weight: 600;">Date Received:</th>
-        <td style="font-size: 11px;">{{ $dateReceived ? $dateReceived->format('M d, Y') : 'N/A' }}</td>
         <th align="left" style="font-size: 11px; font-weight: 600;">Expected Delivery:</th>
         <td style="font-size: 11px;">{{ $expectedDelivery ? $expectedDelivery->format('M d, Y') : 'N/A' }}</td>
     </tr>

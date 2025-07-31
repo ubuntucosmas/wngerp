@@ -12,6 +12,7 @@ class CreateEnquiriesTable extends Migration
             $table->id();
             $table->date('date_received');
             $table->date('expected_delivery_date')->nullable();
+            $table->string('project_name')->nullable();
             $table->string('client_name');
             $table->text('project_deliverables')->nullable();
             $table->string('contact_person')->nullable();

@@ -46,11 +46,11 @@ class Enquiry extends Model
             // Get the last enquiry number for this month
             $lastEnquiry = static::whereYear('created_at', date('Y'))
                 ->whereMonth('created_at', date('m'))
-                ->orderBy('enquiry_number', 'desc');
+                ->orderBy('enquiry_number', 'desc')
+                ->first();
                 
-            
-            // Set the new enquiry number
-          // $enquiry->enquiry_number = $lastEnquiry ? $lastEnquiry->enquiry_number + 1 : 1;
+            // Set the new enquiry number (next sequential number for this month)
+            $enquiry->enquiry_number = $lastEnquiry ? $lastEnquiry->enquiry_number + 1 : 1;
         });
     }
 

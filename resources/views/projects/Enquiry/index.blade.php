@@ -231,26 +231,80 @@
         white-space: pre-wrap;
         word-wrap: break-word;
     }
+
+    /* Red styling for non-approved enquiries */
+    .table tbody tr.non-approved-enquiry {
+        background-color: rgba(220, 53, 69, 0.1) !important;
+        border-left: 4px solid #dc3545;
+    }
+
+    .table tbody tr.non-approved-enquiry:hover {
+        background-color: rgba(220, 53, 69, 0.15) !important;
+    }
 </style>
 
 <div class="container-fluid p-2">
 
     <div class="px-3 mx-10 mt-2 w-100">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Enquiries Log</li>
-                    </ol>
-                </nav>
-                <h1 class="mb-0">Enquiries Log</h1>
+            <div class="d-flex align-items-center">
+                <div class="me-4">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Enquiries Log</li>
+                        </ol>
+                    </nav>
+                    <h1 class="mb-0">
+                        @if(isset($viewType) && $viewType === 'all')
+                            All Enquiries
+                        @else
+                            {{ auth()->user()->hasRole('po') ? 'My Enquiries' : 'Enquiries' }}
+                        @endif
+                    </h1>
+                </div>
+                
+                <!-- Enquiry Toggle Buttons -->
+                @hasanyrole('po|super-admin')
+                <div class="d-flex align-items-center gap-2 ms-3" role="group">
+                    <a href="{{ route('enquiries.index') }}" 
+                       class="btn {{ (!isset($viewType) || $viewType === 'assigned') ? 'btn-primary' : 'btn-outline-primary' }} btn-sm d-flex align-items-center gap-1">
+                        <i class="bi bi-person-check-fill"></i>
+                        <span>My Enquiries</span>
+                    </a>
+                    <span class="text-muted">|</span>
+                    <a href="{{ route('enquiries.all') }}" 
+                       class="btn {{ (isset($viewType) && $viewType === 'all') ? 'btn-primary' : 'btn-outline-primary' }} btn-sm d-flex align-items-center gap-1">
+                        <i class="bi bi-people-fill"></i>
+                        <span>All Enquiries</span>
+                    </a>
+                </div>
+                @endhasanyrole
             </div>
+            
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createEnquiryModal">
                 <i class="bi bi-plus-circle me-2"></i>New Enquiry
             </button>
         </div>
     <hr class="mb-4">
+    
+    <!-- Search Form -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <form method="GET" action="{{ isset($viewType) && $viewType === 'all' ? route('enquiries.all') : route('enquiries.index') }}" class="d-flex">
+                <input type="text" name="search" class="form-control me-2" placeholder="Search enquiries..." value="{{ request('search') }}">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-search"></i>
+                </button>
+                @if(request('search'))
+                    <a href="{{ isset($viewType) && $viewType === 'all' ? route('enquiries.all') : route('enquiries.index') }}" class="btn btn-outline-secondary ms-2">
+                        <i class="bi bi-x-circle"></i>
+                    </a>
+                @endif
+            </form>
+        </div>
+    </div>
+
         <!-- Create Enquiry Modal -->
         <div class="modal fade" id="createEnquiryModal" tabindex="-1" aria-labelledby="createEnquiryModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -391,7 +445,7 @@
                 <tbody id="enquiryTableBody">
                     @php $rowIndex = 0; @endphp
                     @forelse($enquiries as $enquiry)
-                        <tr>
+                        <tr class="{{ $enquiry->enquiryLog && $enquiry->enquiryLog->status !== 'Approved' ? 'non-approved-enquiry' : '' }}">
                             <td>{{ $enquiry->formatted_id }}</td>
                             <td>{{ $enquiry->date_received ? \Carbon\Carbon::parse($enquiry->date_received)->format('M d, Y') : '-' }}</td>
                             <td>{{ $enquiry->expected_delivery_date ? \Carbon\Carbon::parse($enquiry->expected_delivery_date)->format('M d, Y') : '-' }}</td>

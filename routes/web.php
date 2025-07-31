@@ -173,6 +173,7 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
 
     // Enquiries Routes
     Route::get('/projects/enquiry', [EnquiryController::class, 'index'])->name('enquiries.index');
+    Route::get('/projects/enquiry/all', [EnquiryController::class, 'allEnquiries'])->name('enquiries.all');
     Route::post('/projects/enquiry', [EnquiryController::class, 'store'])->name('enquiries.store');
     Route::get('/projects/enquiry/create', [EnquiryController::class, 'create'])->name('enquiries.create');
 

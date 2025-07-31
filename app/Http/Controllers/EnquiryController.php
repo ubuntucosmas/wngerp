@@ -11,13 +11,78 @@ use Carbon\Carbon;
 
 class EnquiryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $enquiries = Enquiry::orderBy('date_received', 'desc')->paginate(15);
+        // Get the currently authenticated user
+        $user = auth()->user();
+
+        // Get optional search query parameter from the request
+        $search = $request->input('search');
+
+        // Start building the base query to fetch enquiries along with relationships
+        $query = Enquiry::with('enquiryLog')->orderBy('date_received', 'desc')->orderBy('id', 'desc');
+
+        // If the user is a project officer, show only their assigned enquiries
+        if ($user->hasRole('po')) {
+            $query->where('assigned_po', $user->name);
+        }
+
+        // Keyword search across multiple fields
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('client_name', 'like', "%{$search}%")
+                    ->orWhere('project_name', 'like', "%{$search}%")
+                    ->orWhere('venue', 'like', "%{$search}%")
+                    ->orWhere('contact_person', 'like', "%{$search}%");
+            });
+        }
+
+        // Paginate results and preserve query strings for search
+        $enquiries = $query->paginate(10)->withQueryString();
+
         $statuses = ['Open', 'Quoted', 'Approved', 'Declined'];
         $users = User::where('role', 'po')->get();
         $clients = Client::all();
-        return view('projects.Enquiry.index', compact('enquiries', 'statuses', 'users', 'clients'));
+        
+        // Add view type for the template
+        $viewType = 'assigned';
+
+        return view('projects.Enquiry.index', compact('enquiries', 'statuses', 'users', 'clients', 'viewType'));
+    }
+
+    /**
+     * Display all enquiries (for POs to see all enquiries)
+     */
+    public function allEnquiries(Request $request)
+    {
+        // Get the currently authenticated user
+        $user = auth()->user();
+
+        // Start building the base query to fetch all enquiries
+        $query = Enquiry::with('enquiryLog')->orderBy('date_received', 'desc')->orderBy('id', 'desc');
+
+        // Keyword search across multiple fields
+        $search = $request->input('search');
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('client_name', 'like', "%{$search}%")
+                    ->orWhere('project_name', 'like', "%{$search}%")
+                    ->orWhere('venue', 'like', "%{$search}%")
+                    ->orWhere('contact_person', 'like', "%{$search}%");
+            });
+        }
+
+        // Paginate results
+        $enquiries = $query->paginate(10)->withQueryString();
+        
+        $statuses = ['Open', 'Quoted', 'Approved', 'Declined'];
+        $users = User::where('role', 'po')->get();
+        $clients = Client::all();
+        
+        // Set view type to all
+        $viewType = 'all';
+
+        return view('projects.Enquiry.index', compact('enquiries', 'statuses', 'users', 'clients', 'viewType'));
     }
 
     public function create()
@@ -387,6 +452,7 @@ class EnquiryController extends Controller
             'client_name' => 'required|string|max:255',
             'project_scope_summary' => 'required|string',
             'contact_person' => 'nullable|string|max:255',
+            'status' => 'required|in:Open,Quoted,Approved,Declined',
             'assigned_to' => 'nullable|string|max:255',
             'follow_up_notes' => 'nullable|string',
         ]);

@@ -15,11 +15,16 @@ use Exception;
 
 class ArchivalReportController extends Controller
 {
+    use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
     /**
      * Display archival reports for the project
      */
     public function index(Project $project)
     {
+        // Check if user can view this project
+        $this->authorize('view', $project);
+
         $reports = $project->archivalReports()
             ->with('uploadedBy')
             ->latest('report_date')
@@ -47,6 +52,9 @@ class ArchivalReportController extends Controller
      */
     public function store(Request $request, Project $project)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         DB::enableQueryLog();
         Log::info('Archival Report store method called', ['request' => $request->all()]);
         
@@ -101,6 +109,9 @@ class ArchivalReportController extends Controller
      */
     public function destroy(Project $project, ArchivalReport $archivalReport)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         // Check if the authenticated user is authorized to delete
         if (Auth::user()->cannot('delete', $archivalReport)) {
             return redirect()->back()

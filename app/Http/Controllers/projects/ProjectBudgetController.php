@@ -15,9 +15,13 @@ use App\Models\Enquiry;
 
 class ProjectBudgetController extends Controller
 {
+    use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
     public function index(Project $project = null, Enquiry $enquiry = null)
     {
         if ($enquiry) {
+            // Check if user can view this enquiry
+            $this->authorize('view', $enquiry);
             $budgets = ProjectBudget::where('enquiry_id', $enquiry->id)->with('items')->paginate(10);
             \Log::info('Enquiry budgets loaded', [
                 'enquiry_id' => $enquiry->id,
@@ -26,6 +30,9 @@ class ProjectBudgetController extends Controller
             ]);
             return view('projects.budget.index', compact('enquiry', 'budgets'));
         } else {
+            // Check if user can view this project
+            $this->authorize('view', $project);
+            
             // For projects, get budgets from both project_id and enquiry_id (if converted from enquiry)
             $budgets = ProjectBudget::where(function($query) use ($project) {
                 $query->where('project_id', $project->id);
@@ -56,8 +63,12 @@ class ProjectBudgetController extends Controller
 
         if (str_contains($request->route()->getName(), 'enquiries.')) {
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+            // Check if user can edit this enquiry
+            $this->authorize('update', $enquiry);
         } else {
             $project = Project::findOrFail($projectOrEnquiryId);
+            // Check if user can edit this project (not just view)
+            $this->authorize('edit', $project);
         }
 
         $materialList = null;
@@ -131,11 +142,15 @@ class ProjectBudgetController extends Controller
         
         if (str_contains($request->route()->getName(), 'enquiries.')) {
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+            // Check if user can view this enquiry
+            $this->authorize('view', $enquiry);
             if ($budget->enquiry_id != $enquiry->id) {
                 abort(404);
             }
         } else {
             $project = Project::findOrFail($projectOrEnquiryId);
+            // Check if user can view this project
+            $this->authorize('view', $project);
             if ($budget->project_id != $project->id) {
                 abort(404);
             }
@@ -151,8 +166,12 @@ class ProjectBudgetController extends Controller
 
         if (str_contains($request->route()->getName(), 'enquiries.')) {
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+            // Check if user can edit this enquiry
+            $this->authorize('update', $enquiry);
         } else {
             $project = Project::findOrFail($projectOrEnquiryId);
+            // Check if user can edit this project (not just view)
+            $this->authorize('edit', $project);
         }
 
         if (!auth()->user()->hasRole('po|pm|super-admin')) {
@@ -303,8 +322,12 @@ class ProjectBudgetController extends Controller
 
         if (str_contains($request->route()->getName(), 'enquiries.')) {
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+            // Check if user can edit this enquiry
+            $this->authorize('update', $enquiry);
         } else {
             $project = Project::findOrFail($projectOrEnquiryId);
+            // Check if user can edit this project (not just view)
+            $this->authorize('edit', $project);
         }
 
     if (!auth()->user()->hasAnyRole(['finance', 'accounts', 'super-admin','po','pm'])) {
@@ -343,8 +366,12 @@ class ProjectBudgetController extends Controller
 
         if (str_contains($request->route()->getName(), 'enquiries.')) {
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+            // Check if user can edit this enquiry
+            $this->authorize('update', $enquiry);
         } else {
             $project = Project::findOrFail($projectOrEnquiryId);
+            // Check if user can edit this project (not just view)
+            $this->authorize('edit', $project);
         }
 
     if (!auth()->user()->hasAnyRole(['finance', 'accounts', 'super-admin'])) {
@@ -438,8 +465,12 @@ class ProjectBudgetController extends Controller
 
         if (str_contains($request->route()->getName(), 'enquiries.')) {
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+            // Check if user can edit this enquiry
+            $this->authorize('update', $enquiry);
         } else {
             $project = Project::findOrFail($projectOrEnquiryId);
+            // Check if user can edit this project (not just view)
+            $this->authorize('edit', $project);
         }
 
     try {

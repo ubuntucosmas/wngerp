@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\projects;
 use App\Http\Controllers\Controller;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 use App\Models\EnquiryLog;
 use App\Models\Project;
@@ -10,11 +11,16 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class EnquiryLogController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Show the enquiry log for a given project.
      */
     public function show(Project $project)
     {
+        // Check authorization for viewing project
+        $this->authorize('view', $project);
+
         // Check if this project was converted from an enquiry
         $enquirySource = $project->enquirySource;
         
@@ -34,6 +40,9 @@ class EnquiryLogController extends Controller
      */
     public function create(Project $project)
     {
+        // Check authorization for editing project (not just viewing)
+        $this->authorize('edit', $project);
+
         $enquiry = $project->enquiry;
         return view('projects.enquiry-log.create', compact('project', 'enquiry'));
     }
@@ -43,6 +52,9 @@ class EnquiryLogController extends Controller
      */
     public function store(Request $request, Project $project)
     {
+        // Check authorization for editing project (not just viewing)
+        $this->authorize('edit', $project);
+
         $data = $request->validate([
             'venue' => 'required|string|max:255',
             'date_received' => 'required|date',
@@ -72,6 +84,9 @@ class EnquiryLogController extends Controller
      */
     public function edit(Project $project, EnquiryLog $enquiryLog)
     {
+        // Check authorization for editing project (not just viewing)
+        $this->authorize('edit', $project);
+
         // Ensure the enquiry log belongs to the specified project
         // if ($enquiryLog->project_id !== $project->id) {
         //     abort(404);
@@ -86,6 +101,9 @@ class EnquiryLogController extends Controller
      */
     public function update(Request $request, Project $project, EnquiryLog $enquiryLog)
     {
+        // Check authorization for editing project (not just viewing)
+        $this->authorize('edit', $project);
+
         \Log::info('Project enquiry log update started', [
             'project_id' => $project->id,
             'enquiry_log_id' => $enquiryLog->id,
@@ -148,6 +166,9 @@ class EnquiryLogController extends Controller
      */
     public function destroy(Project $project, EnquiryLog $enquiryLog)
     {
+        // Check authorization for editing project (not just viewing)
+        $this->authorize('edit', $project);
+
         // Ensure the enquiry log belongs to the specified project
         // if ($enquiryLog->project_id !== $project->id) {
         //     abort(404);
@@ -161,6 +182,9 @@ class EnquiryLogController extends Controller
 
     public function downloadEnquiryLog(Project $project)
     {
+        // Check authorization for viewing project
+        $this->authorize('view', $project);
+
         // Check if this project was converted from an enquiry
         $enquirySource = $project->enquirySource;
         
@@ -184,6 +208,9 @@ class EnquiryLogController extends Controller
 
     public function printEnquiryLog(Project $project)
     {
+        // Check authorization for viewing project
+        $this->authorize('view', $project);
+
         // Check if this project was converted from an enquiry
         $enquirySource = $project->enquirySource;
         

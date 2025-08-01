@@ -13,17 +13,25 @@ use Illuminate\Validation\Rule;
 
 class HandoverController extends Controller
 {
+    use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
     /**
      * Display handover documents for the project
      */
     public function index(Project $project)
     {
+        // Check if user can view this project
+        $this->authorize('view', $project);
+
         $reports = $project->handoverReports()->latest()->get();
         return view('projects.handover.index', compact('project', 'reports'));
     }
 
     public function getHandoverData(Project $project)
     {
+        // Check if user can view this project
+        $this->authorize('view', $project);
+
         $reports = $project->handoverReports()->get()->map(function ($report) {
             return [
                 'id' => $report->id,
@@ -42,6 +50,9 @@ class HandoverController extends Controller
      */
     public function store(Request $request, Project $project)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         try {
             $validated = $request->validate([
                 'client_name' => ['required', 'string', 'max:255'],
@@ -78,6 +89,9 @@ class HandoverController extends Controller
      */
     public function destroy(Project $project, HandoverReport $handoverReport)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         // Only allow deletion if user is admin or the uploader
         if (Auth::id() !== $handoverReport->uploaded_by && Auth::user()->role !== 'admin') {
             return redirect()->back()->with('error', 'You are not authorized to delete this handover document.');

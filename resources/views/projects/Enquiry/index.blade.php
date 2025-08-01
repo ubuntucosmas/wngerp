@@ -309,12 +309,14 @@
                 <i class="bi bi-people-fill"></i>
                 <span>All Enquiries</span>
             </a>
+            @hasanyrole('admin|pm|super-admin')
             <span class="text-muted">|</span>
             <a href="{{ route('enquiries.trashed') }}" 
                class="btn {{ (isset($viewType) && $viewType === 'trashed') ? 'btn-danger' : 'btn-outline-danger' }} btn-sm d-flex align-items-center gap-1">
                 <i class="bi bi-trash"></i>
                 <span>Deleted</span>
             </a>
+            @endhasanyrole
         </div>
         @endhasanyrole
     </div>

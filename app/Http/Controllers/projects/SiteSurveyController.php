@@ -11,8 +11,13 @@ use Illuminate\Support\Str;
 
 class SiteSurveyController extends Controller
 {
+    use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
     public function create(Project $project)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         // Load necessary relationships
         $project->load(['client', 'projectManager', 'projectOfficer']);
         
@@ -41,6 +46,9 @@ class SiteSurveyController extends Controller
 
     public function store(Request $request, Project $project)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         $validated = $request->validate([
             // Basic Info
             'site_visit_date' => 'required|date',
@@ -114,11 +122,17 @@ class SiteSurveyController extends Controller
 
     public function show(Project $project, SiteSurvey $siteSurvey)
     {
+        // Check if user can view this project
+        $this->authorize('view', $project);
+
         return view('projects.site-survey.show', compact('project', 'siteSurvey'));
     }
 
     public function edit(Project $project, SiteSurvey $siteSurvey)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         // Eager load the project manager and project officer relationships
         $project->load(['projectManager', 'projectOfficer']);
         
@@ -136,6 +150,9 @@ class SiteSurveyController extends Controller
 
     public function update(Request $request, Project $project, SiteSurvey $siteSurvey)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         $validated = $request->validate([
             // Same validation as store
         ]);
@@ -151,6 +168,9 @@ class SiteSurveyController extends Controller
 
     public function destroy(Project $project, SiteSurvey $siteSurvey)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         $siteSurvey->delete();
         return redirect()->route('projects.site-survey.show', [$project, $siteSurvey])
             ->with('success', 'Site survey deleted successfully!');
@@ -159,6 +179,9 @@ class SiteSurveyController extends Controller
 
     public function downloadSiteSurvey(Project $project)
     {
+        // Check if user can view this project
+        $this->authorize('view', $project);
+
         // Check if this project was converted from an enquiry
         $enquirySource = $project->enquirySource;
         
@@ -183,6 +206,9 @@ class SiteSurveyController extends Controller
 
     public function printSiteSurvey(Project $project)
     {
+        // Check if user can view this project
+        $this->authorize('view', $project);
+
         // Check if this project was converted from an enquiry
         $enquirySource = $project->enquirySource;
         

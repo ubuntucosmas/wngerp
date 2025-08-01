@@ -9,13 +9,21 @@ use Illuminate\Support\Facades\Storage;
 
 class FileUploadController extends Controller
 {
+    use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
     public function showQuotation(Project $project)
     {
+        // Check if user can view this project
+        $this->authorize('view', $project);
+
         return view('projects.files.quotation', compact('project'));
     }
 
     public function uploadQuotation(Request $request, Project $project)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         $request->validate([
             'file' => 'required|file|mimes:jpg,jpeg,png,pdf,doc,docx,xls,xlsx|max:5120', // Increased max size and added more mimes
         ]);
@@ -50,11 +58,17 @@ class FileUploadController extends Controller
 
     public function showSiteSurvey(Project $project)
     {
+        // Check if user can view this project
+        $this->authorize('view', $project);
+
         return view('projects.files.site-survey', compact('project'));
     }
 
     public function uploadSiteSurvey(Request $request, Project $project)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         $request->validate([
             'file' => 'required|file|mimes:jpg,jpeg,png,pdf,doc,docx,xls,xlsx|max:5120', // Increased max size and added more mimes
         ]);

@@ -85,36 +85,37 @@ class InventoryController extends Controller
 
     public function index(Request $request)
     {
-        // Fetch query parameters for filters
-    $query = Inventory::query();
+        // Build query for active inventory items
+        $query = Inventory::query();
 
-    $deletedItems = Inventory::onlyTrashed()->with('category')->paginate(10); // Soft-deleted items
+        // Apply filters
+        if ($request->filled('sku')) {
+            $query->where('sku', 'like', '%' . $request->sku . '%');
+        }
 
-    // Apply filters
-    if ($request->filled('sku')) {
-        $query->where('sku', 'like', '%' . $request->sku . '%');
-    }
+        if ($request->filled('item_name')) {
+            $query->where('item_name', 'like', '%' . $request->item_name . '%');
+        }
 
-    if ($request->filled('item_name')) {
-        $query->where('item_name', 'like', '%' . $request->item_name . '%');
-    }
+        if ($request->filled('category_name')) {
+            $query->whereHas('category', function ($q) use ($request) {
+                $q->where('category_name', 'like', '%' . $request->category_name . '%');
+            });
+        }
 
-    if ($request->filled('category_name')) {
-        $query->whereHas('category', function ($q) use ($request) {
-            $q->where('category_name', 'like', '%' . $request->category_name . '%');
-        });
-    }
         // Paginate results
-        $items = $query->with('category')->orderBy('created_at', 'desc')->paginate(10);
+        $items = $query->with('category')->orderBy('created_at', 'desc')->paginate(15);
         
-            // Fetch SKUs and item names as key-value pairs
+        // Fetch SKUs and item names as key-value pairs
         $skus = Inventory::pluck('item_name', 'sku');
 
         $skus_returns = Inventory::where('quantity_checked_out', '>', 0)
-        ->pluck('item_name', 'sku'); // returns [sku => item_name]
+            ->pluck('item_name', 'sku');
 
+        // Set view type
+        $viewType = 'active';
 
-        return view('inventory.index', compact('items', 'skus', 'skus_returns', 'deletedItems'));
+        return view('inventory.index', compact('items', 'skus', 'skus_returns', 'viewType'));
     }
 
     public function create() {
@@ -194,10 +195,37 @@ class InventoryController extends Controller
         return redirect()->route('inventory.index')->with('success', 'Item soft-deleted.');
     }
 
-    public function trash()
+    public function trash(Request $request)
     {
-        $deletedItems = Inventory::onlyTrashed()->with('category')->paginate(10);
-        return view('inventory.trash', compact('deletedItems'));
+        // Build query for trashed inventory items
+        $query = Inventory::onlyTrashed();
+
+        // Apply filters
+        if ($request->filled('sku')) {
+            $query->where('sku', 'like', '%' . $request->sku . '%');
+        }
+
+        if ($request->filled('item_name')) {
+            $query->where('item_name', 'like', '%' . $request->item_name . '%');
+        }
+
+        if ($request->filled('category_name')) {
+            $query->whereHas('category', function ($q) use ($request) {
+                $q->where('category_name', 'like', '%' . $request->category_name . '%');
+            });
+        }
+
+        // Paginate results
+        $items = $query->with('category')->orderBy('deleted_at', 'desc')->paginate(15);
+        
+        // Fetch SKUs and item names as key-value pairs (empty for trashed view)
+        $skus = collect();
+        $skus_returns = collect();
+
+        // Set view type
+        $viewType = 'trashed';
+
+        return view('inventory.index', compact('items', 'skus', 'skus_returns', 'viewType'));
     }
 
 

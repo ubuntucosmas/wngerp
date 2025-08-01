@@ -15,17 +15,25 @@ use Illuminate\Validation\Rule;
 
 class SetupController extends Controller
 {
+    use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
     /**
      * Display setup & execution files for the project
      */
     public function index(Project $project)
     {
+        // Check if user can view this project
+        $this->authorize('view', $project);
+
         $reports = $project->setupReports()->latest()->get();
         return view('projects.setup.index', compact('project', 'reports'));
     }
 
     public function store(Request $request, Project $project)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         // Enable query logging
         \DB::enableQueryLog();
         
@@ -76,6 +84,9 @@ class SetupController extends Controller
 
     public function destroy(Project $project, SetupReport $setupReport)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         // Check if the authenticated user is authorized to delete
         // if (Auth::user()->hasAnyrole()) {
         //     return redirect()->back()->with('error', 'You are not authorized to delete this report.');

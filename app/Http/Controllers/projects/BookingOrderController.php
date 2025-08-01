@@ -11,8 +11,13 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class BookingOrderController extends Controller
 {
+    use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
     public function index(Project $project)
     {
+        // Check if user can view this project
+        $this->authorize('view', $project);
+
         $bookingOrder = BookingOrder::where('project_id', $project->id)
             ->with('teams')
             ->latest()
@@ -22,11 +27,17 @@ class BookingOrderController extends Controller
 
     public function create(Project $project)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         return view('projects.bookingOrder.create', compact('project'));
     }
 
     public function store(Request $request, Project $project)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         $data = $this->prepareBookingOrderData($request);
         $data['project_id'] = $project->id;
 
@@ -43,11 +54,17 @@ class BookingOrderController extends Controller
 
     public function edit(Project $project, BookingOrder $bookingOrder)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         return view('projects.bookingOrder.edit', compact('project', 'bookingOrder'));
     }
 
     public function update(Request $request, Project $project, BookingOrder $bookingOrder)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         $data = $this->prepareBookingOrderData($request);
         $bookingOrder->update($data);
 
@@ -126,6 +143,9 @@ class BookingOrderController extends Controller
 
     public function downloadBookingOrder(Project $project)
     {
+        // Check if user can view this project
+        $this->authorize('view', $project);
+
         $order = $project->bookingOrder()->latest()->first();
 
         if (!$order) {
@@ -137,6 +157,9 @@ class BookingOrderController extends Controller
     
     public function printBookingOrder(Project $project)
     {
+        // Check if user can view this project
+        $this->authorize('view', $project);
+
         $order = $project->bookingOrder()->latest()->first();
 
         if (!$order) {

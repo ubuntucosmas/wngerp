@@ -7,10 +7,12 @@ use App\Models\Project;
 use App\Models\User;
 use App\Models\Client;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Carbon\Carbon;
 
 class EnquiryController extends Controller
 {
+    use AuthorizesRequests;
     public function index(Request $request)
     {
         // Get the currently authenticated user
@@ -98,6 +100,9 @@ class EnquiryController extends Controller
      */
     public function files(Enquiry $enquiry)
     {
+        // Check if user can view this enquiry
+        $this->authorize('view', $enquiry);
+        
         // List of file types for the enquiry (same structure as project)
         $fileTypes = [
             ['name' => 'Enquiry Log', 'route' => route('enquiries.enquiry-log.create', $enquiry), 'template' => 'enquiry-log-template'],
@@ -251,6 +256,12 @@ class EnquiryController extends Controller
     private function updatePhaseStatuses($enquiry, $phaseCompletions)
     {
         foreach ($enquiry->phases as $phase) {
+            // Check if this phase exists in the completions array
+            if (!isset($phaseCompletions[$phase->name])) {
+                // Skip phases that don't have completion data
+                continue;
+            }
+            
             $completions = $phaseCompletions[$phase->name];
             
             if (isset($completions)) {
@@ -322,12 +333,18 @@ class EnquiryController extends Controller
 
     public function edit(Enquiry $enquiry)
     {
+        // Check if user can update this enquiry
+        $this->authorize('update', $enquiry);
+        
         $statuses = ['Open', 'Quoted', 'Approved', 'Declined'];
         return view('projects.Enquiry.edit', compact('enquiry', 'statuses'));
     }
 
     public function update(Request $request, Enquiry $enquiry)
     {
+        // Check if user can update this enquiry
+        $this->authorize('update', $enquiry);
+        
         $validated = $request->validate([
             'date_received' => 'required|date',
             'expected_delivery_date' => 'nullable|date|after_or_equal:date_received',
@@ -363,6 +380,9 @@ class EnquiryController extends Controller
 
     public function destroy(Enquiry $enquiry)
     {
+        // Check if user can delete this enquiry
+        $this->authorize('delete', $enquiry);
+        
         $enquiry->delete();
         return redirect()->route('enquiries.index')->with('success', 'Enquiry deleted successfully.');
     }
@@ -450,6 +470,9 @@ class EnquiryController extends Controller
      */
     public function showClientEngagement(Enquiry $enquiry)
     {
+        // Check if user can view this enquiry
+        $this->authorize('view', $enquiry);
+        
         // Check if enquiry log exists for this enquiry
         $existingEnquiryLog = $enquiry->enquiryLog()->first();
         
@@ -508,6 +531,9 @@ class EnquiryController extends Controller
      */
     public function createEnquiryLog(Enquiry $enquiry)
     {
+        // Check if user can update this enquiry
+        $this->authorize('update', $enquiry);
+        
         return view('projects.enquiry-log.create', compact('enquiry'));
     }
 
@@ -516,6 +542,9 @@ class EnquiryController extends Controller
      */
     public function showEnquiryLog(Enquiry $enquiry, \App\Models\EnquiryLog $enquiryLog)
     {
+        // Check if user can view this enquiry
+        $this->authorize('view', $enquiry);
+        
         return view('projects.enquiry-log.show', compact('enquiry', 'enquiryLog'));
     }
 
@@ -524,6 +553,9 @@ class EnquiryController extends Controller
      */
     public function storeEnquiryLog(Request $request, Enquiry $enquiry)
     {
+        // Check if user can update this enquiry
+        $this->authorize('update', $enquiry);
+        
         $data = $request->validate([
             'venue' => 'required|string|max:255',
             'date_received' => 'required|date',
@@ -552,6 +584,9 @@ class EnquiryController extends Controller
      */
     public function createSiteSurvey(Enquiry $enquiry)
     {
+        // Check if user can update this enquiry
+        $this->authorize('update', $enquiry);
+        
         // Create new site survey with default values from enquiry
         $siteSurvey = new \App\Models\SiteSurvey([
             'client_name' => $enquiry->client_name,
@@ -615,6 +650,9 @@ class EnquiryController extends Controller
      */
     public function storeSiteSurvey(Request $request, Enquiry $enquiry)
     {
+        // Check if user can update this enquiry
+        $this->authorize('update', $enquiry);
+
         $validated = $request->validate([
             // Basic Info
             'site_visit_date' => 'required|date',
@@ -684,6 +722,9 @@ class EnquiryController extends Controller
      */
     public function showDesignConcept(Enquiry $enquiry)
     {
+        // Check if user can view this enquiry
+        $this->authorize('view', $enquiry);
+
         // For enquiries, we can show design concept files
         return view('projects.files.design-concept', compact('enquiry'));
     }
@@ -693,6 +734,9 @@ class EnquiryController extends Controller
      */
     public function showQuotation(Enquiry $enquiry)
     {
+        // Check if user can view this enquiry
+        $this->authorize('view', $enquiry);
+
         $project = $enquiry->project; // Get the associated project
         return view('projects.files.quotation', compact('enquiry', 'project'));
     }
@@ -702,11 +746,17 @@ class EnquiryController extends Controller
      */
     public function showSetup(Enquiry $enquiry)
     {
+        // Check if user can view this enquiry
+        $this->authorize('view', $enquiry);
+
         return view('projects.files.setup', compact('enquiry'));
     }
 
     public function showArchival(Enquiry $enquiry)
     {
+        // Check if user can view this enquiry
+        $this->authorize('view', $enquiry);
+
         return view('projects.files.archival', compact('enquiry'));
     }
 
@@ -751,6 +801,9 @@ class EnquiryController extends Controller
 
     public function editSiteSurvey(Enquiry $enquiry, \App\Models\SiteSurvey $siteSurvey)
     {
+        // Check if user can update this enquiry
+        $this->authorize('update', $enquiry);
+
         // Get team members for enquiries (use assigned PO and any other relevant users)
         $teamMembers = collect();
         if ($enquiry->assigned_po) {
@@ -773,6 +826,9 @@ class EnquiryController extends Controller
 
     public function updateSiteSurvey(Request $request, Enquiry $enquiry, \App\Models\SiteSurvey $siteSurvey)
     {
+        // Check if user can update this enquiry
+        $this->authorize('update', $enquiry);
+
         $validated = $request->validate([
             // Basic Info
             'site_visit_date' => 'required|date',
@@ -835,6 +891,9 @@ class EnquiryController extends Controller
 
     public function destroySiteSurvey(Enquiry $enquiry, \App\Models\SiteSurvey $siteSurvey)
     {
+        // Check if user can update this enquiry
+        $this->authorize('update', $enquiry);
+
         $siteSurvey->delete();
         return redirect()->route('enquiries.files', $enquiry)
             ->with('success', 'Site survey deleted successfully!');
@@ -845,6 +904,9 @@ class EnquiryController extends Controller
      */
     public function skipSiteSurvey(Request $request, Enquiry $enquiry)
     {
+        // Check if user can edit this enquiry (not just view)
+        $this->authorize('update', $enquiry);
+
         $validated = $request->validate([
             'site_survey_skip_reason' => 'nullable|string|max:255',
         ]);
@@ -863,6 +925,9 @@ class EnquiryController extends Controller
      */
     public function unskipSiteSurvey(Enquiry $enquiry)
     {
+        // Check if user can edit this enquiry (not just view)
+        $this->authorize('update', $enquiry);
+
         $enquiry->update([
             'site_survey_skipped' => false,
             'site_survey_skip_reason' => null,
@@ -874,6 +939,9 @@ class EnquiryController extends Controller
 
     public function showMockups(Enquiry $enquiry)
     {
+        // Check if user can view this enquiry
+        $this->authorize('view', $enquiry);
+
         $designAssets = $enquiry->designAssets()->with('user')->orderBy('created_at', 'desc')->get();
         return view('projects.files.mockups', compact('enquiry', 'designAssets'));
     }
@@ -883,6 +951,9 @@ class EnquiryController extends Controller
      */
     public function editEnquiryLog(Enquiry $enquiry, \App\Models\EnquiryLog $enquiryLog)
     {
+        // Check if user can update this enquiry
+        $this->authorize('update', $enquiry);
+
         return view('projects.enquiry-log.edit', compact('enquiry', 'enquiryLog'));
     }
 
@@ -891,6 +962,9 @@ class EnquiryController extends Controller
      */
     public function updateEnquiryLog(Request $request, Enquiry $enquiry, \App\Models\EnquiryLog $enquiryLog)
     {
+        // Check if user can update this enquiry
+        $this->authorize('update', $enquiry);
+
         \Log::info('Enquiry log update started', [
             'enquiry_id' => $enquiry->id,
             'enquiry_log_id' => $enquiryLog->id,
@@ -950,6 +1024,9 @@ class EnquiryController extends Controller
      */
     public function destroyEnquiryLog(Enquiry $enquiry, \App\Models\EnquiryLog $enquiryLog)
     {
+        // Check if user can update this enquiry
+        $this->authorize('update', $enquiry);
+
         $enquiryLog->delete();
         return redirect()->route('enquiries.files', $enquiry)
                          ->with('success', 'Enquiry Log deleted successfully.');

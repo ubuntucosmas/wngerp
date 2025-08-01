@@ -11,13 +11,13 @@ use App\Models\ProjectBudget;
 
 class ProjectFileController extends Controller
 {
-    // public function __construct()
-    // {
-    //     $this->middleware(['role:pm|po']);
-    // }
+    use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
     
     public function index(Project $project)
     {
+        // Check if user can view this project
+        $this->authorize('view', $project);
+
         // List of file types for the project
         $fileTypes = [
             ['name' => 'Enquiry', 'route' => route('projects.enquiry-log.show', $project), 'template' => 'enquiry-log-template'],
@@ -592,6 +592,9 @@ class ProjectFileController extends Controller
      */
     public function skipSiteSurvey(Request $request, Project $project)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         $validated = $request->validate([
             'site_survey_skip_reason' => 'nullable|string|max:255',
         ]);
@@ -610,6 +613,9 @@ class ProjectFileController extends Controller
      */
     public function unskipSiteSurvey(Project $project)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         $project->update([
             'site_survey_skipped' => false,
             'site_survey_skip_reason' => null,

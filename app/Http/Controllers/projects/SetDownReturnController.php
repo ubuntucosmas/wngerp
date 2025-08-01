@@ -16,11 +16,16 @@ use Exception;
 
 class SetDownReturnController extends Controller
 {
+    use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
     /**
      * Display set down & return documents for the project
      */
     public function index(Project $project)
     {
+        // Check if user can view this project
+        $this->authorize('view', $project);
+
         $reports = $project->setDownReturns()->latest()->get();
         return view('projects.setdown.index', compact('project', 'reports'));
     }
@@ -30,6 +35,9 @@ class SetDownReturnController extends Controller
      */
     public function store(\Illuminate\Http\Request $request, \App\Models\Project $project)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         \Illuminate\Support\Facades\DB::enableQueryLog();
         \Illuminate\Support\Facades\Log::info('Set Down & Return store method called', ['request' => $request->all()]);
         
@@ -80,6 +88,9 @@ class SetDownReturnController extends Controller
      */
     public function destroy(Project $project, SetDownReturn $setDownReturn)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         // Check if the authenticated user is authorized to delete
         if (Auth::user()->cannot('delete', $setDownReturn)) {
             return redirect()->back()->with('error', 'You are not authorized to delete this set down & return document.');

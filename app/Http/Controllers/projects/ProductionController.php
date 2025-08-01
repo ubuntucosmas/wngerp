@@ -12,6 +12,8 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class ProductionController extends Controller
 {
+    use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
     /**
      * Display the production dashboard
      *
@@ -20,6 +22,9 @@ class ProductionController extends Controller
      */
     public function index(Project $project)
     {
+        // Check if user can view this project
+        $this->authorize('view', $project);
+
         // Eager load the production with its tasks, ordered by due date
         $production = $project->production()->with(['tasks' => function($query) {
             $query->orderBy('due_date', 'asc');
@@ -76,6 +81,9 @@ class ProductionController extends Controller
      */
     public function showJobBrief(Project $project)
     {
+        // Check if user can view this project
+        $this->authorize('view', $project);
+
         // Reuse the index method since it contains the same logic
         return $this->index($project);
     }
@@ -89,6 +97,9 @@ class ProductionController extends Controller
      */
     public function storeJobBrief(Request $request, Project $project)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         $validated = $request->validate([
             'job_number' => 'required|string|max:255',
             'client_name' => 'required|string|max:255',
@@ -137,6 +148,9 @@ class ProductionController extends Controller
      */
     public function updateStatus(Request $request, Project $project)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         $validated = $request->validate([
             'status' => 'required|string|in:pending,approved,rejected,completed',
             'notes' => 'nullable|string'
@@ -164,6 +178,9 @@ class ProductionController extends Controller
      */
     public function updateJobBrief(Request $request, Project $project, Production $production)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         $validated = $request->validate([
             'job_number' => 'required|string|max:255',
             'client_name' => 'required|string|max:255',
@@ -253,6 +270,9 @@ class ProductionController extends Controller
      */
     public function showFiles(Project $project)
     {
+        // Check if user can view this project
+        $this->authorize('view', $project);
+
         $production = $project->production ?? new Production(['project_id' => $project->id]);
         return view('projects.production.files', compact('project', 'production'));
     }
@@ -267,6 +287,9 @@ class ProductionController extends Controller
      */
     public function updateFiles(Request $request, Project $project, Production $production)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         $validated = $request->validate([
             // Add validation rules for your production files here
         ]);
@@ -299,6 +322,8 @@ class ProductionController extends Controller
      */
     public function destroy(Project $project, Production $production)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
 
         // Delete the production record
         $production->delete();
@@ -316,6 +341,9 @@ class ProductionController extends Controller
      */
     public function download(Project $project)
     {
+        // Check if user can view this project
+        $this->authorize('view', $project);
+
         $production = $project->production;
 
         if (!$production) {
@@ -335,6 +363,9 @@ class ProductionController extends Controller
      */
     public function print(Project $project)
     {
+        // Check if user can view this project
+        $this->authorize('view', $project);
+
         $production = $project->production;
 
         if (!$production) {

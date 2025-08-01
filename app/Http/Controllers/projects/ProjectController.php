@@ -4,6 +4,7 @@ namespace App\Http\Controllers\projects;
 use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Models\User;
 use App\Models\Project;
 use App\Models\Phase;
@@ -15,6 +16,7 @@ use Carbon\Carbon;
 
 class ProjectController extends Controller
 {
+    use AuthorizesRequests;
 
     public function overview()
     {
@@ -32,6 +34,9 @@ class ProjectController extends Controller
 
     public function index(Request $request)
     {
+        // Check if user can view projects
+        $this->authorize('viewAny', Project::class);
+
         // Get the currently authenticated user
         $user = auth()->user();
 
@@ -81,6 +86,9 @@ class ProjectController extends Controller
      */
     public function allProjects(Request $request)
     {
+        // Check if user can view projects
+        $this->authorize('viewAny', Project::class);
+
         // Get the currently authenticated user
         $user = auth()->user();
 
@@ -117,10 +125,8 @@ class ProjectController extends Controller
     
     public function store(Request $request)
     {
-        // Only PMs can create projects
-        // if (!auth()->user()->hasAnyRole(['super-admin', 'pm'])) {
-        //     abort(403, 'Unauthorized');
-        // }
+        // Check if user can create projects
+        $this->authorize('create', Project::class);
     
         // Validate request
         $validated = $request->validate([
@@ -203,6 +209,9 @@ class ProjectController extends Controller
 
     public function assignProjectOfficer(Request $request, Project $project)
     {
+        // Check if user can assign project officers
+        $this->authorize('assignOfficer', $project);
+
         $validated = $request->validate([
             'project_officer_id' => 'required|exists:users,id',
         ]);
@@ -215,12 +224,10 @@ class ProjectController extends Controller
 
     public function destroy($id)
     {
-        // Only PMs and super-admins can delete projects
-        if (!auth()->user()->hasAnyRole(['pm', 'super-admin'])) {
-            abort(403, 'You do not have permission to delete projects. Only Project Managers and Super Admins can delete projects.');
-        }
-
         $project = Project::findOrFail($id);
+        
+        // Check if user can delete this project
+        $this->authorize('delete', $project);
         
         // Check if this project was converted from an enquiry
         $enquiry = Enquiry::where('converted_to_project_id', $project->id)->first();
@@ -259,10 +266,8 @@ class ProjectController extends Controller
      */
     public function trashed(Request $request)
     {
-        // Only PMs and super-admins can view trashed projects
-        if (!auth()->user()->hasAnyRole(['pm', 'super-admin'])) {
-            abort(403, 'You do not have permission to view trashed projects.');
-        }
+        // Check if user can view trashed projects (using a dummy project for policy check)
+        $this->authorize('viewAny', Project::class);
 
         $query = Project::onlyTrashed()->with(['projectManager', 'projectOfficer'])
             ->orderBy('deleted_at', 'desc');
@@ -292,12 +297,11 @@ class ProjectController extends Controller
      */
     public function restore($id)
     {
-        // Only PMs and super-admins can restore projects
-        if (!auth()->user()->hasAnyRole(['pm', 'super-admin'])) {
-            abort(403, 'You do not have permission to restore projects.');
-        }
-
         $project = Project::onlyTrashed()->findOrFail($id);
+        
+        // Check if user can restore this project
+        $this->authorize('restore', $project);
+
         $project->restore();
 
         return redirect()->route('projects.trashed')->with('success', 'Project restored successfully.');
@@ -308,12 +312,10 @@ class ProjectController extends Controller
      */
     public function forceDelete($id)
     {
-        // Only super-admins can permanently delete projects
-        if (!auth()->user()->hasRole('super-admin')) {
-            abort(403, 'You do not have permission to permanently delete projects. Only Super Admins can permanently delete projects.');
-        }
-
         $project = Project::onlyTrashed()->findOrFail($id);
+        
+        // Check if user can permanently delete this project
+        $this->authorize('forceDelete', $project);
         
         // Check if this project was converted from an enquiry
         $enquiry = Enquiry::where('converted_to_project_id', $project->id)->first();

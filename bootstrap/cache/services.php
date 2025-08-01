@@ -39,7 +39,8 @@
     35 => 'Spatie\\Permission\\PermissionServiceProvider',
     36 => 'Spatie\\SignalAwareCommand\\SignalAwareCommandServiceProvider',
     37 => 'App\\Providers\\AppServiceProvider',
-    38 => 'App\\Providers\\ViewServiceProvider',
+    38 => 'App\\Providers\\AuthServiceProvider',
+    39 => 'App\\Providers\\ViewServiceProvider',
   ),
   'eager' => 
   array (
@@ -65,7 +66,8 @@
     19 => 'Spatie\\Permission\\PermissionServiceProvider',
     20 => 'Spatie\\SignalAwareCommand\\SignalAwareCommandServiceProvider',
     21 => 'App\\Providers\\AppServiceProvider',
-    22 => 'App\\Providers\\ViewServiceProvider',
+    22 => 'App\\Providers\\AuthServiceProvider',
+    23 => 'App\\Providers\\ViewServiceProvider',
   ),
   'deferred' => 
   array (

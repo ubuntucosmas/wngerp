@@ -414,8 +414,14 @@
     <!-- Bootstrap Bundle JS (includes Popper) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
+    <!-- Error Handler for Beautiful 403 Modals -->
+<script src="{{ asset('js/error-handler.js') }}"></script>
+    
     @stack('scripts')
     @stack('modals')
+    
+    <!-- Include Unauthorized Modal Component -->
+    @include('components.unauthorized-modal')
     
     <script>
         // Hide loader when page is fully loaded

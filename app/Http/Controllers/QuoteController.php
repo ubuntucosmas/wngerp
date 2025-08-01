@@ -9,6 +9,7 @@ use App\Models\MaterialListItem;
 use App\Models\LabourItem;
 use App\Models\ProjectBudget;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -18,6 +19,8 @@ use App\Models\Enquiry;
 
 class QuoteController extends Controller
 {
+    use AuthorizesRequests;
+    
     public function index(Request $request, $projectOrEnquiryId)
     {
         $project = null;
@@ -25,8 +28,12 @@ class QuoteController extends Controller
 
         if (str_contains($request->route()->getName(), 'enquiries.')) {
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+            // Check if user can view this enquiry
+            $this->authorize('view', $enquiry);
         } else {
             $project = Project::findOrFail($projectOrEnquiryId);
+            // Check if user can view this project
+            $this->authorize('view', $project);
         }
 
         $quotes = collect(); // Initialize as an empty collection
@@ -62,8 +69,12 @@ class QuoteController extends Controller
 
         if (str_contains($request->route()->getName(), 'enquiries.')) {
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+            // Check if user can edit this enquiry
+            $this->authorize('update', $enquiry);
         } else {
             $project = Project::findOrFail($projectOrEnquiryId);
+            // Check if user can edit this project (not just view)
+            $this->authorize('edit', $project);
         }
 
         if (!auth()->user()->hasAnyRole(['finance', 'accounts', 'super-admin'])) {
@@ -148,8 +159,12 @@ class QuoteController extends Controller
 
         if (str_contains($request->route()->getName(), 'enquiries.')) {
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+            // Check if user can edit this enquiry
+            $this->authorize('update', $enquiry);
         } else {
             $project = Project::findOrFail($projectOrEnquiryId);
+            // Check if user can edit this project (not just view)
+            $this->authorize('edit', $project);
         }
 
         DB::beginTransaction();
@@ -341,8 +356,12 @@ class QuoteController extends Controller
 
         if (str_contains($request->route()->getName(), 'enquiries.')) {
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+            // Check if user can edit this enquiry
+            $this->authorize('update', $enquiry);
         } else {
             $project = Project::findOrFail($projectOrEnquiryId);
+            // Check if user can edit this project (not just view)
+            $this->authorize('edit', $project);
         }
 
         $quote->load('lineItems');
@@ -360,8 +379,12 @@ class QuoteController extends Controller
 
         if (str_contains($request->route()->getName(), 'enquiries.')) {
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+            // Check if user can edit this enquiry
+            $this->authorize('update', $enquiry);
         } else {
             $project = Project::findOrFail($projectOrEnquiryId);
+            // Check if user can edit this project (not just view)
+            $this->authorize('edit', $project);
         }
 
     DB::beginTransaction();
@@ -523,8 +546,12 @@ class QuoteController extends Controller
 
         if (str_contains($request->route()->getName(), 'enquiries.')) {
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+            // Check if user can edit this enquiry
+            $this->authorize('update', $enquiry);
         } else {
             $project = Project::findOrFail($projectOrEnquiryId);
+            // Check if user can edit this project (not just view)
+            $this->authorize('edit', $project);
         }
 
         try {

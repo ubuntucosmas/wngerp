@@ -5,13 +5,27 @@ namespace App\Http\Controllers\projects;
 use App\Http\Controllers\Controller;
 use App\Models\ProjectPhase;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class PhaseStatusController extends Controller
 {
+    use AuthorizesRequests;
+
     public function updateStatus(Request $request, $phaseId)
     {
         try {
             $phase = ProjectPhase::findOrFail($phaseId);
+            
+            // Get the related project or enquiry to check authorization
+            if ($phase->phaseable_type === 'App\Models\Project') {
+                $project = $phase->phaseable;
+                // Check if user can edit this project (not just view)
+                $this->authorize('edit', $project);
+            } elseif ($phase->phaseable_type === 'App\Models\Enquiry') {
+                $enquiry = $phase->phaseable;
+                // Check if user can edit this enquiry (not just view)
+                $this->authorize('update', $enquiry);
+            }
             
             $request->validate([
                 'status' => 'required|in:Not Started,In Progress,Completed'
@@ -51,6 +65,17 @@ class PhaseStatusController extends Controller
     {
         try {
             $phase = ProjectPhase::findOrFail($phaseId);
+            
+            // Get the related project or enquiry to check authorization
+            if ($phase->phaseable_type === 'App\Models\Project') {
+                $project = $phase->phaseable;
+                // Check if user can edit this project (not just view)
+                $this->authorize('edit', $project);
+            } elseif ($phase->phaseable_type === 'App\Models\Enquiry') {
+                $enquiry = $phase->phaseable;
+                // Check if user can edit this enquiry (not just view)
+                $this->authorize('update', $enquiry);
+            }
             
             $request->validate([
                 'status' => 'required|in:Not Started,In Progress,Completed'
@@ -103,6 +128,17 @@ class PhaseStatusController extends Controller
         try {
             $phase = ProjectPhase::findOrFail($phaseId);
             
+            // Get the related project or enquiry to check authorization
+            if ($phase->phaseable_type === 'App\Models\Project') {
+                $project = $phase->phaseable;
+                // Check if user can edit this project (not just view)
+                $this->authorize('edit', $project);
+            } elseif ($phase->phaseable_type === 'App\Models\Enquiry') {
+                $enquiry = $phase->phaseable;
+                // Check if user can edit this enquiry (not just view)
+                $this->authorize('update', $enquiry);
+            }
+            
             if (!in_array($status, ['Not Started', 'In Progress', 'Completed'])) {
                 throw new \Exception('Invalid status');
             }
@@ -136,6 +172,18 @@ class PhaseStatusController extends Controller
     public function skipPhase(Request $request, $phaseId)
     {
         $phase = ProjectPhase::findOrFail($phaseId);
+        
+        // Get the related project or enquiry to check authorization
+        if ($phase->phaseable_type === 'App\Models\Project') {
+            $project = $phase->phaseable;
+            // Check if user can edit this project (not just view)
+            $this->authorize('edit', $project);
+        } elseif ($phase->phaseable_type === 'App\Models\Enquiry') {
+            $enquiry = $phase->phaseable;
+            // Check if user can edit this enquiry (not just view)
+            $this->authorize('update', $enquiry);
+        }
+        
         $phase->skipped = true;
         $phase->skip_reason = $request->input('skip_reason');
         $phase->save();
@@ -145,6 +193,18 @@ class PhaseStatusController extends Controller
     public function unskipPhase($phaseId)
     {
         $phase = ProjectPhase::findOrFail($phaseId);
+        
+        // Get the related project or enquiry to check authorization
+        if ($phase->phaseable_type === 'App\Models\Project') {
+            $project = $phase->phaseable;
+            // Check if user can edit this project (not just view)
+            $this->authorize('edit', $project);
+        } elseif ($phase->phaseable_type === 'App\Models\Enquiry') {
+            $enquiry = $phase->phaseable;
+            // Check if user can edit this enquiry (not just view)
+            $this->authorize('update', $enquiry);
+        }
+        
         $phase->skipped = false;
         $phase->skip_reason = null;
         $phase->save();

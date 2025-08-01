@@ -11,8 +11,13 @@ use Barryvdh\DomPDF\Facade\PDF;
 
 class LoadingSheetController extends Controller
 {
+    use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
     public function index(Project $project)
     {
+        // Check if user can view this project
+        $this->authorize('view', $project);
+
         $loadingsheet = $project->LoadingSheets()->latest()->first();
         
         return view('projects.loadingsheet.index', [
@@ -23,6 +28,9 @@ class LoadingSheetController extends Controller
 
     public function store(Request $request, Project $project)
     {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+
         $validated = $request->validate([
             'vehicle_number' => 'required|string|max:50',
             'driver_name' => 'required|string|max:100',
@@ -59,6 +67,9 @@ class LoadingSheetController extends Controller
 
     public function print(Project $project)
     {
+        // Check if user can view this project
+        $this->authorize('view', $project);
+
         $loadingsheet = $project->loadingSheets()->latest()->first();
         if (!$loadingsheet) {
             return redirect()->back()->with('error', 'No loading sheet found');
@@ -72,6 +83,9 @@ class LoadingSheetController extends Controller
 
     public function download(Project $project)
     {
+        // Check if user can view this project
+        $this->authorize('view', $project);
+
         $loadingsheet = $project->loadingSheets()->latest()->first();
         if (!$loadingsheet) {
             return redirect()->back()->with('error', 'No loading sheet found');

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Models\Project;
 use App\Models\MaterialList;
 use App\Models\ProductionItem;
@@ -17,11 +18,22 @@ use App\Models\Enquiry;
 
 class MaterialListController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of the material lists for the project.
      */
     public function index(Project $project = null, Enquiry $enquiry = null)
     {
+        // Check authorization for project access
+        if ($project) {
+            $this->authorize('view', $project);
+        }
+
+        // Check authorization for enquiry access
+        if ($enquiry) {
+            $this->authorize('view', $enquiry);
+        }
+
         if ($enquiry) {
             $materialLists = $enquiry->materialLists()
                 ->withCount(['productionItems', 'materialsHire', 'labourItems'])
@@ -52,6 +64,8 @@ class MaterialListController extends Controller
 
         if (str_contains($request->route()->getName(), 'enquiries.')) {
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+            // Check authorization for enquiry access
+            $this->authorize('view', $enquiry);
             if ($materialList->enquiry_id != $enquiry->id) {
                 abort(404);
             }
@@ -60,7 +74,12 @@ class MaterialListController extends Controller
             if ($materialList->project_id != $project->id) {
                 abort(404);
             }
+            // Check authorization for project access
+            $this->authorize('view', $project);
         }
+
+        // Check authorization for material list access
+        $this->authorize('view', $materialList);
 
         $materialList->load([
             'productionItems.particulars',
@@ -84,9 +103,16 @@ class MaterialListController extends Controller
 
         if (str_contains($request->route()->getName(), 'enquiries.')) {
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+            // Check authorization for enquiry editing (not just viewing)
+            $this->authorize('update', $enquiry);
         } else {
             $project = Project::findOrFail($projectOrEnquiryId);
+            // Check authorization for project editing (not just viewing)
+            $this->authorize('edit', $project);
         }
+
+        // Check authorization for creating material lists
+        $this->authorize('create', MaterialList::class);
 
         $inventoryItems = Inventory::whereHas('category', function($query) {
                 $query->whereIn('category_name', ['Consumables', 'Hire', 'Electricals']);
@@ -123,8 +149,12 @@ class MaterialListController extends Controller
 
             if (str_contains($request->route()->getName(), 'enquiries.')) {
                 $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+                // Check authorization for enquiry editing (not just viewing)
+                $this->authorize('update', $enquiry);
             } else {
                 $project = Project::findOrFail($projectOrEnquiryId);
+                // Check authorization for project editing (not just viewing)
+                $this->authorize('edit', $project);
             }
 
             $validated = $request->validate([
@@ -209,6 +239,8 @@ class MaterialListController extends Controller
 
         if (str_contains($request->route()->getName(), 'enquiries.')) {
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+            // Check authorization for enquiry editing (not just viewing)
+            $this->authorize('update', $enquiry);
             if ($materialList->enquiry_id != $enquiry->id) {
                 abort(404);
             }
@@ -217,7 +249,12 @@ class MaterialListController extends Controller
             if ($materialList->project_id != $project->id) {
                 abort(404);
             }
+            // Check authorization for project editing (not just viewing)
+            $this->authorize('edit', $project);
         }
+
+        // Check authorization for updating material list
+        $this->authorize('update', $materialList);
 
         $materialList->load([
             'productionItems.particulars',
@@ -265,6 +302,8 @@ class MaterialListController extends Controller
 
         if (str_contains($request->route()->getName(), 'enquiries.')) {
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+            // Check authorization for enquiry editing (not just viewing)
+            $this->authorize('update', $enquiry);
             if ($materialList->enquiry_id != $enquiry->id) {
                 abort(404);
             }
@@ -273,7 +312,12 @@ class MaterialListController extends Controller
             if ($materialList->project_id != $project->id) {
                 abort(404);
             }
+            // Check authorization for project editing (not just viewing)
+            $this->authorize('edit', $project);
         }
+
+        // Check authorization for updating material list
+        $this->authorize('update', $materialList);
 
         $validated = $request->validate([
             'start_date' => 'required|date',
@@ -347,34 +391,39 @@ class MaterialListController extends Controller
 
     public function destroy(Request $request, $projectOrEnquiryId, $materialListId)
     {
-        // Check authorization
-        if (!auth()->user()->hasAnyRole(['pm', 'po', 'super-admin'])) {
-            abort(403, 'You do not have permission to delete material lists.');
-        }
-
         $materialList = MaterialList::findOrFail($materialListId);
+
+        $project = null;
+        $enquiry = null;
 
         if (str_contains($request->route()->getName(), 'enquiries.')) {
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+            // Check authorization for enquiry editing (not just viewing)
+            $this->authorize('update', $enquiry);
             if ($materialList->enquiry_id != $enquiry->id) {
                 abort(404);
             }
-            $materialList->delete();
-            
-            // Update phase status after deletion
-            $this->updateEnquiryPhaseStatus($enquiry);
-            
-            return redirect()->route('enquiries.material-list.index', $enquiry)->with('success', 'Material list deleted successfully!');
         } else {
             $project = Project::findOrFail($projectOrEnquiryId);
             if ($materialList->project_id != $project->id) {
                 abort(404);
             }
-            $materialList->delete();
-            
+            // Check authorization for project editing (not just viewing)
+            $this->authorize('edit', $project);
+        }
+
+        // Check authorization for deleting material list
+        $this->authorize('delete', $materialList);
+
+        $materialList->delete();
+        
+        if ($enquiry) {
+            // Update phase status after deletion
+            $this->updateEnquiryPhaseStatus($enquiry);
+            return redirect()->route('enquiries.material-list.index', $enquiry)->with('success', 'Material list deleted successfully!');
+        } else {
             // Update phase status after deletion
             $this->updateProjectPhaseStatus($project);
-            
             return redirect()->route('projects.material-list.index', $project)->with('success', 'Material list deleted successfully!');
         }
     }

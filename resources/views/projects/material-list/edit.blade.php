@@ -20,11 +20,11 @@
                             <li class="nav-item"><a href="#basic-details" class="nav-link active" data-bs-toggle="tooltip" title="Go to Basic Details" aria-label="Go to Basic Details">Basic Details</a></li>
                             <li class="nav-item"><a href="#materials-production" class="nav-link" data-bs-toggle="tooltip" title="Go to Materials - Production" aria-label="Go to Materials - Production">Materials - Production</a></li>
                             <li class="nav-item"><a href="#materials-hire" class="nav-link" data-bs-toggle="tooltip" title="Go to Items for Hire" aria-label="Go to Items for Hire">Items for Hire</a></li>
-                            <li class="nav-item"><a href="#labour-workshop" class="nav-link" data-bs-toggle="tooltip" title="Go to Workshop Labour" aria-label="Go to Workshop Labour">Workshop Labour</a></li>
+                            <!-- <li class="nav-item"><a href="#labour-workshop" class="nav-link" data-bs-toggle="tooltip" title="Go to Workshop Labour" aria-label="Go to Workshop Labour">Workshop Labour</a></li>
                             <li class="nav-item"><a href="#labour-site" class="nav-link" data-bs-toggle="tooltip" title="Go to Site Labour" aria-label="Go to Site Labour">Site Labour</a></li>
                             <li class="nav-item"><a href="#labour-setdown" class="nav-link" data-bs-toggle="tooltip" title="Go to Set Down Labour" aria-label="Go to Set Down Labour">Set Down Labour</a></li>
                             <li class="nav-item"><a href="#logistics" class="nav-link" data-bs-toggle="tooltip" title="Go to Logistics" aria-label="Go to Logistics">Logistics</a></li>
-                            <li class="nav-item"><a href="#labour-outsourced" class="nav-link" data-bs-toggle="tooltip" title="Go to Outsourced" aria-label="Go to Outsourced">Outsourced</a></li>
+                            <li class="nav-item"><a href="#labour-outsourced" class="nav-link" data-bs-toggle="tooltip" title="Go to Outsourced" aria-label="Go to Outsourced">Outsourced</a></li> -->
                             <li class="nav-item"><a href="#approval" class="nav-link" data-bs-toggle="tooltip" title="Go to Approval" aria-label="Go to Approval">Approval</a></li>
                         </ul>
                     </nav>
@@ -93,7 +93,7 @@
                                                                 <th>Particular</th>
                                                                 <th>Unit Of Measure</th>
                                                                 <th>Quantity</th>
-                                                                <th>Unit Price</th>
+                                                                <!-- <th>Unit Price</th> -->
                                                                 <th>Comment</th>
                                                                 <th>Action</th>
                                                             </tr>
@@ -109,7 +109,7 @@
                                                                     </td>
                                                                     <td><input type="text" name="production_items[{{ $piIndex }}][particulars][{{ $partIndex }}][unit]" class="form-control unit-field" value="{{ old('production_items.'.$piIndex.'.particulars.'.$partIndex.'.unit', $particular->unit) }}" readonly></td>
                                                                     <td><input type="number" step="0.01" name="production_items[{{ $piIndex }}][particulars][{{ $partIndex }}][quantity]" class="form-control" value="{{ old('production_items.'.$piIndex.'.particulars.'.$partIndex.'.quantity', $particular->quantity) }}" required></td>
-                                                                    <td><input type="number" step="0.01" name="production_items[{{ $piIndex }}][particulars][{{ $partIndex }}][unit_price]" class="form-control" value="{{ old('production_items.'.$piIndex.'.particulars.'.$partIndex.'.unit_price', $particular->unit_price ?? '0.00') }}" required></td>
+                                                                    <!-- <td><input type="number" step="0.01" name="production_items[{{ $piIndex }}][particulars][{{ $partIndex }}][unit_price]" class="form-control" value="{{ old('production_items.'.$piIndex.'.particulars.'.$partIndex.'.unit_price', $particular->unit_price ?? '0.00') }}" required></td> -->
                                                                     <td><input type="text" name="production_items[{{ $piIndex }}][particulars][{{ $partIndex }}][comment]" class="form-control" value="{{ old('production_items.'.$piIndex.'.particulars.'.$partIndex.'.comment', $particular->comment) }}"></td>
                                                                     <td><button type="button" class="btn btn-danger btn-sm remove-row">Remove</button></td>
                                                                 </tr>
@@ -147,7 +147,7 @@
                                                             <th>Particular</th>
                                                             <th>Unit Of Measure</th>
                                                             <th>Quantity</th>
-                                                            <th>Unit Price</th>
+                                                            <!-- <th>Unit Price</th> -->
                                                             <th>Comment</th>
                                                             <th>Action</th>
                                                         </tr>
@@ -161,7 +161,7 @@
                                                             </td>
                                                             <td><input type="text" name="production_items[0][particulars][0][unit]" class="form-control unit-field" readonly></td>
                                                             <td><input type="number" step="0.01" name="production_items[0][particulars][0][quantity]" class="form-control" required></td>
-                                                            <td><input type="number" step="0.01" name="production_items[0][particulars][0][unit_price]" class="form-control" required></td>
+                                                            <!-- <td><input type="number" step="0.01" name="production_items[0][particulars][0][unit_price]" class="form-control" required></td> -->
                                                             <td><input type="text" name="production_items[0][particulars][0][comment]" class="form-control"></td>
                                                             <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="bi bi-trash"></i></button></td>
                                                         </tr>
@@ -196,7 +196,7 @@
                                                 <th>Particular</th>
                                                 <th>Unit Of Measure</th>
                                                 <th>Quantity</th>
-                                                <th>Unit Price</th>
+                                                <!-- <th>Unit Price</th> -->
                                                 <th>Comment</th>
                                                 <th>Action</th>
                                             </tr>
@@ -214,7 +214,7 @@
                                                         </td>
                                                         <td><input type="text" name="materials_hire[{{ $index }}][unit]" class="form-control" value="{{ old('materials_hire.'.$index.'.unit', $item->unit) }}"></td>
                                                         <td><input type="number" step="0.01" name="materials_hire[{{ $index }}][quantity]" class="form-control" value="{{ old('materials_hire.'.$index.'.quantity', $item->quantity) }}"></td>
-                                                        <td><input type="number" step="0.01" name="materials_hire[{{ $index }}][unit_price]" class="form-control" value="{{ old('materials_hire.'.$index.'.unit_price', $item->unit_price ?? '0.00') }}"></td>
+                                                        <!-- <td><input type="number" step="0.01" name="materials_hire[{{ $index }}][unit_price]" class="form-control" value="{{ old('materials_hire.'.$index.'.unit_price', $item->unit_price ?? '0.00') }}"></td> -->
                                                         <td><input type="text" name="materials_hire[{{ $index }}][comment]" class="form-control" value="{{ old('materials_hire.'.$index.'.comment', $item->comment) }}"></td>
                                                         <td><button type="button" class="btn btn-danger btn-sm remove-row">Remove</button></td>
                                                     </tr>
@@ -237,7 +237,7 @@
                                         ];
                                     @endphp
 
-                                @foreach($subCategories as $category => $roles)
+                                <!-- @foreach($subCategories as $category => $roles)
                                     <div class="section-card section-labor">
                                         <h5 class="section-header">
                                             <i class="bi bi-people me-2"></i>{{ $category }}
@@ -266,13 +266,13 @@
                                             </tbody>
                                         </table>
                                         </div>
-                                    @endforeach
+                                    @endforeach -->
 
                                 <div class="mb-4">
                                     <label for="approved_by">Approved By:</label>
                                     <input type="text" name="approved_by" class="form-control mb-2 required" value="{{ old('approved_by', $materialList->approved_by) }}" required>
 
-                                    <label for="approved_departments">Departments (comma-separated)</label>
+                                    <label for="approved_departments">Department</label>
                                     <input type="text" name="approved_departments" class="form-control" placeholder="Production, Finance" value="{{ old('approved_departments', $materialList->approved_departments) }}" required>
                                 </div>
 
@@ -403,7 +403,7 @@ $(document).ready(function() {
                         <th>Particular</th>
                         <th>Unit Of Measure</th>
                         <th>Quantity</th>
-                        <th>Unit Price</th>
+                        <!-- <th>Unit Price</th> -->
                         <th>Comment</th>
                         <th>Design Reference</th>
                         <th>Action</th>
@@ -444,7 +444,7 @@ $(document).ready(function() {
                 </td>
                 <td><input type="text" name="production_items[${itemIndex}][particulars][${particularIndex}][unit]" class="form-control unit-field" readonly></td>
                 <td><input type="number" step="0.01" name="production_items[${itemIndex}][particulars][${particularIndex}][quantity]" class="form-control" required></td>
-                <td><input type="number" step="0.01" name="production_items[${itemIndex}][particulars][${particularIndex}][unit_price]" class="form-control" required></td>
+                <!-- <td><input type="number" step="0.01" name="production_items[${itemIndex}][particulars][${particularIndex}][unit_price]" class="form-control" required></td> -->
                 <td><input type="text" name="production_items[${itemIndex}][particulars][${particularIndex}][comment]" class="form-control"></td>
                 <td><button type="button" class="btn btn-danger btn-sm remove-row">Remove</button></td>
             </tr>`;
@@ -542,7 +542,7 @@ $(document).ready(function() {
                 </td>
                 <td><input type="text" name="materials_hire[${hireIndex}][unit]" class="form-control unit-field" readonly></td>
                 <td><input type="number" step="0.01" name="materials_hire[${hireIndex}][quantity]" class="form-control"></td>
-               <-- <td><input type="number" step="0.01" name="materials_hire[${hireIndex}][unit_price]" class="form-control"></td> -->
+                <!-- <td><input type="number" step="0.01" name="materials_hire[${hireIndex}][unit_price]" class="form-control"></td> -->
                 <td><input type="text" name="materials_hire[${hireIndex}][comment]" class="form-control"></td>
                 <td><button type="button" class="btn btn-danger btn-sm remove-row">Remove</button></td>
             </tr>`;

@@ -20,11 +20,11 @@
                             <li class="nav-item"><a href="#basic-details" class="nav-link active" data-bs-toggle="tooltip" title="Go to Basic Details" aria-label="Go to Basic Details">Basic Details</a></li>
                             <li class="nav-item"><a href="#materials-production" class="nav-link" data-bs-toggle="tooltip" title="Go to Materials - Production" aria-label="Go to Materials - Production">Materials - Production</a></li>
                             <li class="nav-item"><a href="#materials-hire" class="nav-link" data-bs-toggle="tooltip" title="Go to Items for Hire" aria-label="Go to Items for Hire">Items for Hire</a></li>
-                            <li class="nav-item"><a href="#labour-workshop" class="nav-link" data-bs-toggle="tooltip" title="Go to Workshop Labour" aria-label="Go to Workshop Labour">Workshop Labour</a></li>
+                            <!-- <li class="nav-item"><a href="#labour-workshop" class="nav-link" data-bs-toggle="tooltip" title="Go to Workshop Labour" aria-label="Go to Workshop Labour">Workshop Labour</a></li>
                             <li class="nav-item"><a href="#labour-site" class="nav-link" data-bs-toggle="tooltip" title="Go to Site Labour" aria-label="Go to Site Labour">Site Labour</a></li>
                             <li class="nav-item"><a href="#labour-setdown" class="nav-link" data-bs-toggle="tooltip" title="Go to Set Down Labour" aria-label="Go to Set Down Labour">Set Down Labour</a></li>
                             <li class="nav-item"><a href="#logistics" class="nav-link" data-bs-toggle="tooltip" title="Go to Logistics" aria-label="Go to Logistics">Logistics</a></li>
-                            <li class="nav-item"><a href="#labour-outsourced" class="nav-link" data-bs-toggle="tooltip" title="Go to Outsourced" aria-label="Go to Outsourced">Outsourced</a></li>
+                            <li class="nav-item"><a href="#labour-outsourced" class="nav-link" data-bs-toggle="tooltip" title="Go to Outsourced" aria-label="Go to Outsourced">Outsourced</a></li> -->
                             <li class="nav-item"><a href="#approval" class="nav-link" data-bs-toggle="tooltip" title="Go to Approval" aria-label="Go to Approval">Approval</a></li>
                         </ul>
                     </nav>
@@ -95,13 +95,13 @@
                                                                 <input type="text" name="production_items[{{ $itemIndex }}][item_name]" class="form-control item-name" value="{{ $item['item_name'] ?? '' }}" required>
                                                             </div>
                                                         </div>
-                                                        <!-- <table class="table table-bordered">
+                                                        <table class="table table-bordered">
                                                             <thead class="table-light">
                                                                 <tr>
                                                                     <th>Particular</th>
                                                                     <th>Unit Of Measure</th>
                                                                     <th>Quantity</th>
-                                                                    <th>Unit Price</th>
+                                                                    <!-- <th>Unit Price</th> -->
                                                                     <th>Comment</th>
                                                                     <th width="80">Action</th>
                                                                 </tr>
@@ -111,14 +111,30 @@
                                                                     @foreach($item['particulars'] as $particularIndex => $particular)
                                                                         <tr>
                                                                             <td>
-                                                                                <select name="production_items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][particular]" class="form-select inventory-dropdown" required>
-                                                                                    <option value="" disabled>-- Loading items --</option>
-                                                                                    <option value="{{ $particular['particular'] ?? '' }}" selected>{{ $particular['particular'] ?? '' }}</option>
-                                                                                </select>
+                                                                                <div class="particular-input-group">
+                                                                                    <div class="input-group">
+                                                                                        <input type="text" 
+                                                                                               name="production_items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][particular]" 
+                                                                                               class="form-control particular-input" 
+                                                                                               value="{{ $particular['particular'] ?? '' }}" 
+                                                                                               placeholder="Type or select particular..."
+                                                                                               required>
+                                                                                        <button class="btn btn-outline-secondary dropdown-toggle" 
+                                                                                                type="button" 
+                                                                                                data-bs-toggle="dropdown" 
+                                                                                                aria-expanded="false"
+                                                                                                title="Select from inventory">
+                                                                                            <i class="bi bi-list"></i>
+                                                                                        </button>
+                                                                                        <ul class="dropdown-menu inventory-dropdown-menu" style="max-height: 200px; overflow-y: auto;">
+                                                                                            <li><span class="dropdown-item-text text-muted small">Loading items...</span></li>
+                                                                                        </ul>
+                                                                                    </div>
+                                                                                </div>
                                                                             </td>
-                                                                            <td><input type="text" name="production_items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][unit]" class="form-control unit-field" value="{{ $particular['unit'] ?? '' }}" readonly></td>
+                                                                            <td><input type="text" name="production_items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][unit]" class="form-control unit-field" value="{{ $particular['unit'] ?? '' }}" placeholder="Enter unit..."></td>
                                                                             <td><input type="number" step="0.01" name="production_items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][quantity]" class="form-control" value="{{ $particular['quantity'] ?? '' }}" required></td>
-                                                                            <td><input type="number" step="0.01" name="production_items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][unit_price]" class="form-control" value="{{ $particular['unit_price'] ?? '' }}" required></td>
+                                                                            <!-- <td><input type="number" step="0.01" name="production_items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][unit_price]" class="form-control" value="{{ $particular['unit_price'] ?? '' }}"></td> -->
                                                                             <td><input type="text" name="production_items[{{ $itemIndex }}][particulars][{{ $particularIndex }}][comment]" class="form-control" value="{{ $particular['comment'] ?? '' }}"></td>
                                                                             <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="bi bi-trash"></i></button></td>
                                                                         </tr>
@@ -127,13 +143,19 @@
                                                             </tbody>
                                                         </table>
                                                         <div class="d-flex justify-content-between align-items-center">
-                                                            <button type="button" class="btn btn-success btn-sm add-particular">
-                                                                <i class="bi bi-plus-circle me-1"></i>Add Particular
-                                                            </button>
+                                                            <div>
+                                                                <button type="button" class="btn btn-success btn-sm add-particular">
+                                                                    <i class="bi bi-plus-circle me-1"></i>Add Particular
+                                                                </button>
+                                                                <small class="text-muted ms-2">
+                                                                    <i class="bi bi-info-circle"></i>
+                                                                    You can type particulars manually or select from inventory
+                                                                </small>
+                                                            </div>
                                                             <button type="button" class="btn btn-outline-danger btn-sm remove-item-group">
                                                                 <i class="bi bi-trash me-1"></i>Remove Item
                                                             </button>
-                                                        </div> -->
+                                                        </div>
                                                     </div>
                                                 @endforeach
                                             @endif
@@ -143,9 +165,9 @@
                                             <button type="button" class="btn btn-primary btn-sm btn-add-item" id="addItemGroup">
                                                 <i class="bi bi-plus-circle me-1"></i>Add Item
                                             </button>
-                                            <button type="button" class="btn btn-outline-primary btn-sm" id="addFromTemplate" data-bs-toggle="modal" data-bs-target="#templateModal">
+                                            <!-- <button type="button" class="btn btn-outline-primary btn-sm" id="addFromTemplate" data-bs-toggle="modal" data-bs-target="#templateModal">
                                                 <i class="bi bi-file-earmark-plus me-1"></i>Add from Template
-                                            </button>
+                                            </button> -->
                                         </div>
                                     </div>
                                 </div>
@@ -166,7 +188,7 @@
                                                     <th>Particular</th>
                                                     <th>Unit Of Measure</th>
                                                     <th>Quantity</th>
-                                                    <th>Unit Price</th>
+                                                    <!-- <th>Unit Price</th> -->
                                                     <th>Comment</th>
                                                     <th>Action</th>
                                                 </tr>
@@ -182,7 +204,7 @@
                                 </div>
                             </div>
 
-                            @php
+                            <!-- @php
                                 $subCategories = [
                                     'Workshop labour' => ['Technicians', 'Carpenter', 'CNC', 'Welders', 'Project Officer','Meals'],
                                     'Site' => ['Technicians', 'Pasters', 'Electricians','Off loaders','Project Officer','Meals'],
@@ -226,7 +248,7 @@
                                         </div>
                                     </div>
                                 </div>
-                            @endforeach
+                            @endforeach -->
 
                             <!-- Approval -->
                             <div class="accordion-item">
@@ -249,7 +271,7 @@
                             </div>
                         </div>
                         <!-- Floating Summary Bar -->
-                        <div id="floatingSummaryBar" class="floating-summary-bar card shadow-sm" aria-live="polite">
+                        <!-- <div id="floatingSummaryBar" class="floating-summary-bar card shadow-sm" aria-live="polite">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <strong>Total Items:</strong> <span id="totalItems">0</span>
@@ -262,7 +284,7 @@
                                     </button>
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
                         <!-- Sticky Action Bar -->
                         <div class="sticky-action-bar d-flex justify-content-end gap-2 mt-4 pt-3 border-top bg-white" style="position:sticky; bottom:0; z-index:1100; border-radius:0 0 12px 12px;">
                             <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.material-list.index', $enquiry) : route('projects.material-list.index', $project) }}"
@@ -440,6 +462,52 @@
             margin-right: 0;
         }
     }
+
+    /* Enhanced styles for the hybrid particular input */
+    .particular-input-group {
+        position: relative;
+    }
+    .particular-input-group .input-group {
+        width: 100%;
+    }
+    .particular-input {
+        border-right: none;
+    }
+    .particular-input:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        z-index: 3;
+    }
+    .particular-input-group .dropdown-toggle {
+        border-left: none;
+        background: #f8f9fa;
+        border-color: #ced4da;
+    }
+    .particular-input-group .dropdown-toggle:hover {
+        background: #e9ecef;
+    }
+    .inventory-dropdown-menu {
+        width: 100%;
+        min-width: 250px;
+    }
+    .inventory-dropdown-menu .dropdown-item {
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+    }
+    .inventory-dropdown-menu .dropdown-item:hover {
+        background-color: #f8f9fa;
+    }
+    .inventory-dropdown-menu .dropdown-item:active {
+        background-color: #e9ecef;
+    }
+    .inventory-dropdown-menu .dropdown-item-text {
+        padding: 0.5rem 1rem;
+    }
+    /* Highlight matching text in dropdown */
+    .inventory-dropdown-menu .dropdown-item mark {
+        background-color: #fff3cd;
+        padding: 0;
+    }
 </style>
 @endpush
 
@@ -600,7 +668,7 @@
                                 <td><input type="text" name="production_items[${$itemGroup.data('item-index')}][particulars][${index}][particular]" class="form-control" value="${particular.particular}" required></td>
                                 <td><input type="text" name="production_items[${$itemGroup.data('item-index')}][particulars][${index}][unit]" class="form-control unit-field" value="${particular.unit || ''}"></td>
                                 <td><input type="number" step="0.01" name="production_items[${$itemGroup.data('item-index')}][particulars][${index}][quantity]" class="form-control" value="${particular.default_quantity}" required></td>
-                                <td><input type="number" step="0.01" name="production_items[${$itemGroup.data('item-index')}][particulars][${index}][unit_price]" class="form-control" value="${particular.unit_price || '0.00'}" required></td>
+                                <!-- <td><input type="number" step="0.01" name="production_items[${$itemGroup.data('item-index')}][particulars][${index}][unit_price]" class="form-control" value="${particular.unit_price || '0.00'}"></td> -->
                                 <td><input type="text" name="production_items[${$itemGroup.data('item-index')}][particulars][${index}][comment]" class="form-control" value="${particular.comment || ''}"></td>
                                 <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="bi bi-trash"></i></button></td>
                             </tr>
@@ -806,7 +874,7 @@
                                     <th>Particular</th>
                                     <th>Unit Of Measure</th>
                                     <th>Quantity</th>
-                                    <th>Unit Price</th>
+                                    <!--<th>Unit Price</th>-->
                                     <th>Comment</th>
                                     <th width="80">Action</th>
                                 </tr>
@@ -817,7 +885,7 @@
                                         <td><input type="text" name="production_items[${itemIndex}][particulars][${index}][particular]" class="form-control" value="${particular.particular}" required></td>
                                         <td><input type="text" name="production_items[${itemIndex}][particulars][${index}][unit]" class="form-control" value="${particular.unit || ''}"></td>
                                         <td><input type="number" step="0.01" name="production_items[${itemIndex}][particulars][${index}][quantity]" class="form-control" value="${particular.default_quantity}" required></td>
-                                        <td><input type="number" step="0.01" name="production_items[${itemIndex}][particulars][${index}][unit_price]" class="form-control" value="${particular.unit_price || '0.00'}" required></td>
+                                        <!-- <td><input type="number" step="0.01" name="production_items[${itemIndex}][particulars][${index}][unit_price]" class="form-control" value="${particular.unit_price || '0.00'}"></td> -->
                                         <td><input type="text" name="production_items[${itemIndex}][particulars][${index}][comment]" class="form-control" value="${particular.comment || ''}"></td>
                                         <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="bi bi-trash"></i></button></td>
                                     </tr>
@@ -853,31 +921,107 @@
     // Update totals in the floating summary bar
     function updateTotals() {
         let totalItems = 0;
-        let grandTotal = 0;
         // Count particulars in all item groups
         $('.particulars-body').each(function() {
             $(this).find('tr').each(function() {
                 totalItems++;
-                const qty = parseFloat($(this).find('input[name*="[quantity]"]').val()) || 0;
-                const price = parseFloat($(this).find('input[name*="[unit_price]"]').val()) || 0;
-                grandTotal += qty * price;
+                // Unit price calculations commented out since unit price columns are hidden
+                // const qty = parseFloat($(this).find('input[name*="[quantity]"]').val()) || 0;
+                // const price = parseFloat($(this).find('input[name*="[unit_price]"]').val()) || 0;
+                // grandTotal += qty * price;
             });
         });
         // Count hire items
         $('#materialsHireBody tr').each(function() {
             totalItems++;
-            const qty = parseFloat($(this).find('input[name*="[quantity]"]').val()) || 0;
-            const price = parseFloat($(this).find('input[name*="[unit_price]"]').val()) || 0;
-            grandTotal += qty * price;
+            // Unit price calculations commented out since unit price columns are hidden
+            // const qty = parseFloat($(this).find('input[name*="[quantity]"]').val()) || 0;
+            // const price = parseFloat($(this).find('input[name*="[unit_price]"]').val()) || 0;
+            // grandTotal += qty * price;
         });
         $('#totalItems').text(totalItems);
-        $('#grandTotal').text('KSh ' + grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+        // Grand total calculation commented out since unit price columns are hidden
+        // $('#grandTotal').text('KSh ' + grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+    }
+
+    // Load inventory items for dropdown menus
+    function loadInventoryItemsForDropdown($menu) {
+        const itemsToUse = particularsItems.length > 0 ? particularsItems : inventoryItems;
+        $menu.empty();
+        if (itemsToUse.length === 0) {
+            $menu.append('<li><span class="dropdown-item-text text-muted small">No items available</span></li>');
+            return;
+        }
+        itemsToUse.forEach(function(item) {
+            $menu.append(`
+                <li>
+                    <a class="dropdown-item inventory-item" 
+                       href="#" 
+                       data-name="${item.name}" 
+                       data-unit="${item.unit_of_measure || ''}">
+                        <div class="d-flex justify-content-between">
+                            <span>${item.name}</span>
+                            <small class="text-muted">${item.unit_of_measure || ''}</small>
+                        </div>
+                    </a>
+                </li>
+            `);
+        });
     }
 
     // Document ready
     $(function () {
         // Enable tooltips
         $('[data-bs-toggle="tooltip"]').tooltip();
+
+        // Handle inventory dropdown item selection
+        $(document).on('click', '.inventory-item', function(e) {
+            e.preventDefault();
+            const $item = $(this);
+            const $input = $item.closest('.particular-input-group').find('.particular-input');
+            const $row = $item.closest('tr');
+            const itemName = $item.data('name');
+            const itemUnit = $item.data('unit');
+            
+            // Set the input value
+            $input.val(itemName);
+            
+            // Set the unit field
+            if (itemUnit) {
+                $row.find('.unit-field').val(itemUnit);
+            }
+            
+            // Close the dropdown
+            const $dropdown = $item.closest('.dropdown-menu');
+            $dropdown.removeClass('show');
+            
+            updateTotals();
+        });
+
+        // Handle manual typing in particular input
+        $(document).on('input', '.particular-input', function() {
+            const $input = $(this);
+            const $row = $input.closest('tr');
+            const searchTerm = $input.val().toLowerCase();
+            
+            // Filter dropdown items based on input
+            const $menu = $input.closest('.particular-input-group').find('.inventory-dropdown-menu');
+            $menu.find('.inventory-item').each(function() {
+                const $item = $(this);
+                const itemName = $item.data('name').toLowerCase();
+                if (itemName.includes(searchTerm)) {
+                    $item.parent().show();
+                } else {
+                    $item.parent().hide();
+                }
+            });
+            
+            // If user is typing manually, clear the unit field so they can enter it manually
+            const $unitField = $row.find('.unit-field');
+            if ($unitField.prop('readonly')) {
+                $unitField.val('').prop('readonly', false).attr('placeholder', 'Enter unit...');
+            }
+        });
 
         // Confirmation modal for remove item group
         $(document).on('click', '.remove-item-group', function(e) {
@@ -917,7 +1061,7 @@
                                 <th>Particular</th>
                                 <th>Unit Of Measure</th>
                                 <th>Quantity</th>
-                                <th>Unit Price</th>
+                                <!-- <th>Unit Price</th> -->
                                 <th>Comment</th>
                                 <th width="80">Action</th>
                             </tr>
@@ -949,7 +1093,7 @@
             handleTemplateSelection($(this));
         });
 
-        // Add particular to item group
+        // Add particular to item group (with hybrid input)
         $(document).on('click', '.add-particular', function() {
             const $itemGroup = $(this).closest('.item-group');
             const itemIndex = $itemGroup.data('item-index');
@@ -957,13 +1101,29 @@
             const newRow = `
                 <tr>
                     <td>
-                        <select name="production_items[${itemIndex}][particulars][${particularIndex}][particular]" class="form-select inventory-dropdown" required>
-                            <option value="" selected disabled>-- Loading items --</option>
-                        </select>
+                        <div class="particular-input-group">
+                            <div class="input-group">
+                                <input type="text" 
+                                       name="production_items[${itemIndex}][particulars][${particularIndex}][particular]" 
+                                       class="form-control particular-input" 
+                                       placeholder="Type or select particular..."
+                                       required>
+                                <button class="btn btn-outline-secondary dropdown-toggle" 
+                                        type="button" 
+                                        data-bs-toggle="dropdown" 
+                                        aria-expanded="false"
+                                        title="Select from inventory">
+                                    <i class="bi bi-list"></i>
+                                </button>
+                                <ul class="dropdown-menu inventory-dropdown-menu" style="max-height: 200px; overflow-y: auto;">
+                                    <li><span class="dropdown-item-text text-muted small">Loading items...</span></li>
+                                </ul>
+                            </div>
+                        </div>
                     </td>
-                    <td><input type="text" name="production_items[${itemIndex}][particulars][${particularIndex}][unit]" class="form-control unit-field" readonly></td>
+                    <td><input type="text" name="production_items[${itemIndex}][particulars][${particularIndex}][unit]" class="form-control unit-field" placeholder="Enter unit..."></td>
                     <td><input type="number" step="0.01" name="production_items[${itemIndex}][particulars][${particularIndex}][quantity]" class="form-control" required></td>
-                    <td><input type="number" step="0.01" name="production_items[${itemIndex}][particulars][${particularIndex}][unit_price]" class="form-control" required></td>
+                    <!-- <td><input type="number" step="0.01" name="production_items[${itemIndex}][particulars][${particularIndex}][unit_price]" class="form-control" required></td> -->
                     <td><input type="text" name="production_items[${itemIndex}][particulars][${particularIndex}][comment]" class="form-control"></td>
                     <td><button type="button" class="btn btn-danger btn-sm remove-row"><i class="bi bi-trash"></i></button></td>
                 </tr>`;
@@ -971,27 +1131,45 @@
             $itemGroup.find('.particulars-body').append($newRow);
             particularCounters[itemIndex] = particularIndex + 1;
             initializeProductionRow($newRow);
+            loadInventoryItemsForDropdown($newRow.find('.inventory-dropdown-menu'));
             updateTotals();
         });
 
-        // Add new hire row
+        // Add new hire row (with hybrid input)
         $('#addHireRow').on('click', function() {
             const newRow = `
                 <tr>
                     <td>
-                        <select name="materials_hire[${hireIndex}][particular]" class="form-select inventory-dropdown" required>
-                            <option value="" selected disabled>-- Loading items --</option>
-                        </select>
+                        <div class="particular-input-group">
+                            <div class="input-group">
+                                <input type="text" 
+                                       name="materials_hire[${hireIndex}][particular]" 
+                                       class="form-control particular-input" 
+                                       placeholder="Type or select hire item..."
+                                       required>
+                                <button class="btn btn-outline-secondary dropdown-toggle" 
+                                        type="button" 
+                                        data-bs-toggle="dropdown" 
+                                        aria-expanded="false"
+                                        title="Select from inventory">
+                                    <i class="bi bi-list"></i>
+                                </button>
+                                <ul class="dropdown-menu inventory-dropdown-menu" style="max-height: 200px; overflow-y: auto;">
+                                    <li><span class="dropdown-item-text text-muted small">Loading items...</span></li>
+                                </ul>
+                            </div>
+                        </div>
                     </td>
-                    <td><input type="text" name="materials_hire[${hireIndex}][unit]" class="form-control unit-field" readonly></td>
+                    <td><input type="text" name="materials_hire[${hireIndex}][unit]" class="form-control unit-field" placeholder="Enter unit..."></td>
                     <td><input type="number" step="0.01" name="materials_hire[${hireIndex}][quantity]" class="form-control"></td>
-                    <td><input type="number" step="0.01" name="materials_hire[${hireIndex}][unit_price]" class="form-control"></td>
+                    <!-- <td><input type="number" step="0.01" name="materials_hire[${hireIndex}][unit_price]" class="form-control"></td> -->
                     <td><input type="text" name="materials_hire[${hireIndex}][comment]" class="form-control"></td>
                     <td><button type="button" class="btn btn-danger btn-sm remove-row">Remove</button></td>
                 </tr>`;
             const $newRow = $(newRow);
             $('#materialsHireBody').append($newRow);
             initializeHireRow($newRow);
+            loadInventoryItemsForDropdown($newRow.find('.inventory-dropdown-menu'));
             hireIndex++;
             updateTotals();
         });
@@ -1050,6 +1228,13 @@
             }
         });
 
+        // Initialize existing dropdown menus on page load
+        function initializeExistingDropdowns() {
+            $('.inventory-dropdown-menu').each(function() {
+                loadInventoryItemsForDropdown($(this));
+            });
+        }
+
         // Initialize everything
         async function initialize() {
             try {
@@ -1060,6 +1245,7 @@
                 ]);
                 initializeDropdowns();
                 populateTemplateDropdowns();
+                initializeExistingDropdowns();
                 updateTotals();
             } catch (error) {
                 console.error('Failed to initialize:', error);

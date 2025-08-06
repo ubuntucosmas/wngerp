@@ -99,7 +99,8 @@ class ProjectBudgetController extends Controller
             // Materials for Hire
             foreach ($materialList->materialsHire as $hire) {
                 $materialItems[] = [
-                    'category' => 'Materials for Hire',
+                    'category' => 'Items for Hire', // Match the view's expected category
+                    'item_name' => $hire->item_name, // Ensure item_name is included
                     'particular' => $hire->particular,
                     'unit' => $hire->unit,
                     'quantity' => $hire->quantity,

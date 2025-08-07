@@ -241,9 +241,9 @@ class MaterialListController extends Controller
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
             // Check authorization for enquiry editing (not just viewing)
             $this->authorize('update', $enquiry);
-            if ($materialList->enquiry_id != $enquiry->id) {
-                abort(404);
-            }
+            // if ($materialList->enquiry_id != $enquiry->id) {
+            //     abort(404);
+            // }
         } else {
             $project = Project::findOrFail($projectOrEnquiryId);
             if ($materialList->project_id != $project->id) {

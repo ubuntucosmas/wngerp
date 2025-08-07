@@ -67,7 +67,7 @@ class MaterialListPolicy
         }
 
         // Super admins and PMs can update any material list
-        if ($user->hasAnyRole(['super-admin', 'pm', 'admin'])) {
+        if ($user->hasAnyRole(['super-admin', 'pm', 'po', 'admin'])) {
             return true;
         }
 

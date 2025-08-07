@@ -91,11 +91,6 @@ class HandoverController extends Controller
     {
         // Check if user can edit this project (not just view)
         $this->authorize('edit', $project);
-
-        // Only allow deletion if user is admin or the uploader
-        if (Auth::id() !== $handoverReport->uploaded_by && Auth::user()->role !== 'admin') {
-            return redirect()->back()->with('error', 'You are not authorized to delete this handover document.');
-        }
         
         $handoverReport->delete();
         return redirect()->back()->with('success', 'Handover acknowledgment deleted successfully.');

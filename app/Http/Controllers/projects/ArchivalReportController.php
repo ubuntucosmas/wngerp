@@ -111,12 +111,6 @@ class ArchivalReportController extends Controller
     {
         // Check if user can edit this project (not just view)
         $this->authorize('edit', $project);
-
-        // Check if the authenticated user is authorized to delete
-        if (Auth::user()->cannot('delete', $archivalReport)) {
-            return redirect()->back()
-                ->with('error', 'You are not authorized to delete this archival document.');
-        }
         
         try {
             $archivalReport->delete();

@@ -54,7 +54,7 @@
             font-size: 9px;
         }
         .section-title {
-            background-color: #0BADD3;
+            background-color:rgb(106, 107, 107);
             color: #fff;
             font-weight: bold;
             text-align: left;
@@ -88,7 +88,7 @@
             font-weight: bold;
         }
         .grand-total {
-            background: #0BADD3;
+            background-color:rgb(106, 107, 107);
             color: #fff;
             font-size: 11px;
             font-weight: bold;

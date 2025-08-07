@@ -90,11 +90,6 @@ class SetDownReturnController extends Controller
     {
         // Check if user can edit this project (not just view)
         $this->authorize('edit', $project);
-
-        // Check if the authenticated user is authorized to delete
-        if (Auth::user()->cannot('delete', $setDownReturn)) {
-            return redirect()->back()->with('error', 'You are not authorized to delete this set down & return document.');
-        }
         
         $setDownReturn->delete();
         return redirect()->back()->with('success', 'Set Down & Return document deleted successfully.');

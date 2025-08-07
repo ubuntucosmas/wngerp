@@ -502,10 +502,19 @@ class ProjectFileController extends Controller
     public function destroyDesignAsset(Project $project = null, Enquiry $enquiry = null, $design_asset = null)
     {
         if ($enquiry) {
+            // Check if user can update this enquiry (for file deletion)
+            $this->authorize('update', $enquiry);
+            
             $asset = $enquiry->designAssets()->findOrFail($design_asset);
+            // Check if user can delete this specific design asset
+            $this->authorize('delete', $asset);
+            
             $asset->delete();
             return redirect()->route('enquiries.files.mockups', $enquiry)->with('success', 'Design asset deleted successfully');
         } else {
+            // Check if user can edit this project (for file deletion)
+            $this->authorize('edit', $project);
+            
             // Check if this project was converted from an enquiry
             $enquirySource = $project->enquirySource;
             
@@ -517,6 +526,10 @@ class ProjectFileController extends Controller
                 // For regular projects, find asset from project
                 $asset = $project->designAssets()->findOrFail($design_asset);
             }
+            
+            // Check if user can delete this specific design asset
+            $this->authorize('delete', $asset);
+            
             $asset->delete();
             return redirect()->route('projects.files.mockups', $project)->with('success', 'Design asset deleted successfully');
         }

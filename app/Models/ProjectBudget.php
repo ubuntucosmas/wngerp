@@ -12,6 +12,8 @@ class ProjectBudget extends Model
 
     protected $casts = [
         'approved_at' => 'datetime',
+        'start_date' => 'date',
+        'end_date' => 'date',
     ];
 
     public function items()

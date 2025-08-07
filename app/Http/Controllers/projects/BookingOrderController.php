@@ -170,5 +170,17 @@ class BookingOrderController extends Controller
         return $pdf->stream('booking-order-' . $project->id . '.pdf');
     }
 
+    /**
+     * Remove the specified booking order
+     */
+    public function destroy(Project $project, BookingOrder $bookingOrder)
+    {
+        // Check if user can edit this project (not just view)
+        $this->authorize('edit', $project);
+        
+        $bookingOrder->delete();
+        return redirect()->back()->with('success', 'Booking order deleted successfully.');
+    }
+
 
 }

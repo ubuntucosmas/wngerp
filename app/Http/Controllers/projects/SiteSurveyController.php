@@ -172,7 +172,7 @@ class SiteSurveyController extends Controller
         $this->authorize('edit', $project);
 
         $siteSurvey->delete();
-        return redirect()->route('projects.site-survey.show', [$project, $siteSurvey])
+        return redirect()->route('projects.files.client-engagement', $project)
             ->with('success', 'Site survey deleted successfully!');
     }
 

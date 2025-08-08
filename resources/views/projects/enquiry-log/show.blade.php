@@ -164,10 +164,24 @@
                         <a href="{{ route('enquiries.enquiry-log.edit', [$enquiry->id, $enquiryLog->id]) }}" class="btn btn-sm btn-primary d-flex align-items-center">
                             <i class="bi bi-pencil-square me-1"></i> Edit
                         </a>
+                        <form action="{{ route('enquiries.enquiry-log.destroy', [$enquiry->id, $enquiryLog->id]) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this enquiry log? This action cannot be undone.');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-danger d-flex align-items-center">
+                                <i class="bi bi-trash me-1"></i> Delete
+                            </button>
+                        </form>
                     @else
                         <a href="{{ route('projects.enquiry-log.edit', [$project->id, $enquiryLog->id]) }}" class="btn btn-sm btn-primary d-flex align-items-center">
                             <i class="bi bi-pencil-square me-1"></i> Edit
                         </a>
+                        <form action="{{ route('projects.enquiry-log.destroy', [$project->id, $enquiryLog->id]) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this enquiry log? This action cannot be undone.');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-danger d-flex align-items-center">
+                                <i class="bi bi-trash me-1"></i> Delete
+                            </button>
+                        </form>
                     @endif
                 @endif
             </div>

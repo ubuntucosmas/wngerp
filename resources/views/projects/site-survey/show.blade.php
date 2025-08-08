@@ -56,7 +56,7 @@
                     <a href="{{ isset($enquiry) ? route('enquiries.site-survey.edit', [$enquiry, $siteSurvey]) : route('projects.site-survey.edit', [$project, $siteSurvey]) }}" class="btn btn-sm btn-primary">
                         <i class="fas fa-edit"></i> Edit
                     </a>
-                    @if(auth()->user()->hasRole('super-admin'))
+                    @if((isset($enquiry) && auth()->user()->can('update', $enquiry)) || (!isset($enquiry) && auth()->user()->can('edit', $project)))
                     <form action="{{ isset($enquiry) ? route('enquiries.site-survey.destroy', ['enquiry' => $enquiry, 'siteSurvey' => $siteSurvey]) : route('projects.site-survey.destroy', ['project' => $project, 'siteSurvey' => $siteSurvey]) }}" method="POST" class="d-inline">
                         @csrf
                         @method('DELETE')
@@ -722,7 +722,7 @@
                         <a href="{{ isset($enquiry) ? route('enquiries.site-survey.edit', [$enquiry, $siteSurvey]) : route('projects.site-survey.edit', [$project, $siteSurvey]) }}" class="btn btn-outline-primary btn-sm">
                             <i class="fas fa-edit me-1"></i> Edit
                         </a>
-                        @can('delete', $siteSurvey)
+                        @if((isset($enquiry) && auth()->user()->can('update', $enquiry)) || (!isset($enquiry) && auth()->user()->can('edit', $project)))
                         <form action="{{ isset($enquiry) ? route('enquiries.site-survey.destroy', [$enquiry, $siteSurvey]) : route('projects.site-survey.destroy', [$project, $siteSurvey]) }}" method="POST" class="d-inline" 
                               onsubmit="return confirm('Are you sure you want to delete this site survey? This action cannot be undone.');">
                             @csrf
@@ -731,7 +731,7 @@
                                 <i class="fas fa-trash me-1"></i> Delete
                             </button>
                         </form>
-                        @endcan
+                        @endif
                         <button onclick="window.print()" class="btn btn-print btn-sm">
                             <i class="fas fa-print me-1"></i> Print
                         </button>

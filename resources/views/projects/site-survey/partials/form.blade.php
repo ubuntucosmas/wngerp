@@ -432,7 +432,7 @@
                                                id="client_contact_person" 
                                                name="client_contact_person" 
                                                placeholder="Contact person's name"
-                                               value="{{ old('client_contact_person', $siteSurvey->client_contact_person) }}">
+                                               value="{{ old('client_contact_person', isset($enquiry) ? ($enquiry->contact_person ?? '') : ($siteSurvey->client_contact_person ?? ($project->contact_person ?? ''))) }}">
                                     </div>
                                     @error('client_contact_person')
                                         <div class="invalid-feedback d-block">
@@ -452,7 +452,7 @@
                                                name="client_phone" 
                                                placeholder="Contact phone number"
                                                data-inputmask="'mask': '+255 999 999 999'"
-                                               value="{{ old('client_phone', $siteSurvey->client_phone ?? (isset($enquiry) ? '' : ($project->client->Phone ?? ''))) }}">
+                                                value="{{ old('client_phone', $siteSurvey->client_phone ?? (isset($enquiry) ? (optional($client)->Phone ?? '') : (optional($project->client)->Phone ?? ''))) }}">
                                     </div>
                                     @error('client_phone')
                                         <div class="invalid-feedback d-block">
@@ -471,7 +471,7 @@
                                                id="client_email" 
                                                name="client_email" 
                                                placeholder="Contact email address"
-                                               value="{{ old('client_email', $siteSurvey->client_email ?? (isset($enquiry) ? '' : ($project->client->Email ?? ''))) }}">
+                                                value="{{ old('client_email', $siteSurvey->client_email ?? (isset($enquiry) ? (optional($client)->Email ?? '') : (optional($project->client)->Email ?? ''))) }}">
                                     </div>
                                     @error('client_email')
                                         <div class="invalid-feedback d-block">

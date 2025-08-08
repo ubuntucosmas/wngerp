@@ -613,10 +613,14 @@ class EnquiryController extends Controller
             $teamMembers->push((object)$member);
         }
         
+        // Derive client from enquiry name to prefill contact info
+        $client = \App\Models\Client::where('FullName', $enquiry->client_name)->first();
+
         return view('projects.site-survey.create', [
             'enquiry' => $enquiry,
             'siteSurvey' => $siteSurvey,
-            'teamMembers' => $teamMembers
+            'teamMembers' => $teamMembers,
+            'client' => $client,
         ]);
     }
 
@@ -817,10 +821,14 @@ class EnquiryController extends Controller
         foreach ($commonTeamMembers as $member) {
             $teamMembers->push((object)$member);
         }
+        // Derive client from enquiry name to prefill contact info
+        $client = \App\Models\Client::where('FullName', $enquiry->client_name)->first();
+
         return view('projects.site-survey.edit', [
             'enquiry' => $enquiry,
             'siteSurvey' => $siteSurvey,
-            'teamMembers' => $teamMembers
+            'teamMembers' => $teamMembers,
+            'client' => $client,
         ]);
     }
 

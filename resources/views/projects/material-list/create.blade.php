@@ -57,11 +57,21 @@
                                         <div class="row mb-4">
                                             <div class="col-md-6">
                                                 <label for="start_date">Start Date</label>
-                                                <input type="date" class="form-control" name="start_date" value="{{ old('start_date', $materialList->start_date ? $materialList->start_date->format('Y-m-d') : '') }}">
+                                                <input type="date" class="form-control" name="start_date" value="{{
+                                                    old('start_date', isset($enquiry)
+                                                        ? ($enquiry->date_received ?? '')
+                                                        : (isset($project) && $project->start_date ? $project->start_date->format('Y-m-d') : '')
+                                                    )
+                                                }}">
                                             </div>
                                             <div class="col-md-6">
                                                 <label for="end_date">End Date</label>
-                                                <input type="date" class="form-control" name="end_date" value="{{ old('end_date', $materialList->end_date ? $materialList->end_date->format('Y-m-d') : '') }}">
+                                                <input type="date" class="form-control" name="end_date" value="{{
+                                                    old('end_date', isset($enquiry)
+                                                        ? ($enquiry->expected_delivery_date ?? '')
+                                                        : (isset($project) && $project->end_date ? $project->end_date->format('Y-m-d') : '')
+                                                    )
+                                                }}">
                                             </div>
                                         </div>
                                     </div>

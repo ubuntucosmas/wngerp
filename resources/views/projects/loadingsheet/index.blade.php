@@ -350,11 +350,13 @@
 
 
 @push('scripts')
+<!-- jQuery (required for dynamic row add/remove) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     // Initialize when document is ready
     $(document).ready(function() {
-        // Initialize itemCount from hidden input
-        let itemCount = parseInt($('#itemCount').val()) || 1;
+        // Initialize nextIndex from hidden input (represents the next array index to use)
+        let nextIndex = parseInt($('#itemCount').val()) || 1;
         
         // Initialize remove item functionality
         $(document).on('click', '.remove-item', function() {
@@ -365,8 +367,7 @@
                     $('#itemsList tr').each(function(index) {
                         $(this).find('td:first').text(index + 1);
                     });
-                    itemCount--;
-                    $('#itemCount').val(itemCount); // Update hidden input value
+                    // Do not decrement nextIndex to avoid index collisions
                 } else {
                     alert('At least one item is required');
                 }
@@ -378,19 +379,20 @@
             e.preventDefault(); // Prevent any default behavior
             
             // Create new row
+            const rowNumber = $('#itemsList tr').length + 1;
             const newRow = $(`
                 <tr>
-                    <td>${itemCount + 1}</td>
+                    <td>${rowNumber}</td>
                     <td>
                         <input type="text" class="form-control form-control-sm" 
-                            name="items[${itemCount}][description]" placeholder="Item description" required>
+                            name="items[${nextIndex}][description]" placeholder="Item description" required>
                     </td>
                     <td>
                         <input type="number" class="form-control form-control-sm" 
-                            name="items[${itemCount}][quantity]" placeholder="Qty" min="0" step="0.01" required>
+                            name="items[${nextIndex}][quantity]" placeholder="Qty" min="0" step="0.01" required>
                     </td>
                     <td>
-                        <select class="form-select form-select-sm" name="items[${itemCount}][unit]" required>
+                        <select class="form-select form-select-sm" name="items[${nextIndex}][unit]" required>
                             <option value="pcs">Pieces</option>
                             <option value="set">Set</option>
                             <option value="box">Box</option>
@@ -404,7 +406,7 @@
                     </td>
                     <td>
                         <input type="text" class="form-control form-control-sm" 
-                            name="items[${itemCount}][notes]" placeholder="Notes">
+                            name="items[${nextIndex}][notes]" placeholder="Notes">
                     </td>
                     <td class="text-center">
                         <button type="button" class="btn btn-sm btn-danger remove-item">
@@ -417,9 +419,9 @@
             // Append the new row
             $('#itemsList').append(newRow);
             
-            // Update itemCount and hidden input
-            itemCount++;
-            $('#itemCount').val(itemCount);
+            // Update nextIndex and hidden input
+            nextIndex++;
+            $('#itemCount').val(nextIndex);
         });
     });
 </script>

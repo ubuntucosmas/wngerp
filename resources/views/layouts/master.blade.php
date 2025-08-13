@@ -435,6 +435,68 @@
                 if (pageLoader) pageLoader.style.display = 'none';
             }, 600);
         });
+
+        // Session Expiration Handler
+        $(document).ready(function() {
+            // Set up CSRF token for all AJAX requests
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+
+            // Global AJAX error handler for session expiration
+            $(document).ajaxError(function(event, xhr, settings) {
+                if (xhr.status === 401) {
+                    // Session expired
+                    let response = xhr.responseJSON;
+                    let message = response && response.message ? response.message : 'Your session has expired. Please log in again.';
+                    
+                    // Show alert
+                    alert(message);
+                    
+                    // Redirect to login
+                    let loginUrl = response && response.redirect ? response.redirect : '{{ route("login") }}';
+                    window.location.href = loginUrl;
+                }
+            });
+
+            // Check session status periodically (every 5 minutes)
+            setInterval(function() {
+                $.ajax({
+                    url: '{{ route("session.check") }}',
+                    type: 'GET',
+                    success: function(response) {
+                        if (!response.authenticated) {
+                            alert('Your session has expired. Please log in again.');
+                            window.location.href = '{{ route("login") }}';
+                        }
+                    },
+                    error: function(xhr) {
+                        if (xhr.status === 401) {
+                            alert('Your session has expired. Please log in again.');
+                            window.location.href = '{{ route("login") }}';
+                        }
+                    }
+                });
+            }, 300000); // 5 minutes = 300000 milliseconds
+
+            // Warn user before session expires (1 minute before)
+            @if(config('session.lifetime') > 1)
+            setTimeout(function() {
+                if (confirm('Your session will expire in 1 minute. Click OK to extend your session.')) {
+                    // Make a simple request to extend session
+                    $.ajax({
+                        url: '{{ route("session.extend") }}',
+                        type: 'POST',
+                        success: function() {
+                            console.log('Session extended');
+                        }
+                    });
+                }
+            }, {{ (config('session.lifetime') - 1) * 60000 }}); // Convert minutes to milliseconds, minus 1 minute
+            @endif
+        });
     </script>
 </body>
 </html>

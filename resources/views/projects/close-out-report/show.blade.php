@@ -943,21 +943,105 @@ small {
                         <!-- Section 2: Project Scope -->
                         <div class="col-lg-6">
                             <div class="border rounded-3 p-3 h-100 shadow-sm" style="background: linear-gradient(135deg, #e7f6fd 0%, #d1ecf1 100%);">
-                                <div class="d-flex align-items-center mb-3">
+                                
+                                <!-- Section Header -->
+                                <div class="d-flex align-items-start mb-3">
                                     <div class="bg-info rounded-circle p-2 me-2">
-                                        <i class="fas fa-list-alt text-white" style="font-size: 0.8rem;"></i>
+                                        <i class="fas fa-list-alt text-white fs-6"></i>
                                     </div>
-                                    <h6 class="text-info mb-0 fw-bold" style="font-size: 1.25rem;">
+                                    <h6 class="text-info mb-0 fw-bold">
                                         Section 2: Project Scope
                                     </h6>
-                                    <span class="ms-auto bg-info bg-opacity-10 text-info">
+                                    <span class="ms-auto badge bg-info bg-opacity-10 text-info">
                                         <i class="fas fa-bullseye me-1"></i>Scope
                                     </span>
                                 </div>
-                                <div class="kv-pair">
-                                    <div class="kv-key">Scope Summary</div>
-                                    <div class="kv-value {{ !$report->scope_summary ? 'empty' : '' }}" style="font-size: 0.9rem; line-height: 1.4;">
-                                        {{ $report->scope_summary ?: 'Brief description of the deliverables, scale, and key components not provided' }}
+
+                                <!-- Scope Summary Card -->
+                                <div class="card mb-3 border-0 shadow-sm">
+                                    <div class="card-header bg-info text-white py-2">
+                                        <h6 class="mb-0 small">
+                                            <i class="fas fa-clipboard-list me-2"></i>
+                                            Project Scope Summary
+                                        </h6>
+                                    </div>
+                                    <div class="card-body p-3">
+                                        <div class="p-2 rounded" style="background: #e3f2fd; border-left: 4px solid #2196f3;">
+                                            @if($report->scope_summary)
+                                                <div class="small text-dark" style="line-height: 1.5;">
+                                                    {!! nl2br(e($report->scope_summary)) !!}
+                                                </div>
+                                            @else
+                                                <div class="small text-muted fst-italic">
+                                                    <i class="fas fa-info-circle me-1"></i>
+                                                    Brief description of the deliverables, scale, and key components not provided
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Project Deliverables Card -->
+                                <div class="card border-0 shadow-sm">
+                                    <div class="card-header bg-primary text-white py-2">
+                                        <h6 class="mb-0 small">
+                                            <i class="fas fa-tasks me-2"></i>
+                                            Project Deliverables
+                                        </h6>
+                                    </div>
+                                    <div class="card-body p-3">
+                                        @php
+                                            // Get deliverables from multiple sources
+                                            $deliverables = null;
+                                            $source = '';
+                                            
+                                            // Priority 1: Project deliverables
+                                            if ($project->deliverables) {
+                                                $deliverables = $project->deliverables;
+                                                $source = 'Project';
+                                            }
+                                            // Priority 2: Enquiry deliverables (if project was converted from enquiry)
+                                            elseif ($project->enquiry && $project->enquiry->project_deliverables) {
+                                                $deliverables = $project->enquiry->project_deliverables;
+                                                $source = 'Original Enquiry';
+                                            }
+                                        @endphp
+
+                                        <div class="p-2 rounded" style="background: #f3e5f5; border-left: 4px solid #9c27b0;">
+                                            @if($deliverables)
+                                                @php
+                                                    $deliverablesList = array_filter(
+                                                        preg_split('/\r\n|\r|\n/', $deliverables),
+                                                        fn($item) => trim($item) !== ''
+                                                    );
+                                                @endphp
+                                                
+                                                @if(count($deliverablesList) > 0)
+                                                    <div class="small fw-semibold text-primary mb-2">
+                                                        <i class="fas fa-source me-1"></i>
+                                                        Source: {{ $source }}
+                                                    </div>
+                                                    <ul class="list-unstyled mb-0">
+                                                        @foreach($deliverablesList as $deliverable)
+                                                            <li class="mb-1 small text-dark">
+                                                                <i class="fas fa-check-circle text-success me-2"></i>
+                                                                {{ trim($deliverable) }}
+                                                            </li>
+                                                        @endforeach
+                                                    </ul>
+                                                @else
+                                                    <div class="small text-muted fst-italic">
+                                                        <i class="fas fa-list me-1"></i>
+                                                        No specific deliverables listed
+                                                    </div>
+                                                @endif
+                                            @else
+                                                <div class="small text-muted fst-italic">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                                    No deliverables specified for this project
+                                                </div>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1403,7 +1487,7 @@ small {
                                     @foreach($attachmentItems as $field => $label)
                                     <div class="col-md-6">
                                         <div class="card border-0 shadow-sm h-100">
-                                            <div class="card-header {{ $report->$field ? 'bg-success' : 'bg-warning' }} text-white py-2">
+                                            <div class="card-header {{ $report->$field ? 'bg-success' : 'bg-info' }} text-white py-2">
                                                 <h6 class="mb-0 small d-flex align-items-start">
                                                     <i class="fas {{ $report->$field ? 'fa-check-square' : 'fa-square' }} me-2"></i>
                                                     {{ Str::limit($label, 25) }}

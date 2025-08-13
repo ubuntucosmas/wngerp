@@ -17,7 +17,23 @@ use Illuminate\Http\Request;
 
 Route::get('/admin/dashboard', fn () => view('admin.dashboard'))
     ->middleware(['auth', 'verified'])
-    ->name('admin.dashboard'); 
+    ->name('admin.dashboard');
+
+// Session Management Routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/session/check', function () {
+        return response()->json([
+            'authenticated' => auth()->check(),
+            'user' => auth()->user() ? auth()->user()->only(['id', 'name', 'email']) : null
+        ]);
+    })->name('session.check');
+
+    Route::post('/session/extend', function () {
+        // Simply accessing the session will extend it
+        session()->regenerate();
+        return response()->json(['success' => true, 'message' => 'Session extended']);
+    })->name('session.extend');
+}); 
 
 // Admin Routes
 Route::middleware(['auth', 'role:admin|super-admin'])->prefix('admin')->name('admin.')->group(function () {

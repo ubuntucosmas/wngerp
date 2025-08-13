@@ -10,6 +10,9 @@
                 </div>
 
                 <div class="modal-body">
+                    <input type="text" name="project_id" class="form-control futuristic-input mb-2" placeholder="Project ID (leave blank for auto-generation)">
+                    <div class="form-text mb-2 small text-muted">Optional - leave blank to auto-generate (e.g., WNG0125001)</div>
+
                     <select name="name" class="form-select futuristic-input mb-2" required onchange="updateClientName(this)">
                         <option value="" disabled selected>Select Project</option>
                         @foreach ($enquiryprojects as $enquiryproject) 

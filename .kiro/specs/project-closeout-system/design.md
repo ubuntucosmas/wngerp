@@ -179,7 +179,12 @@ class CloseoutAttachment extends Model
 - `update()` - Save manual adjustments to auto-generated report
 - `submit()` - Submit report for approval (triggered when final phase completes)
 - `approve()` - Supervisor approval action
+- `destroy()` - Delete closeout report (with proper authorization)
 - `export()` - Export report as PDF with all phase data compiled
+
+#### Enhanced Controllers for Delete Functionality
+- **SiteSurveyController**: Add `destroy()` method for deleting site surveys
+- **EnquiryLogController**: Add `destroy()` method for deleting enquiry logs
 
 #### CloseoutAttachmentController
 - `store()` - Upload and store attachments
@@ -369,9 +374,17 @@ The closeout report automatically aggregates data from existing phase-related mo
 - **Fabrication Data**: From `Production`, `ProductionItem`, `ProductionParticular` models
 - **Setup Data**: From `SetupReport`, `BookingOrder`, `BookingOrderTeam` models
 - **Handover Data**: From `HandoverReport` model
+- **Site Survey Data**: From `SiteSurvey` model (with delete capability for data management)
+- **Enquiry Log Data**: From `EnquiryLog` model (with delete capability for data management)
 - **Attachments**: Collected from `DesignAsset`, `SiteSurvey`, `ProjectBudget`, and other file-containing models
 - **Team Information**: From `BookingOrderTeam` and related `User` models
 - **Timeline Data**: From `ProjectPhase` completion dates and status updates
+
+### Data Management Features
+- **Site Survey Management**: Full CRUD operations including delete functionality with proper authorization
+- **Enquiry Log Management**: Full CRUD operations including delete functionality with proper authorization
+- **Soft Deletes**: Implement soft deletes for site surveys and enquiry logs to maintain data integrity
+- **Audit Trail**: Track deletions for compliance and data governance
 
 ## Error Handling
 

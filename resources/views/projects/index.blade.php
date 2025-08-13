@@ -267,6 +267,9 @@
                                         @endif
                                     @endhasanyrole
                                     <div class="btn-group" role="group">
+                                        <a href="{{ route('projects.edit', $project->id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil"></i> Edit
+                                        </a>
                                         <a href="{{ route('projects.files.index', $project->id) }}" class="btn btn-sm btn-info">
                                             Project Files
                                         </a>

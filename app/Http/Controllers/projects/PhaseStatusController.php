@@ -113,6 +113,21 @@ class PhaseStatusController extends Controller
                     $project = $phase->project;
                     $project->createRemainingPhases();
                 }
+
+                // If Archival & Reports phase completed, ensure a close-out report is generated if missing
+                if ($phase->name === 'Archival & Reports' && $request->status === 'Completed') {
+                    $project = $phase->project;
+                    if ($project && $project->closeOutReports()->count() === 0) {
+                        $project->closeOutReports()->create([
+                            'project_client_details' => 'Auto-generated close-out report. Please update with final details.',
+                            'budget_vs_actual_summary' => 'Add budget vs actual summary.',
+                            'issues_encountered' => 'List any issues encountered during the project.',
+                            'client_feedback_summary' => 'Summarize client feedback.',
+                            'po_recommendations' => 'Add PO recommendations.',
+                            'status' => 'draft',
+                        ]);
+                    }
+                }
             }
 
             return redirect()->back()->with('success', 'Phase status updated successfully!');

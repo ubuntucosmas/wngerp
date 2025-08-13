@@ -143,6 +143,28 @@ Route::prefix('projects/{project}/archival')->name('projects.archival.')->group(
         ->name('destroy');
 });
 
+// Close Out Report Routes
+Route::prefix('projects/{project}/close-out-report')->name('projects.close-out-report.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\projects\CloseOutReportController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\projects\CloseOutReportController::class, 'showCreatePage'])->name('create');
+    Route::post('/generate', [\App\Http\Controllers\projects\CloseOutReportController::class, 'create'])->name('generate');
+    Route::get('/{report}', [\App\Http\Controllers\projects\CloseOutReportController::class, 'show'])->name('show');
+    Route::get('/{report}/edit', [\App\Http\Controllers\projects\CloseOutReportController::class, 'edit'])->name('edit');
+    Route::put('/{report}', [\App\Http\Controllers\projects\CloseOutReportController::class, 'update'])->name('update');
+    Route::delete('/{report}', [\App\Http\Controllers\projects\CloseOutReportController::class, 'destroy'])->name('destroy');
+    Route::get('/{report}/download', [\App\Http\Controllers\projects\CloseOutReportController::class, 'download'])->name('download');
+    Route::get('/{report}/print', [\App\Http\Controllers\projects\CloseOutReportController::class, 'print'])->name('print');
+    Route::get('/{report}/attachments/{attachment}/download', [\App\Http\Controllers\projects\CloseOutReportController::class, 'downloadAttachment'])->name('attachments.download');
+    Route::delete('/{report}/attachments/{attachment}', [\App\Http\Controllers\projects\CloseOutReportController::class, 'destroyAttachment'])->name('attachments.destroy');
+    Route::post('/{report}/submit', [\App\Http\Controllers\projects\CloseOutReportController::class, 'submit'])->name('submit');
+    Route::post('/{report}/approve', [\App\Http\Controllers\projects\CloseOutReportController::class, 'approve'])->name('approve');
+    Route::post('/{report}/reject', [\App\Http\Controllers\projects\CloseOutReportController::class, 'reject'])->name('reject');
+    Route::post('/{report}/bulk-download', [\App\Http\Controllers\projects\CloseOutReportController::class, 'bulkDownload'])->name('bulk-download');
+    Route::post('/{report}/export-word', [\App\Http\Controllers\projects\CloseOutReportController::class, 'exportWord'])->name('export-word');
+    Route::post('/{report}/export-all-excel', [\App\Http\Controllers\projects\CloseOutReportController::class, 'exportAllExcel'])->name('export-all-excel');
+    Route::post('/{report}/email', [\App\Http\Controllers\projects\CloseOutReportController::class, 'emailReport'])->name('email');
+});
+
 //endof francis
 
 
@@ -167,6 +189,8 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
     Route::post('/projects/{id}/restore', [ProjectController::class, 'restore'])->name('projects.restore');
     Route::delete('/projects/{id}/force-delete', [ProjectController::class, 'forceDelete'])->name('projects.force-delete');
     Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
+    Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
+    Route::put('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
     Route::put('/projects/{project}/assign', [ProjectController::class, 'assignProjectOfficer'])->name('projects.assign');
     Route::delete('/projects/{id}', [ProjectController::class, 'destroy'])->name('projects.destroy');
     Route::get('/projects/active', [ProjectController::class, 'active'])->name('projects.active');

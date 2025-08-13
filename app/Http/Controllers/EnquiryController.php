@@ -291,11 +291,11 @@ class EnquiryController extends Controller
                 'project_name' => 'nullable|string|max:255',
                 'project_deliverables' => 'nullable|string',
                 'contact_person' => 'nullable|string|max:255',
-                
                 'assigned_po' => 'nullable|string|max:255',
                 'follow_up_notes' => 'nullable|string',
                 'project_id' => 'nullable|string|max:255',
                 'venue' => 'nullable|string|max:255',
+                'enquiry_number' => 'nullable|integer|min:1|unique:enquiries,enquiry_number',
             ]);
             
             \Log::info('Validation passed', $validated);
@@ -352,11 +352,11 @@ class EnquiryController extends Controller
             'project_name' => 'nullable|string|max:255',
             'project_deliverables' => 'nullable|string',
             'contact_person' => 'nullable|string|max:255',
-            
             'assigned_po' => 'nullable|string|max:255',
             'follow_up_notes' => 'nullable|string',
             'project_id' => 'nullable|string|max:255',
             'venue' => 'nullable|string|max:255',
+            'enquiry_number' => 'nullable|integer|min:1|unique:enquiries,enquiry_number,' . $enquiry->id,
         ]);
 
         // Convert datetime-local to date format for database storage
@@ -1132,7 +1132,7 @@ class EnquiryController extends Controller
             $project = $enquiry->convertToProject();
 
             if ($project) {
-                return redirect()->route('projects.show', $project->id)
+                return redirect()->route('projects.files.index', $project->id)
                     ->with('success', 'Enquiry converted to project successfully! Project ID: ' . $project->project_id);
             } else {
                 return back()->with('error', 'Conversion failed. Please check the enquiry details and try again.');

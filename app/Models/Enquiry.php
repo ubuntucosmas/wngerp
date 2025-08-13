@@ -40,18 +40,14 @@ class Enquiry extends Model
         parent::boot();
 
         static::creating(function ($enquiry) {
-            // Get the current year and month
-            $year = date('y');
-            $month = date('m');
-            
-            // Get the last enquiry number for this month
-            $lastEnquiry = static::whereYear('created_at', date('Y'))
-                ->whereMonth('created_at', date('m'))
-                ->orderBy('enquiry_number', 'desc')
-                ->first();
+            // Only auto-generate enquiry_number if not manually provided
+            if (empty($enquiry->enquiry_number)) {
+                // Get the highest enquiry_number across ALL enquiries (global auto-increment)
+                $lastEnquiry = static::orderBy('enquiry_number', 'desc')->first();
                 
-            // Set the new enquiry number (next sequential number for this month)
-            $enquiry->enquiry_number = $lastEnquiry ? $lastEnquiry->enquiry_number + 1 : 1;
+                // Set the new enquiry number (next sequential number globally)
+                $enquiry->enquiry_number = $lastEnquiry ? $lastEnquiry->enquiry_number + 1 : 1;
+            }
         });
     }
 
@@ -169,16 +165,22 @@ class Enquiry extends Model
                 throw new \Exception("Client '{$this->client_name}' not found in the system. Please ensure the client exists before converting to project.");
             }
 
-            // Generate Project ID
+            // Generate Project ID using global auto-increment
             $month = now()->format('m');
             $year = now()->format('y');
             $prefix = 'WNG' . $month . $year;
 
-            $lastProject = \App\Models\Project::where('project_id', 'like', $prefix . '%')->latest('created_at')->first();
+            // Get the highest project number from ALL projects (not just current month)
             $lastNumber = 0;
-
-            if ($lastProject && preg_match('/WNG\d{4}(\d+)/', $lastProject->project_id, $matches)) {
-                $lastNumber = (int)$matches[1];
+            $allProjects = \App\Models\Project::all();
+            
+            foreach ($allProjects as $proj) {
+                if (preg_match('/WNG\d{4}(\d+)/', $proj->project_id, $matches)) {
+                    $number = (int) $matches[1];
+                    if ($number > $lastNumber) {
+                        $lastNumber = $number;
+                    }
+                }
             }
 
             $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);

@@ -348,14 +348,24 @@
                             @csrf
 
                             <div class="row g-3">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label for="enquiry_number" class="form-label">Enquiry Number</label>
+                                        <input type="number" name="enquiry_number" id="enquiry_number" class="form-control" 
+                                               value="{{ old('enquiry_number') }}" 
+                                               placeholder="Leave blank for auto-generation"
+                                               min="1">
+                                        <div class="form-text">Optional - leave blank to auto-generate</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="date_received" class="form-label">Date Received<span class="text-danger">*</span></label>
                                         <input type="datetime-local" name="date_received" id="date_received" class="form-control" required 
                                         value="{{ old('date_received', \Carbon\Carbon::now()->format('Y-m-d\TH:i')) }}">
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="form-group">
                                         <label for="expected_delivery_date" class="form-label">Expected Delivery Date<span class="text-danger">*</span></label>
                                         <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="form-control" value="{{ old('expected_delivery_date') }}" required>
@@ -596,7 +606,7 @@
                                             <i class="bi bi-check-circle-fill me-1"></i>
                                             Converted
                                         </span> -->
-                                        <a href="{{ route('projects.index', $enquiry->converted_to_project_id) }}" 
+                                        <a href="{{ route('projects.files.index', $enquiry->converted_to_project_id) }}" 
                                         class="btn btn-sm btn-outline-primary btn-sm"
                                         data-bs-toggle="tooltip" 
                                         title="View Project #{{ $enquiry->converted_to_project_id }}">
@@ -650,13 +660,23 @@
                                             @method('PUT')
 
                                             <div class="row g-3">
-                                                <div class="col-md-6">
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="enquiry_number_edit" class="form-label">Enquiry Number</label>
+                                                        <input type="number" name="enquiry_number" id="enquiry_number_edit" class="form-control" 
+                                                               value="{{ $enquiry->enquiry_number }}" 
+                                                               placeholder="Auto-generated if empty"
+                                                               min="1">
+                                                        <div class="form-text">Current: {{ $enquiry->formatted_id }}</div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
                                                     <div class="form-group">
                                                         <label for="date_received" class="form-label">Date Received<span class="text-danger">*</span></label>
                                                         <input type="datetime-local" name="date_received" id="date_received" class="form-control" required value="{{ $enquiry->date_received ? \Carbon\Carbon::parse($enquiry->date_received)->format('Y-m-d\TH:i') : '' }}">
                                                     </div>
                                                 </div>
-                                                <div class="col-md-6">
+                                                <div class="col-md-4">
                                                     <div class="form-group">
                                                         <label for="expected_delivery_date" class="form-label">Expected Delivery Date<span class="text-danger">*</span></label>
                                                         <input type="date" name="expected_delivery_date" id="expected_delivery_date" class="form-control" value="{{ $enquiry->expected_delivery_date ? \Carbon\Carbon::parse($enquiry->expected_delivery_date)->format('Y-m-d') : '' }}" required>

@@ -207,6 +207,11 @@ public function archivalReports()
     return $this->hasMany(ArchivalReport::class);
 }
 
+    public function closeOutReports()
+    {
+        return $this->hasMany(\App\Models\CloseOutReport::class);
+    }
+
 protected static function booted()
 {
     // Phases are now created for enquiries and transferred to projects when conversion happens

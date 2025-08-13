@@ -136,28 +136,38 @@ class ProjectController extends Controller
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'enquiry_id' => 'nullable|exists:enquiries,id', // 👈 Support optional enquiry
+            'project_id' => 'nullable|string|max:255|unique:projects,project_id', // 👈 Support manual project ID
         ]);
     
         // Fetch client
         $client = Client::findOrFail($validated['client_id']);
         $clientName = $client->FullName;
     
-        // Generate project ID
-        $month = now()->format('m');
-        $year = now()->format('y');
-        $prefix = 'WNG' . $month . $year;
-    
-        $lastProject = Project::where('project_id', 'like', $prefix . '%')
-            ->latest('created_at')
-            ->first();
-    
-        $lastNumber = 0;
-        if ($lastProject && preg_match('/WNG\d{4}(\d+)/', $lastProject->project_id, $matches)) {
-            $lastNumber = (int) $matches[1];
+        // Use manual project ID if provided, otherwise generate one
+        if (!empty($validated['project_id'])) {
+            $projectId = $validated['project_id'];
+        } else {
+            // Generate project ID using global auto-increment
+            $month = now()->format('m');
+            $year = now()->format('y');
+            $prefix = 'WNG' . $month . $year;
+            
+            // Get the highest project number from ALL projects (not just current month)
+            $lastNumber = 0;
+            $allProjects = Project::all();
+            
+            foreach ($allProjects as $proj) {
+                if (preg_match('/WNG\d{4}(\d+)/', $proj->project_id, $matches)) {
+                    $number = (int) $matches[1];
+                    if ($number > $lastNumber) {
+                        $lastNumber = $number;
+                    }
+                }
+            }
+            
+            $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+            $projectId = $prefix . $newNumber;
         }
-    
-        $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
-        $projectId = $prefix . $newNumber;
     
         // If enquiry is provided, pull extra data
         $deliverables = null;
@@ -220,6 +230,56 @@ class ProjectController extends Controller
 
         $project->update(['project_officer_id' => $validated['project_officer_id']]);
         return redirect()->route('projects.index')->with('success', 'Officer assigned successfully!');
+    }
+
+    public function edit(Project $project)
+    {
+        // Check if user can edit this project
+        $this->authorize('update', $project);
+        
+        $users = User::where('role', 'po')->get();
+        $clients = Client::all();
+        $enquiryprojects = Enquiry::all();
+        
+        return view('projects.edit', compact('project', 'users', 'clients', 'enquiryprojects'));
+    }
+
+    public function update(Request $request, Project $project)
+    {
+        // Check if user can update this project
+        $this->authorize('update', $project);
+        
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'client_id' => 'required|exists:clients,ClientID',
+            'venue' => 'required|string|max:255',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after:start_date',
+            'project_id' => 'nullable|string|max:255|unique:projects,project_id,' . $project->id,
+        ]);
+
+        // Fetch client
+        $client = Client::findOrFail($validated['client_id']);
+        $clientName = $client->FullName;
+
+        // Use manual project ID if provided, otherwise keep existing
+        if (!empty($validated['project_id'])) {
+            $projectId = $validated['project_id'];
+        } else {
+            $projectId = $project->project_id; // Keep existing project ID
+        }
+
+        $project->update([
+            'project_id' => $projectId,
+            'name' => $validated['name'],
+            'client_id' => $validated['client_id'],
+            'client_name' => $clientName,
+            'venue' => $validated['venue'],
+            'start_date' => $validated['start_date'],
+            'end_date' => $validated['end_date'],
+        ]);
+
+        return redirect()->route('projects.index')->with('success', 'Project updated successfully!');
     }
 
     public function destroy($id)

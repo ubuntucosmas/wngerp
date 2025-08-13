@@ -67,7 +67,10 @@
             <h2 class="mb-1">Archival & Reporting</h2>
             <p class="text-muted mb-0">Final project reports and archival documents</p>
         </div>
-        <div>
+        <div class="btn-group">
+            <a href="{{ route('projects.close-out-report.index', $project) }}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-clipboard-check me-1"></i> Close-Out Report
+            </a>
             <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addDocumentModal">
                 <i class="bi bi-plus-lg me-1"></i> Add Document
             </button>

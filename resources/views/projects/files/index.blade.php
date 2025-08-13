@@ -671,9 +671,13 @@
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>
                         @elseif($phase->name == 'Archival & Reporting')
-                            <a href="{{ isset($enquiry) ? route('enquiries.files.archival', $enquiry) : route('projects.archival.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
+                            <a href="{{ isset($enquiry) ? route('enquiries.files.archival', $enquiry) : route('projects.archival.index', $project) }}" class="btn btn-sm btn-outline-primary w-100 mb-1">
                                 <span>Open</span>
                                 <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                            <a href="{{ route('projects.close-out-report.index', $project) }}" class="btn btn-sm btn-outline-success w-100">
+                                <span>Close-Out Report</span>
+                                <i class="bi bi-clipboard-check ms-1"></i>
                             </a>
                         @else
                             <button class="btn btn-sm btn-outline-secondary w-100" disabled>

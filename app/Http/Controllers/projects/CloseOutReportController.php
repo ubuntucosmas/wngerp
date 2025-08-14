@@ -62,6 +62,14 @@ class CloseOutReportController extends Controller
     public function show(Project $project, CloseOutReport $report)
     {
         $this->authorize('view', $project);
+        
+        // Load necessary relationships for material list display
+        $project->load([
+            'materialLists.productionItems.particulars',
+            'materialLists.materialsHire',
+            'materialLists.labourItems'
+        ]);
+        
         return view('projects.close-out-report.show', compact('project', 'report'));
     }
 

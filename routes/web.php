@@ -181,6 +181,19 @@ Route::prefix('projects/{project}/close-out-report')->name('projects.close-out-r
     Route::post('/{report}/email', [\App\Http\Controllers\projects\CloseOutReportController::class, 'emailReport'])->name('email');
 });
 
+// Phase Document Routes
+Route::middleware(['auth', 'role:pm|po|design|admin|super-admin'])->prefix('projects/{project}/phases/{phase}/documents')->name('projects.phases.documents.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\PhaseDocumentController::class, 'index'])->name('index');
+    Route::get('/create', [\App\Http\Controllers\PhaseDocumentController::class, 'create'])->name('create');
+    Route::post('/', [\App\Http\Controllers\PhaseDocumentController::class, 'store'])->name('store');
+    Route::get('/{document}', [\App\Http\Controllers\PhaseDocumentController::class, 'show'])->name('show');
+    Route::get('/{document}/download', [\App\Http\Controllers\PhaseDocumentController::class, 'download'])->name('download');
+    Route::get('/{document}/preview', [\App\Http\Controllers\PhaseDocumentController::class, 'preview'])->name('preview');
+    Route::delete('/{document}', [\App\Http\Controllers\PhaseDocumentController::class, 'destroy'])->name('destroy');
+    Route::get('/bulk-download', [\App\Http\Controllers\PhaseDocumentController::class, 'bulkDownload'])->name('bulk-download');
+    Route::get('/ajax/documents', [\App\Http\Controllers\PhaseDocumentController::class, 'getDocuments'])->name('ajax.documents');
+});
+
 //endof francis
 
 

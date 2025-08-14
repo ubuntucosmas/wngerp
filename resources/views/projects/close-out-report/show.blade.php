@@ -1051,7 +1051,7 @@ small {
                     <!-- Row 2: Procurement & Fabrication -->
                     <div class="row g-1 mt-1">
                             <!-- Section 3: Procurement & Inventory -->
-                            <div class="border rounded-3 p-3 h-100 shadow-sm" style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);">
+                            <div class="border rounded-3 p-3 h-100 shadow-sm" style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 60%);">
                                 <div class="d-flex align-items-center mb-3">
                                     <div class="bg-warning rounded-circle p-2 me-2">
                                         <i class="fas fa-clipboard-list text-dark" style="font-size: 0.8rem;"></i>
@@ -1069,8 +1069,52 @@ small {
                                         $totalMaterialItems = $project->materialLists->sum(function($list) { 
                                             return $list->items->count() + $list->productionItems->count() + $list->labourItems->count(); 
                                         });
+                                        $totalProductionItems = $project->materialLists->sum(function($list) { 
+                                            return $list->productionItems->count(); 
+                                        });
+                                        $totalHireItems = $project->materialLists->sum(function($list) { 
+                                            return $list->items->count(); 
+                                        });
+                                        $totalLabourItems = $project->materialLists->sum(function($list) { 
+                                            return $list->labourItems->count(); 
+                                        });
                                     @endphp
                     
+                                    <!-- Material Summary Cards -->
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-md-3">
+                                            <div class="card text-black">
+                                                <div class="card-body p-2 text-center">
+                                                    <h6 class="card-title mb-1" style="font-size: 1.2rem;">Production Items</h6>
+                                                    <h4 class="mb-0">{{ $totalProductionItems }}</h4>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card text-dark">
+                                                <div class="card-body p-2 text-center">
+                                                    <h6 class="card-title mb-1" style="font-size: 1.2rem;">Materials for Hire</h6>
+                                                    <h4 class="mb-0">{{ $totalHireItems }}</h4>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card text-white">
+                                                <div class="card-body p-2 text-center">
+                                                    <h6 class="card-title mb-1" style="font-size: 1.2rem;">Labour Items</h6>
+                                                    <h4 class="mb-0">{{ $totalLabourItems }}</h4>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card text-white">
+                                                <div class="card-body p-2 text-center">
+                                                    <h6 class="card-title mb-1" style="font-size: 1.2rem;">Total Items</h6>
+                                                    <h4 class="mb-0">{{ $totalMaterialItems }}</h4>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
 
                                     <!-- Detailed Material Lists -->
                                     <div class="accordion" id="materialListsAccordion">
@@ -1110,16 +1154,33 @@ small {
                                                                                 <th>Particular</th>
                                                                                 <th>Unit</th>
                                                                                 <th>Qty</th>
+                                                                                <th>Unit Price</th>
+                                                                                <th>Comment</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
                                                                             @foreach($materialList->productionItems as $item)
-                                                                                <tr>
-                                                                                    <td>{{ $item->item_name }}</td>
-                                                                                    <td>{{ $item->particular ?? '-' }}</td>
-                                                                                    <td>{{ $item->unit ?? '-' }}</td>
-                                                                                    <td>{{ number_format($item->quantity ?? 1, 2) }}</td>
-                                                                                </tr>
+                                                                                @if($item->particulars && $item->particulars->count() > 0)
+                                                                                    @foreach($item->particulars as $particular)
+                                                                                        <tr>
+                                                                                            @if($loop->first)
+                                                                                                <td rowspan="{{ $item->particulars->count() }}" class="align-middle">
+                                                                                                    <strong>{{ $item->item_name }}</strong>
+                                                                                                </td>
+                                                                                            @endif
+                                                                                            <td>{{ $particular->particular ?? '-' }}</td>
+                                                                                            <td>{{ $particular->unit ?? '-' }}</td>
+                                                                                            <td>{{ number_format($particular->quantity ?? 0, 2) }}</td>
+                                                                                            <td>{{ $particular->unit_price ? number_format($particular->unit_price, 2) : '-' }}</td>
+                                                                                            <td>{{ $particular->comment ?? '-' }}</td>
+                                                                                        </tr>
+                                                                                    @endforeach
+                                                                                @else
+                                                                                    <tr>
+                                                                                        <td><strong>{{ $item->item_name }}</strong></td>
+                                                                                        <td colspan="5" class="text-muted fst-italic">No particulars specified</td>
+                                                                                    </tr>
+                                                                                @endif
                                                                             @endforeach
                                                                         </tbody>
                                                                     </table>
@@ -1139,15 +1200,19 @@ small {
                                                                                 <th>Particular</th>
                                                                                 <th>Unit</th>
                                                                                 <th>Qty</th>
+                                                                                <th>Unit Price</th>
+                                                                                <th>Comment</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
                                                                             @foreach($materialList->items as $item)
                                                                                 <tr>
-                                                                                    <td>{{ $item->item_name }}</td>
+                                                                                    <td><strong>{{ $item->item_name }}</strong></td>
                                                                                     <td>{{ $item->particular ?? '-' }}</td>
                                                                                     <td>{{ $item->unit ?? '-' }}</td>
-                                                                                    <td>{{ number_format($item->quantity ?? 1, 2) }}</td>
+                                                                                    <td>{{ number_format($item->quantity ?? 0, 2) }}</td>
+                                                                                    <td>{{ $item->unit_price ? number_format($item->unit_price, 2) : '-' }}</td>
+                                                                                    <td>{{ $item->comment ?? '-' }}</td>
                                                                                 </tr>
                                                                             @endforeach
                                                                         </tbody>
@@ -1168,15 +1233,19 @@ small {
                                                                                 <th>Item</th>
                                                                                 <th>Unit</th>
                                                                                 <th>Qty</th>
+                                                                                <th>Unit Price</th>
+                                                                                <th>Comment</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
                                                                             @foreach($materialList->labourItems as $item)
                                                                                 <tr>
-                                                                                    <td>{{ $item->category ?? '-' }}</td>
-                                                                                    <td>{{ $item->item_name }}</td>
+                                                                                    <td><span class="badge bg-success">{{ $item->category ?? 'General' }}</span></td>
+                                                                                    <td><strong>{{ $item->item_name }}</strong></td>
                                                                                     <td>{{ $item->unit ?? '-' }}</td>
-                                                                                    <td>{{ number_format($item->quantity ?? 1, 2) }}</td>
+                                                                                    <td>{{ number_format($item->quantity ?? 0, 2) }}</td>
+                                                                                    <td>{{ $item->unit_price ? number_format($item->unit_price, 2) : '-' }}</td>
+                                                                                    <td>{{ $item->comment ?? '-' }}</td>
                                                                                 </tr>
                                                                             @endforeach
                                                                         </tbody>
@@ -1213,6 +1282,13 @@ small {
                                         <div class="kv-value empty">
                                             {{ $report->materials_requested_notes ?? 'No material lists available' }}
                                         </div>
+                                    </div>
+                                @endif
+                                
+                                @if($project->materialLists && $project->materialLists->count() > 0)
+                                    <div class="alert alert-info mt-2 mb-2" style="padding: 0.5rem; font-size: 0.75rem;">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        <strong>Note:</strong> Detailed material lists with all items and particulars are shown above in the expandable sections.
                                     </div>
                                 @endif
                                 

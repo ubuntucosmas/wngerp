@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Debug Test</title>
+    <style>
+        .upload-zone {
+            border: 2px dashed #dee2e6;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 20px;
+        }
+        
+        .upload-zone:hover {
+            border-color: #0d6efd;
+            background-color: #f8f9fa;
+        }
+        
+        .upload-zone.dragover {
+            border-color: #0d6efd;
+            background-color: #e3f2fd;
+        }
+        
+        .file-preview {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 20px;
+        }
+        
+        .progress-container {
+            display: none;
+            margin: 20px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid #ccc;
+            background: #f8f9fa;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        .btn:hover {
+            background: #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <h1>File Upload Debug Test</h1>
+    
+    <form id="uploadForm" enctype="multipart/form-data">
+        <div class="upload-zone" id="uploadZone">
+            <h5>Drag & Drop Files Here</h5>
+            <p>or click to browse files</p>
+            <input type="file" id="fileInput" name="files[]" multiple style="display: none;">
+            <button type="button" class="btn" id="browseBtn">
+                Browse Files
+            </button>
+        </div>
+        
+        <div class="file-preview" id="filePreview" style="display: none;">
+            <h6>Selected Files:</h6>
+            <div id="fileList"></div>
+        </div>
+        
+        <div class="progress-container">
+            <div>Progress: <span id="uploadStatus">Ready</span></div>
+        </div>
+        
+        <button type="submit" class="btn" id="uploadBtn" disabled>
+            Upload Files
+        </button>
+    </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing upload functionality');
+            
+            const uploadZone = document.getElementById('uploadZone');
+            const fileInput = document.getElementById('fileInput');
+            const filePreview = document.getElementById('filePreview');
+            const fileList = document.getElementById('fileList');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const uploadForm = document.getElementById('uploadForm');
+            const uploadStatus = document.getElementById('uploadStatus');
+            
+            // Check if all elements exist
+            console.log('Elements found:', {
+                uploadZone: !!uploadZone,
+                fileInput: !!fileInput,
+                filePreview: !!filePreview,
+                fileList: !!fileList,
+                uploadBtn: !!uploadBtn,
+                uploadForm: !!uploadForm
+            });
+
+            // Drag and drop functionality
+            uploadZone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadZone.classList.add('dragover');
+                console.log('Drag over');
+            });
+
+            uploadZone.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                uploadZone.classList.remove('dragover');
+                console.log('Drag leave');
+            });
+
+            uploadZone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadZone.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                console.log('Files dropped:', files.length);
+                handleFiles(files);
+            });
+
+            uploadZone.addEventListener('click', function(e) {
+                // Only trigger file input if clicking on the zone itself, not the button
+                if (e.target === uploadZone || e.target.closest('.upload-zone') === uploadZone && !e.target.closest('button')) {
+                    console.log('Upload zone clicked');
+                    fileInput.click();
+                }
+            });
+
+            // Browse button click handler
+            document.getElementById('browseBtn').addEventListener('click', function(e) {
+                e.stopPropagation();
+                console.log('Browse button clicked');
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', function() {
+                console.log('File input changed, files:', this.files.length);
+                handleFiles(this.files);
+            });
+
+            function handleFiles(files) {
+                console.log('Handling files:', files.length);
+                if (files.length === 0) return;
+
+                // For drag and drop, we need to create a new DataTransfer object
+                if (files instanceof FileList) {
+                    // Files from input element - use directly
+                    displayFilePreview(files);
+                } else {
+                    // Files from drag and drop - convert to FileList
+                    const dt = new DataTransfer();
+                    Array.from(files).forEach(file => dt.items.add(file));
+                    fileInput.files = dt.files;
+                    displayFilePreview(fileInput.files);
+                }
+                
+                uploadBtn.disabled = false;
+            }
+
+            function displayFilePreview(files) {
+                console.log('Displaying file preview for:', files.length, 'files');
+                fileList.innerHTML = '';
+                filePreview.style.display = 'block';
+
+                Array.from(files).forEach((file, index) => {
+                    const fileItem = document.createElement('div');
+                    fileItem.style.cssText = 'border: 1px solid #ccc; padding: 10px; margin: 5px; display: flex; justify-content: space-between; align-items: center;';
+                    fileItem.innerHTML = `
+                        <div>
+                            <strong>${file.name}</strong>
+                            <small style="display: block; color: #666;">${formatFileSize(file.size)}</small>
+                        </div>
+                        <button type="button" onclick="removeFile(${index})" style="background: #dc3545; color: white; border: none; padding: 5px 10px; cursor: pointer;">
+                            Remove
+                        </button>
+                    `;
+                    fileList.appendChild(fileItem);
+                });
+            }
+
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            window.removeFile = function(index) {
+                console.log('Removing file at index:', index);
+                const dt = new DataTransfer();
+                const files = Array.from(fileInput.files);
+                files.splice(index, 1);
+                
+                files.forEach(file => dt.items.add(file));
+                fileInput.files = dt.files;
+                
+                if (files.length === 0) {
+                    filePreview.style.display = 'none';
+                    uploadBtn.disabled = true;
+                } else {
+                    displayFilePreview(fileInput.files);
+                }
+            };
+
+            // Form submission
+            uploadForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                console.log('Form submitted');
+                console.log('Files in input:', fileInput.files.length);
+                
+                if (fileInput.files.length === 0) {
+                    alert('Please select files to upload');
+                    return;
+                }
+                
+                uploadStatus.textContent = 'Upload would happen here (this is just a test)';
+                
+                // In real implementation, this would be the actual upload
+                console.log('Files ready for upload:');
+                Array.from(fileInput.files).forEach((file, index) => {
+                    console.log(`${index + 1}. ${file.name} (${formatFileSize(file.size)})`);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

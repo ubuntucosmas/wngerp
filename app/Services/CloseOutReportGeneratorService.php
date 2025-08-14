@@ -18,7 +18,9 @@ class CloseOutReportGeneratorService
             'client',
             'projectOfficer',
             'projectManager',
-            'materialLists.items',
+            'materialLists.productionItems.particulars',
+            'materialLists.materialsHire',
+            'materialLists.labourItems',
             'budgets.items',
             'phases',
             'setupReports',
@@ -155,8 +157,39 @@ class CloseOutReportGeneratorService
 
         $materials = [];
         foreach ($project->materialLists as $materialList) {
-            $materials[] = "Material List ID: {$materialList->id} - Status: " . ($materialList->status ?? 'N/A');
-            // Add more details if available in your MaterialList model
+            $materials[] = "Material List ID: {$materialList->id} - Date Range: {$materialList->date_range}";
+            
+            // Add production items with particulars
+            if ($materialList->productionItems && $materialList->productionItems->count() > 0) {
+                $materials[] = "Production Items:";
+                foreach ($materialList->productionItems as $item) {
+                    $materials[] = "  • {$item->item_name}";
+                    if ($item->particulars && $item->particulars->count() > 0) {
+                        foreach ($item->particulars as $particular) {
+                            $materials[] = "    - {$particular->particular}: {$particular->quantity} {$particular->unit}";
+                        }
+                    }
+                }
+            }
+            
+            // Add materials for hire
+            if ($materialList->materialsHire && $materialList->materialsHire->count() > 0) {
+                $materials[] = "Materials for Hire:";
+                foreach ($materialList->materialsHire as $item) {
+                    $materials[] = "  • {$item->item_name}: {$item->quantity} {$item->unit}";
+                    if ($item->particular) {
+                        $materials[] = "    - Particular: {$item->particular}";
+                    }
+                }
+            }
+            
+            // Add labour items
+            if ($materialList->labourItems && $materialList->labourItems->count() > 0) {
+                $materials[] = "Labour Items:";
+                foreach ($materialList->labourItems as $item) {
+                    $materials[] = "  • {$item->item_name} ({$item->category}): {$item->quantity} {$item->unit}";
+                }
+            }
         }
 
         return implode("\n", $materials) ?: 'No specific materials listed.';

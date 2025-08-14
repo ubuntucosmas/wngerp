@@ -631,10 +631,27 @@
                                 <i class="bi bi-arrow-right ms-1"></i>
                             </a>
                         @elseif($phase->name == 'Design & Concept Development')
-                            <a href="{{ isset($enquiry) ? route('enquiries.files.design-concept', $enquiry) : route('projects.files.design-concept', $project) }}" class="btn btn-sm btn-outline-primary w-100">
-                                <span>Open</span>
-                                <i class="bi bi-arrow-right ms-1"></i>
-                            </a>
+                            <div class="d-flex gap-2">
+                                <a href="{{ isset($enquiry) ? route('enquiries.files.design-concept', $enquiry) : route('projects.files.design-concept', $project) }}" class="btn btn-sm btn-outline-primary flex-grow-1">
+                                    <span>Open</span>
+                                    <i class="bi bi-arrow-right ms-1"></i>
+                                </a>
+                                @if(!isset($enquiry))
+                                    @php
+                                        $documentCount = $phase->activeDocuments()->count();
+                                    @endphp
+                                    <a href="{{ route('projects.phases.documents.index', [$project, $phase]) }}" 
+                                       class="btn btn-sm btn-outline-secondary position-relative" 
+                                       title="Phase Documents">
+                                        <i class="fas fa-folder-open"></i>
+                                        @if($documentCount > 0)
+                                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                                {{ $documentCount }}
+                                            </span>
+                                        @endif
+                                    </a>
+                                @endif
+                            </div>
                         @elseif($phase->name == 'Project Material List')
                             <a href="{{ isset($enquiry) ? route('enquiries.material-list.index', $enquiry) : route('projects.material-list.index', $project) }}" class="btn btn-sm btn-outline-primary w-100">
                                 <span>Open</span>

@@ -32,4 +32,20 @@ class ProjectPhase extends Model
     {
         return $this->morphTo();
     }
+
+    /**
+     * Get all documents for this phase.
+     */
+    public function documents()
+    {
+        return $this->hasMany(PhaseDocument::class);
+    }
+
+    /**
+     * Get active documents for this phase.
+     */
+    public function activeDocuments()
+    {
+        return $this->hasMany(PhaseDocument::class)->where('is_active', true);
+    }
 }

@@ -212,6 +212,22 @@ public function archivalReports()
         return $this->hasMany(\App\Models\CloseOutReport::class);
     }
 
+    /**
+     * Get all phase documents for this project.
+     */
+    public function phaseDocuments()
+    {
+        return $this->hasMany(PhaseDocument::class);
+    }
+
+    /**
+     * Get documents for a specific phase.
+     */
+    public function documentsForPhase($phaseName)
+    {
+        return $this->phaseDocuments()->where('phase_name', $phaseName)->active();
+    }
+
 protected static function booted()
 {
     // Phases are now created for enquiries and transferred to projects when conversion happens

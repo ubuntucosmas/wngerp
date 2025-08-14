@@ -54,6 +54,41 @@
             </a>
         </div>
 
+        @if(!isset($enquiry))
+        <!-- Phase Documents Card -->
+        <div class="col-lg-6 col-md-6 mb-4">
+            @php
+                $designPhase = $project->phases()->where('name', 'Design & Concept Development')->first();
+                $documentCount = $designPhase ? $designPhase->activeDocuments()->count() : 0;
+            @endphp
+            <a href="{{ $designPhase ? route('projects.phases.documents.index', [$project, $designPhase]) : '#' }}" class="text-decoration-none {{ !$designPhase ? 'disabled-link' : '' }}">
+                <div class="file-card h-100 {{ !$designPhase ? 'disabled-card' : '' }}">
+                    <div class="d-flex align-items-start">
+                        <div class="file-card-icon me-3">
+                            <i class="fas fa-folder-open"></i>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h3 class="file-card-title">Phase Documents</h3>
+                            <p class="file-card-description">
+                                Upload and manage all documents related to design and concept development phase
+                            </p>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <span class="badge bg-primary text-white">Documents</span>
+                                <small class="text-muted">{{ $documentCount }} files</small>
+                            </div>
+                            @if(!$designPhase)
+                                <small class="text-warning">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    Phase not found
+                                </small>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        @endif
+
     @if(isset($enquiry))
         <div class="col-12">
             <div class="alert alert-info">
@@ -108,6 +143,22 @@
             font-size: 0.7rem;
             font-weight: 500;
             padding: 0.35em 0.65em;
+        }
+
+        .disabled-link {
+            pointer-events: none;
+            cursor: not-allowed;
+        }
+
+        .disabled-card {
+            opacity: 0.6;
+            background-color: #f8f9fa;
+        }
+
+        .disabled-card:hover {
+            transform: none;
+            box-shadow: none;
+            border-color: #e9ecef;
         }
     </style>
 @endsection

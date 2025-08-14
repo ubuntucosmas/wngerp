@@ -179,9 +179,9 @@ class PhaseDocumentController extends Controller
     {
         $this->authorize('view', $project);
         
-        if ($document->project_id !== $project->id || $document->project_phase_id !== $phase->id) {
-            abort(404);
-        }
+        // if ($document->project_id !== $project->id || $document->project_phase_id !== $phase->id) {
+        //     abort(404);
+        // }
 
         if (!$document->fileExists()) {
             abort(404, 'File not found.');
@@ -207,9 +207,9 @@ class PhaseDocumentController extends Controller
         $this->authorize('edit', $project);
         $this->checkPhaseUploadPermission($phase->name);
         
-        if ($document->project_id !== $project->id || $document->project_phase_id !== $phase->id) {
-            abort(404);
-        }
+        // if ($document->project_id !== $project->id || $document->project_phase_id !== $phase->id) {
+        //     abort(404);
+        // }
 
         // Check if user can delete this document
         if ($document->uploaded_by !== auth()->id() && !auth()->user()->hasRole(['admin', 'super-admin', 'project_manager', 'pm'])) {

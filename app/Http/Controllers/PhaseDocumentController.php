@@ -104,6 +104,28 @@ class PhaseDocumentController extends Controller
             }
         }
 
+        // If this upload is for the Design & Concept Development phase and there are no Design Assets,
+        // mark the phase as Completed using the presence of phase documents as proof.
+        try {
+            if ($phase->name === 'Design & Concept Development') {
+                $designAssetsCount = \App\Models\DesignAsset::where('project_id', $project->id)->count();
+                $phaseDocsCount = PhaseDocument::where('project_id', $project->id)
+                    ->forPhase('Design & Concept Development')
+                    ->active()
+                    ->count();
+                if ($phaseDocsCount > 0 && $designAssetsCount === 0) {
+                    $phase->update(['status' => 'Completed']);
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::warning('Phase auto-complete on upload failed', [
+                'project_id' => $project->id,
+                'phase_id' => $phase->id,
+                'phase_name' => $phase->name,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
         // Prepare response message
         $message = '';
         if (count($uploadedFiles) > 0) {

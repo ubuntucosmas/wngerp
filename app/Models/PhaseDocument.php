@@ -60,6 +60,7 @@ class PhaseDocument extends Model
     /**
      * Get the file size in human readable format.
      */
+    
     public function getFileSizeHumanAttribute()
     {
         $bytes = $this->file_size;

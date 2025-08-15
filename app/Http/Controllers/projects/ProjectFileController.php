@@ -117,19 +117,36 @@ class ProjectFileController extends Controller
             // For regular projects, get data from project
             $designAssets = $project->designAssets;
         }
-        
+        // Also consider Phase Documents for this phase
+        $designPhaseDocs = \App\Models\PhaseDocument::where('project_id', $project->id)
+            ->forPhase('Design & Concept Development')
+            ->active()
+            ->get();
+
+        $hasDesignProof = ($designAssets->count() > 0) || ($designPhaseDocs->count() > 0);
+        $statusLabel = 'Not Started';
+        if ($hasDesignProof) {
+            $statusLabel = $designAssets->count() > 0
+                ? 'Completed (' . $designAssets->count() . ' assets)'
+                : 'Completed (Phase Documents: ' . $designPhaseDocs->count() . ')';
+        }
+        $dateLabel = null;
+        if ($designAssets->count() > 0) {
+            $dateLabel = $designAssets->first()->created_at->format('M d, Y');
+        } elseif ($designPhaseDocs->count() > 0) {
+            $dateLabel = $designPhaseDocs->first()->created_at->format('M d, Y');
+        }
+
         $completions['Design & Concept Development'] = [
-            'design_assets' => [
-                'completed' => $designAssets->count() > 0,
-                'title' => 'Design Assets & Mockups',
-                'status' => $designAssets->count() > 0 ? 'Completed (' . $designAssets->count() . ' assets)' : 'Not Started',
-                'date' => $designAssets->count() > 0 ? $designAssets->first()->created_at->format('M d, Y') : null,
-                'details' => $designAssets->count() > 0 ? [
-                    'Total Assets: ' . $designAssets->count(),
-                    'Latest Asset: ' . $designAssets->first()->name,
-                    'Uploaded by: ' . ($designAssets->first()->user->name ?? 'N/A'),
-                    'Last Updated: ' . $designAssets->sortByDesc('updated_at')->first()->updated_at->format('M d, Y')
-                ] : ['No design assets found']
+            'design_phase_proof' => [
+                'completed' => $hasDesignProof,
+                'title' => 'Design Assets / Phase Documents',
+                'status' => $statusLabel,
+                'date' => $dateLabel,
+                'details' => $hasDesignProof ? [
+                    'Design Assets: ' . $designAssets->count(),
+                    'Phase Documents: ' . $designPhaseDocs->count(),
+                ] : ['No design assets or phase documents found']
             ]
         ];
 

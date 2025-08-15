@@ -767,6 +767,58 @@ small {
                 </div>
 
                 <!-- Single Card Body with All Content -->
+                    <!-- Quick Stats Summary (compact) -->
+                    <div class="row g-1 p-2">
+                        @php
+                            $attachmentsCount = $report->attachments?->count() ?? 0;
+                            $totalBudgets = $project->budgets?->count() ?? 0;
+                            $totalBudgetAmount = 0;
+                            if ($project->budgets && $project->budgets->count() > 0) {
+                                foreach ($project->budgets as $b) {
+                                    $totalBudgetAmount += $b->budget_total ?? ($b->items?->sum('budgeted_cost') ?? 0);
+                                }
+                            }
+                            $durationDays = ($report->set_up_date && $report->set_down_date)
+                                ? $report->set_up_date->diffInDays($report->set_down_date)
+                                : (($project->start_date && $project->end_date) ? $project->start_date->diffInDays($project->end_date) : null);
+                        @endphp
+                        <div class="col-6 col-lg-3">
+                            <div class="metric-card p-2 text-start bg-white">
+                                <div class="small text-muted">Duration</div>
+                                <div class="fw-bold">{{ $durationDays !== null ? $durationDays.' days' : 'N/A' }}</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <div class="metric-card p-2 text-start bg-white">
+                                <div class="small text-muted">Budgets</div>
+                                <div class="fw-bold">{{ $totalBudgets }} @if($totalBudgets) • KSh {{ number_format($totalBudgetAmount, 0) }} @endif</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <div class="metric-card p-2 text-start bg-white">
+                                <div class="small text-muted">Attachments</div>
+                                <div class="fw-bold">{{ $attachmentsCount }}</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-lg-3">
+                            <div class="metric-card p-2 text-start bg-white">
+                                <div class="small text-muted">Status</div>
+                                <div class="fw-bold text-capitalize">{{ $report->status ?? 'draft' }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if(($report->status ?? null) === 'rejected' && $report->rejection_reason)
+                    <div class="row g-1 px-2">
+                        <div class="col-12">
+                            <div class="alert alert-danger py-2 mb-0">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                <strong>Rejection Reason:</strong> {{ $report->rejection_reason }}
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
                     <!-- All Sections in Organized Grid -->
                     <div class="row g-1">
                         <!-- Section 1: Project Information -->
@@ -813,8 +865,12 @@ small {
                                                 </h6>
                                             </div>
                                             <div class="card-body p-3 d-flex align-items-start">
-                                                @if($report->client_name || $project->client)
-                                                    <strong class="text-info">{{ $report->client_name ?? $project->client }}</strong>
+                                                @php
+                                                    $clientDisplayName = $report->client_name
+                                                        ?? ($project->client_name ?? ($project->client?->FullName ?? null));
+                                                @endphp
+                                                @if($clientDisplayName)
+                                                    <strong class="text-info">{{ $clientDisplayName }}</strong>
                                                 @else
                                                     <span class="text-muted fst-italic">Not specified</span>
                                                 @endif
@@ -1160,11 +1216,20 @@ small {
                                                                         </thead>
                                                                         <tbody>
                                                                             @foreach($materialList->productionItems as $item)
-                                                                                @if($item->particulars && $item->particulars->count() > 0)
-                                                                                    @foreach($item->particulars as $particular)
+                                                                                @php
+                                                                                    // Filter out particulars with empty quantity or no meaningful data
+                                                                                    $validParticulars = $item->particulars ? $item->particulars->filter(function($particular) {
+                                                                                        return ($particular->quantity ?? 0) > 0 || 
+                                                                                               !empty($particular->particular) || 
+                                                                                               !empty($particular->unit) || 
+                                                                                               !empty($particular->comment);
+                                                                                    }) : collect();
+                                                                                @endphp
+                                                                                @if($validParticulars->count() > 0)
+                                                                                    @foreach($validParticulars as $particular)
                                                                                         <tr>
                                                                                             @if($loop->first)
-                                                                                                <td rowspan="{{ $item->particulars->count() }}" class="align-middle">
+                                                                                                <td rowspan="{{ $validParticulars->count() }}" class="align-middle">
                                                                                                     <strong>{{ $item->item_name }}</strong>
                                                                                                 </td>
                                                                                             @endif
@@ -1175,7 +1240,7 @@ small {
                                                                                             <td>{{ $particular->comment ?? '-' }}</td>
                                                                                         </tr>
                                                                                     @endforeach
-                                                                                @else
+                                                                                @elseif(($item->quantity ?? 0) > 0 || !empty($item->item_name))
                                                                                     <tr>
                                                                                         <td><strong>{{ $item->item_name }}</strong></td>
                                                                                         <td colspan="5" class="text-muted fst-italic">No particulars specified</td>
@@ -1206,14 +1271,24 @@ small {
                                                                         </thead>
                                                                         <tbody>
                                                                             @foreach($materialList->items as $item)
-                                                                                <tr>
-                                                                                    <td><strong>{{ $item->item_name }}</strong></td>
-                                                                                    <td>{{ $item->particular ?? '-' }}</td>
-                                                                                    <td>{{ $item->unit ?? '-' }}</td>
-                                                                                    <td>{{ number_format($item->quantity ?? 0, 2) }}</td>
-                                                                                    <td>{{ $item->unit_price ? number_format($item->unit_price, 2) : '-' }}</td>
-                                                                                    <td>{{ $item->comment ?? '-' }}</td>
-                                                                                </tr>
+                                                                                @php
+                                                                                    // Filter out items with empty quantity or no meaningful data
+                                                                                    $hasValidData = ($item->quantity ?? 0) > 0 || 
+                                                                                                  !empty($item->particular) || 
+                                                                                                  !empty($item->unit) || 
+                                                                                                  !empty($item->comment) ||
+                                                                                                  !empty($item->item_name);
+                                                                                @endphp
+                                                                                @if($hasValidData)
+                                                                                    <tr>
+                                                                                        <td><strong>{{ $item->item_name }}</strong></td>
+                                                                                        <td>{{ $item->particular ?? '-' }}</td>
+                                                                                        <td>{{ $item->unit ?? '-' }}</td>
+                                                                                        <td>{{ number_format($item->quantity ?? 0, 2) }}</td>
+                                                                                        <td>{{ $item->unit_price ? number_format($item->unit_price, 2) : '-' }}</td>
+                                                                                        <td>{{ $item->comment ?? '-' }}</td>
+                                                                                    </tr>
+                                                                                @endif
                                                                             @endforeach
                                                                         </tbody>
                                                                     </table>
@@ -1221,54 +1296,45 @@ small {
                                                             </div>
                                                         @endif
                                                         
-                                                        <!-- Labour Items -->
-                                                        @if($materialList->labourItems->count() > 0)
-                                                            <div class="mb-3">
-                                                                <h6 class="text-success mb-2" style="font-size: 0.7rem;">Labour ({{ $materialList->labourItems->count() }})</h6>
-                                                                <div class="table-responsive">
-                                                                    <table class="table table-sm table-striped" style="font-size: 0.65rem;">
-                                                                        <thead class="table-success">
-                                                                            <tr>
-                                                                                <th>Category</th>
-                                                                                <th>Item</th>
-                                                                                <th>Unit</th>
-                                                                                <th>Qty</th>
-                                                                                <th>Unit Price</th>
-                                                                                <th>Comment</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            @foreach($materialList->labourItems as $item)
-                                                                                <tr>
-                                                                                    <td><span class="badge bg-success">{{ $item->category ?? 'General' }}</span></td>
-                                                                                    <td><strong>{{ $item->item_name }}</strong></td>
-                                                                                    <td>{{ $item->unit ?? '-' }}</td>
-                                                                                    <td>{{ number_format($item->quantity ?? 0, 2) }}</td>
-                                                                                    <td>{{ $item->unit_price ? number_format($item->unit_price, 2) : '-' }}</td>
-                                                                                    <td>{{ $item->comment ?? '-' }}</td>
-                                                                                </tr>
-                                                                            @endforeach
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-                                                            </div>
-                                                        @endif
+
                                                         
                                                         <!-- Material List Total -->
+                                                        @php
+                                                            // Count only non-empty production items
+                                                            $validProductionCount = $materialList->productionItems->filter(function($item) {
+                                                                if ($item->particulars && $item->particulars->count() > 0) {
+                                                                    return $item->particulars->filter(function($particular) {
+                                                                        return ($particular->quantity ?? 0) > 0 || 
+                                                                               !empty($particular->particular) || 
+                                                                               !empty($particular->unit) || 
+                                                                               !empty($particular->comment);
+                                                                    })->count() > 0;
+                                                                }
+                                                                return ($item->quantity ?? 0) > 0 || !empty($item->item_name);
+                                                            })->count();
+                                                            
+                                                            // Count only non-empty hire items
+                                                            $validHireCount = $materialList->items->filter(function($item) {
+                                                                return ($item->quantity ?? 0) > 0 || 
+                                                                       !empty($item->particular) || 
+                                                                       !empty($item->unit) || 
+                                                                       !empty($item->comment) ||
+                                                                       !empty($item->item_name);
+                                                            })->count();
+                                                            
+                                                            $totalMaterialItems = $validProductionCount + $validHireCount;
+                                                        @endphp
                                                         <div class="alert alert-info mb-0" style="padding: 0.5rem; font-size: 0.7rem;">
                                                             <div class="row text-start">
-                                                                <div class="col-4">
-                                                                    <strong>Production:</strong> {{ $materialList->productionItems->count() }} items
+                                                                <div class="col-6">
+                                                                    <strong>Production:</strong> {{ $validProductionCount }} items
                                                                 </div>
-                                                                <div class="col-4">
-                                                                    <strong>Hire:</strong> {{ $materialList->items->count() }} items
-                                                                </div>
-                                                                <div class="col-4">
-                                                                    <strong>Labour:</strong> {{ $materialList->labourItems->count() }}
+                                                                <div class="col-6">
+                                                                    <strong>Hire:</strong> {{ $validHireCount }} items
                                                                 </div>
                                                             </div>
                                                             <div class="text-start mt-2 pt-2 border-top">
-                                                                <strong>Total Items: {{ $listTotalItems }}</strong>
+                                                                <strong>Total Material Items: {{ $totalMaterialItems }}</strong>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1594,6 +1660,65 @@ small {
                         </div>
                     </div>
 
+                    <!-- Attachments Files (actual uploads) -->
+                    @if($report->attachments && $report->attachments->count() > 0)
+                    <div class="row g-1 mt-1">
+                        <div class="col-12">
+                            <div class="border rounded-3 p-3 h-100 shadow-sm" style="background: linear-gradient(135deg, #f8f9fa 0%, #eef2f7 100%);">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="bg-secondary rounded-circle p-2 me-2">
+                                        <i class="fas fa-paperclip text-white" style="font-size: 0.8rem;"></i>
+                                    </div>
+                                    <h6 class="text-secondary mb-0 fw-bold" style="font-size: 1.1rem;">
+                                        Uploaded Attachments ({{ $report->attachments->count() }})
+                                    </h6>
+                                    <div class="ms-auto d-flex gap-2">
+                                        <form class="d-inline" method="POST" action="{{ route('projects.close-out-report.bulk-download', [$project, $report]) }}">
+                                            @csrf
+                                            <button type="submit" class="btn btn-outline-secondary btn-sm">
+                                                <i class="fas fa-file-archive me-1"></i> Bulk Download
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                                <div class="table-responsive" style="font-size: 0.8rem;">
+                                    <table class="table table-sm align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th class="text-start">Filename</th>
+                                                <th class="text-start">Uploaded</th>
+                                                <th class="text-end">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($report->attachments as $attachment)
+                                            <tr>
+                                                <td class="text-start">{{ $attachment->filename }}</td>
+                                                <td class="text-start">{{ $attachment->created_at?->format('M d, Y g:i A') }}</td>
+                                                <td class="text-end">
+                                                    <a href="{{ route('projects.close-out-report.attachments.download', [$project, $report, $attachment]) }}" class="btn btn-outline-primary btn-sm">
+                                                        <i class="fas fa-download"></i>
+                                                    </a>
+                                                    @can('edit', $project)
+                                                    <form method="POST" action="{{ route('projects.close-out-report.attachments.destroy', [$project, $report, $attachment]) }}" class="d-inline" onsubmit="return confirm('Delete this attachment?');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                    @endcan
+                                                </td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
                     <!-- Row 5: Budget & Final Approval -->
                     <div class="row g-1 mt-1">
                         <!-- Budget Information -->
@@ -1691,39 +1816,57 @@ small {
                                                         @endphp
                                                         
                                                         @foreach($itemsByCategory as $category => $items)
-                                                            <div class="mb-3">
-                                                                <h6 class="text-primary mb-2" style="font-size: 0.7rem;">{{ $category ?: 'Uncategorized' }} ({{ $items->count() }})</h6>
-                                                                <div class="table-responsive">
-                                                                    <table class="table table-sm table-striped" style="font-size: 0.65rem;">
-                                                                        <thead class="table-primary">
-                                                                            <tr>
-                                                                                <th>Item</th>
-                                                                                <th>Particular</th>
-                                                                                <th>Unit</th>
-                                                                                <th>Qty</th>
-                                                                                <th>Unit Price</th>
-                                                                                <th>Budgeted Cost</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody>
-                                                                            @foreach($items as $item)
+                                                            @php
+                                                                // Filter out empty items and labour categories
+                                                                $filteredItems = $items->filter(function($item) use ($category) {
+                                                                    // Skip labour categories
+                                                                    if (stripos($category, 'labour') !== false || stripos($category, 'labor') !== false) {
+                                                                        return false;
+                                                                    }
+                                                                    
+                                                                    // Filter out items with no meaningful data
+                                                                    return ($item->quantity ?? 0) > 0 || 
+                                                                           ($item->budgeted_cost ?? 0) > 0 || 
+                                                                           !empty($item->item_name) || 
+                                                                           !empty($item->particular) || 
+                                                                           !empty($item->unit);
+                                                                });
+                                                            @endphp
+                                                            @if($filteredItems->count() > 0 && stripos($category, 'labour') === false && stripos($category, 'labor') === false)
+                                                                <div class="mb-3">
+                                                                    <h6 class="text-primary mb-2" style="font-size: 0.7rem;">{{ $category ?: 'Uncategorized' }} ({{ $filteredItems->count() }})</h6>
+                                                                    <div class="table-responsive">
+                                                                        <table class="table table-sm table-striped" style="font-size: 0.65rem;">
+                                                                            <thead class="table-primary">
                                                                                 <tr>
-                                                                                    <td>{{ $item->item_name }}</td>
-                                                                                    <td>{{ $item->particular ?? '-' }}</td>
-                                                                                    <td>{{ $item->unit ?? '-' }}</td>
-                                                                                    <td>{{ number_format($item->quantity ?? 1, 2) }}</td>
-                                                                                    <td>KSh {{ number_format($item->unit_price ?? 0, 2) }}</td>
-                                                                                    <td><strong>KSh {{ number_format($item->budgeted_cost ?? 0, 2) }}</strong></td>
+                                                                                    <th>Item</th>
+                                                                                    <th>Particular</th>
+                                                                                    <th>Unit</th>
+                                                                                    <th>Qty</th>
+                                                                                    <th>Unit Price</th>
+                                                                                    <th>Budgeted Cost</th>
                                                                                 </tr>
-                                                                            @endforeach
-                                                                            <tr class="table-secondary">
-                                                                                <td colspan="5"><strong>{{ $category ?: 'Uncategorized' }} Subtotal:</strong></td>
-                                                                                <td><strong>KSh {{ number_format($items->sum('budgeted_cost'), 2) }}</strong></td>
-                                                                            </tr>
-                                                                        </tbody>
-                                                                    </table>
+                                                                            </thead>
+                                                                            <tbody>
+                                                                                @foreach($filteredItems as $item)
+                                                                                    <tr>
+                                                                                        <td>{{ $item->item_name }}</td>
+                                                                                        <td>{{ $item->particular ?? '-' }}</td>
+                                                                                        <td>{{ $item->unit ?? '-' }}</td>
+                                                                                        <td>{{ number_format($item->quantity ?? 1, 2) }}</td>
+                                                                                        <td>KSh {{ number_format($item->unit_price ?? 0, 2) }}</td>
+                                                                                        <td><strong>KSh {{ number_format($item->budgeted_cost ?? 0, 2) }}</strong></td>
+                                                                                    </tr>
+                                                                                @endforeach
+                                                                                <tr class="table-secondary">
+                                                                                    <td colspan="5"><strong>{{ $category ?: 'Uncategorized' }} Subtotal:</strong></td>
+                                                                                    <td><strong>KSh {{ number_format($filteredItems->sum('budgeted_cost'), 2) }}</strong></td>
+                                                                                </tr>
+                                                                            </tbody>
+                                                                        </table>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
+                                                            @endif
                                                         @endforeach
                                                     @endif
                                                     
@@ -1864,20 +2007,57 @@ small {
                         <div class="col-12">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="btn-group" role="group">
-                                    @if(($report->status ?? 'draft') === 'draft')
-                                    <button type="button" class="btn btn-success btn-sm">
-                                        <i class="fas fa-paper-plane me-1"></i>
-                                        Submit Report
+                                    @if(($report->status ?? 'draft') === 'draft' && auth()->user()?->can('edit', $project))
+                                    <form method="POST" action="{{ route('projects.close-out-report.submit', [$project, $report]) }}" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            <i class="fas fa-paper-plane me-1"></i>
+                                            Submit Report
+                                        </button>
+                                    </form>
+                                    @endif
+
+                                    @if(($report->status ?? '') === 'submitted' && auth()->user()?->can('edit', $project))
+                                    <form method="POST" action="{{ route('projects.close-out-report.approve', [$project, $report]) }}" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-check me-1"></i>
+                                            Approve
+                                        </button>
+                                    </form>
+                                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#rejectReportModal">
+                                        <i class="fas fa-times me-1"></i>
+                                        Reject
                                     </button>
                                     @endif
-                                    <button type="button" class="btn btn-warning btn-sm">
-                                        <i class="fas fa-envelope me-1"></i>
-                                        Email Report
-                                    </button>
-                                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+
+                                    <form method="POST" action="{{ route('projects.close-out-report.email', [$project, $report]) }}" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-warning btn-sm">
+                                            <i class="fas fa-envelope me-1"></i>
+                                            Email Report
+                                        </button>
+                                    </form>
+
+                                    <a href="{{ route('projects.close-out-report.print', [$project, $report]) }}" class="btn btn-outline-secondary btn-sm">
                                         <i class="fas fa-print me-1"></i>
                                         Print
-                                    </button>
+                                    </a>
+
+                                    <form method="POST" action="{{ route('projects.close-out-report.export-word', [$project, $report]) }}" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-outline-dark btn-sm">
+                                            <i class="fas fa-file-word me-1"></i>
+                                            Word
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{{ route('projects.close-out-report.export-all-excel', [$project, $report]) }}" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-outline-success btn-sm">
+                                            <i class="fas fa-file-excel me-1"></i>
+                                            Excel
+                                        </button>
+                                    </form>
                                 </div>
                                 <a href="{{ route('projects.index') }}" class="btn btn-outline-primary btn-sm">
                                     <i class="fas fa-arrow-left me-1"></i>
@@ -1890,6 +2070,39 @@ small {
             </div>
         </div>
 
+
+<!-- Reject Report Modal -->
+@if(($report->status ?? '') === 'submitted' && auth()->user()?->can('edit', $project))
+<div class="modal fade" id="rejectReportModal" tabindex="-1" aria-labelledby="rejectReportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="rejectReportModalLabel">
+                    <i class="fas fa-times-circle me-2"></i>
+                    Reject Close-Out Report
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ route('projects.close-out-report.reject', [$project, $report]) }}">
+                @csrf
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Rejection Reason</label>
+                        <textarea name="rejection_reason" class="form-control" rows="3" required placeholder="Provide a clear reason for rejection..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-times me-1"></i>
+                        Confirm Reject
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
 
 <!-- Delete Report Confirmation Modal -->
 <div class="modal fade" id="deleteReportModal" tabindex="-1" aria-labelledby="deleteReportModalLabel" aria-hidden="true">

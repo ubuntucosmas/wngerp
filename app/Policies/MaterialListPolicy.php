@@ -51,7 +51,9 @@ class MaterialListPolicy
      */
     public function create(User $user): bool
     {
-        return true; // Allow creation, but check project assignment in controller
+        // Only PMs, admins, and super admins can create material lists
+        return $user->hasAnyRole(['super-admin', 'pm', 'po', 'admin']);
+        
     }
 
     /**

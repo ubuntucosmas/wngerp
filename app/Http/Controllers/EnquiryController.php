@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Client;
 use App\Models\Enquiry;
 use App\Models\Project;
 use App\Models\User;
-use App\Models\Client;
-use Illuminate\Http\Request;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Carbon\Carbon;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
 
 class EnquiryController extends Controller
 {
     use AuthorizesRequests;
+
     public function index(Request $request)
     {
         // Get the currently authenticated user
@@ -45,7 +46,7 @@ class EnquiryController extends Controller
         $statuses = ['Open', 'Quoted', 'Approved', 'Declined'];
         $users = User::where('role', 'po')->get();
         $clients = Client::all();
-        
+
         // Add view type for the template
         $viewType = 'assigned';
 
@@ -76,11 +77,11 @@ class EnquiryController extends Controller
 
         // Paginate results
         $enquiries = $query->paginate(10)->withQueryString();
-        
+
         $statuses = ['Open', 'Quoted', 'Approved', 'Declined'];
         $users = User::where('role', 'po')->get();
         $clients = Client::all();
-        
+
         // Set view type to all
         $viewType = 'all';
 
@@ -90,10 +91,9 @@ class EnquiryController extends Controller
     public function create()
     {
         $statuses = ['Open', 'Quoted', 'Approved', 'Declined'];
+
         return view('projects.Enquiry.create', compact('statuses'));
     }
-
-
 
     /**
      * Show enquiry files and phases (similar to project files)
@@ -102,7 +102,7 @@ class EnquiryController extends Controller
     {
         // Check if user can view this enquiry
         $this->authorize('view', $enquiry);
-        
+
         // List of file types for the enquiry (same structure as project)
         $fileTypes = [
             ['name' => 'Enquiry Log', 'route' => route('enquiries.enquiry-log.create', $enquiry), 'template' => 'enquiry-log-template'],
@@ -112,7 +112,7 @@ class EnquiryController extends Controller
             ['name' => 'Budget', 'route' => route('enquiries.budget.index', $enquiry), 'template' => 'budget'],
             ['name' => 'Quotation', 'route' => route('enquiries.quotation.index', $enquiry), 'template' => 'quotes'],
         ];
-        
+
         // Check if site survey exists for this enquiry
         $siteSurvey = $enquiry->siteSurveys()->first();
         if ($siteSurvey) {
@@ -136,20 +136,20 @@ class EnquiryController extends Controller
 
         // Get phases for this enquiry (same as project)
         $phases = $enquiry->getDisplayablePhases();
-        
+
         // Get phase completion data for summaries (same structure as project)
         $phaseCompletions = $this->getPhaseCompletions($enquiry);
-        
+
         // Auto-update phase statuses based on completion (same as project)
         $this->updatePhaseStatuses($enquiry, $phaseCompletions);
-        
+
         // Calculate progress (same as project)
         $totalPhases = $phases->count();
         $completed = $phases->where('status', 'Completed')->count();
         $skipped = $phases->where('skipped', true)->count();
         $inProgress = $phases->where('status', 'In Progress')->count();
         $done = $completed + $skipped;
-        
+
         return view('projects.files.index', compact('enquiry', 'fileTypes', 'phaseCompletions', 'phases', 'totalPhases', 'completed', 'skipped', 'done', 'inProgress'));
     }
 
@@ -170,11 +170,11 @@ class EnquiryController extends Controller
                 'status' => $enquiryLog ? 'Completed' : 'Not Started',
                 'date' => $enquiryLog ? $enquiryLog->created_at->format('M d, Y') : null,
                 'details' => $enquiryLog ? [
-                    'Client: ' . ($enquiryLog->client_name ?? 'N/A'),
-                    'Contact: ' . ($enquiryLog->contact_person ?? 'N/A'),
-                    'Status: ' . ($enquiryLog->status ?? 'N/A'),
-                    'Assigned: ' . ($enquiryLog->assigned_to ?? 'N/A')
-                ] : ['No enquiry log found']
+                    'Client: '.($enquiryLog->client_name ?? 'N/A'),
+                    'Contact: '.($enquiryLog->contact_person ?? 'N/A'),
+                    'Status: '.($enquiryLog->status ?? 'N/A'),
+                    'Assigned: '.($enquiryLog->assigned_to ?? 'N/A'),
+                ] : ['No enquiry log found'],
             ],
             'site_survey' => [
                 'completed' => $siteSurveys->count() > 0 || $enquiry->site_survey_skipped,
@@ -183,15 +183,15 @@ class EnquiryController extends Controller
                 'date' => $enquiry->site_survey_skipped ? 'Skipped' : ($siteSurveys->count() > 0 ? $siteSurveys->first()->created_at->format('M d, Y') : null),
                 'details' => $enquiry->site_survey_skipped ? [
                     'Status: Skipped',
-                    'Reason: ' . ($enquiry->site_survey_skip_reason ?: 'No reason provided'),
-                    'Skipped Date: ' . now()->format('M d, Y')
+                    'Reason: '.($enquiry->site_survey_skip_reason ?: 'No reason provided'),
+                    'Skipped Date: '.now()->format('M d, Y'),
                 ] : ($siteSurveys->count() > 0 ? [
-                    'Location: ' . ($siteSurveys->first()->location ?? 'N/A'),
-                    'Visit Date: ' . ($siteSurveys->first()->site_visit_date ? $siteSurveys->first()->site_visit_date->format('M d, Y') : 'N/A'),
-                    'Project Manager: ' . ($siteSurveys->first()->project_manager ?? 'N/A'),
-                    'Client Approval: ' . ($siteSurveys->first()->client_approval ? 'Yes' : 'No')
-                ] : ['No site survey found'])
-            ]
+                    'Location: '.($siteSurveys->first()->location ?? 'N/A'),
+                    'Visit Date: '.($siteSurveys->first()->site_visit_date ? $siteSurveys->first()->site_visit_date->format('M d, Y') : 'N/A'),
+                    'Project Manager: '.($siteSurveys->first()->project_manager ?? 'N/A'),
+                    'Client Approval: '.($siteSurveys->first()->client_approval ? 'Yes' : 'No'),
+                ] : ['No site survey found']),
+            ],
         ];
 
         // Design & Concept Development
@@ -203,11 +203,11 @@ class EnquiryController extends Controller
                 'status' => $designAssets->count() > 0 ? 'Completed' : 'Not Started',
                 'date' => $designAssets->count() > 0 ? $designAssets->first()->created_at->format('M d, Y') : null,
                 'details' => $designAssets->count() > 0 ? [
-                    'Total Assets: ' . $designAssets->count(),
-                    'Latest Asset: ' . $designAssets->first()->name,
-                    'Uploaded By: ' . ($designAssets->first()->user->name ?? 'N/A')
-                ] : ['No design assets found']
-            ]
+                    'Total Assets: '.$designAssets->count(),
+                    'Latest Asset: '.$designAssets->first()->name,
+                    'Uploaded By: '.($designAssets->first()->user->name ?? 'N/A'),
+                ] : ['No design assets found'],
+            ],
         ];
 
         // Project Material List
@@ -219,11 +219,11 @@ class EnquiryController extends Controller
                 'status' => $materialLists->count() > 0 ? 'Completed' : 'Not Started',
                 'date' => $materialLists->count() > 0 ? $materialLists->first()->created_at->format('M d, Y') : null,
                 'details' => $materialLists->count() > 0 ? [
-                    'Total Lists: ' . $materialLists->count(),
-                    'Latest List: ' . $materialLists->first()->name,
-                    'Items Count: ' . $materialLists->first()->items->count()
-                ] : ['No material lists found']
-            ]
+                    'Total Lists: '.$materialLists->count(),
+                    'Latest List: '.$materialLists->first()->name,
+                    'Items Count: '.$materialLists->first()->items->count(),
+                ] : ['No material lists found'],
+            ],
         ];
 
         // Budget & Quotation
@@ -236,15 +236,15 @@ class EnquiryController extends Controller
                 'title' => 'Project Budget',
                 'status' => $budget ? 'Completed' : 'Not Started',
                 'date' => $budget ? $budget->created_at->format('M d, Y') : null,
-                'details' => $budget ? ['Budget Total: ' . number_format($budget->budget_total, 2)] : ['No budget found']
+                'details' => $budget ? ['Budget Total: '.number_format($budget->budget_total, 2)] : ['No budget found'],
             ],
             'quotes' => [
                 'completed' => $quote ? true : false,
                 'title' => 'Quotation Documents',
                 'status' => $quote ? 'Completed' : 'Not Started',
                 'date' => $quote ? $quote->created_at->format('M d, Y') : null,
-                'details' => $quote ? ['Quote Total: ' . number_format($quote->grand_total, 2)] : ['No quotation found']
-            ]
+                'details' => $quote ? ['Quote Total: '.number_format($quote->grand_total, 2)] : ['No quotation found'],
+            ],
         ];
 
         return $completions;
@@ -257,17 +257,17 @@ class EnquiryController extends Controller
     {
         foreach ($enquiry->phases as $phase) {
             // Check if this phase exists in the completions array
-            if (!isset($phaseCompletions[$phase->name])) {
+            if (! isset($phaseCompletions[$phase->name])) {
                 // Skip phases that don't have completion data
                 continue;
             }
-            
+
             $completions = $phaseCompletions[$phase->name];
-            
+
             if (isset($completions)) {
                 $totalItems = count($completions);
                 $completedItems = collect($completions)->where('completed', true)->count();
-                
+
                 if ($completedItems === $totalItems && $totalItems > 0) {
                     $phase->update(['status' => 'Completed']);
                 } elseif ($completedItems > 0) {
@@ -282,7 +282,7 @@ class EnquiryController extends Controller
     public function store(Request $request)
     {
         \Log::info('Enquiry store method called', $request->all());
-        
+
         try {
             $validated = $request->validate([
                 'date_received' => 'required|date',
@@ -297,30 +297,30 @@ class EnquiryController extends Controller
                 'venue' => 'nullable|string|max:255',
                 'enquiry_number' => 'nullable|integer|min:1|unique:enquiries,enquiry_number',
             ]);
-            
+
             \Log::info('Validation passed', $validated);
-    
+
             // Convert datetime-local to date format for database storage
             if ($request->has('date_received')) {
                 $validated['date_received'] = Carbon::parse($request->input('date_received'))->format('Y-m-d');
             }
-            
+
             if ($request->has('expected_delivery_date') && $request->input('expected_delivery_date')) {
                 $validated['expected_delivery_date'] = Carbon::parse($request->input('expected_delivery_date'))->format('Y-m-d');
             }
-            
+
             \Log::info('Processed data', $validated);
-    
+
             $enquiry = Enquiry::create($validated);
-            
+
             \Log::info('Enquiry created successfully', ['id' => $enquiry->id]);
-    
+
             if ($request->expectsJson()) {
                 return response()->json(['success' => true, 'message' => 'Enquiry created successfully.']);
             }
-    
+
             return redirect()->back()->with('success', 'Enquiry created successfully.');
-            
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Log::error('Validation failed', ['errors' => $e->errors()]);
             throw $e;
@@ -329,14 +329,14 @@ class EnquiryController extends Controller
             throw $e;
         }
     }
-    
 
     public function edit(Enquiry $enquiry)
     {
         // Check if user can update this enquiry
         $this->authorize('update', $enquiry);
-        
+
         $statuses = ['Open', 'Quoted', 'Approved', 'Declined'];
+
         return view('projects.Enquiry.edit', compact('enquiry', 'statuses'));
     }
 
@@ -344,7 +344,7 @@ class EnquiryController extends Controller
     {
         // Check if user can update this enquiry
         $this->authorize('update', $enquiry);
-        
+
         $validated = $request->validate([
             'date_received' => 'required|date',
             'expected_delivery_date' => 'nullable|date|after_or_equal:date_received',
@@ -356,14 +356,14 @@ class EnquiryController extends Controller
             'follow_up_notes' => 'nullable|string',
             'project_id' => 'nullable|string|max:255',
             'venue' => 'nullable|string|max:255',
-            'enquiry_number' => 'nullable|integer|min:1|unique:enquiries,enquiry_number,' . $enquiry->id,
+            'enquiry_number' => 'nullable|integer|min:1|unique:enquiries,enquiry_number,'.$enquiry->id,
         ]);
 
         // Convert datetime-local to date format for database storage
         if ($request->has('date_received')) {
             $validated['date_received'] = Carbon::parse($request->input('date_received'))->format('Y-m-d');
         }
-        
+
         if ($request->has('expected_delivery_date') && $request->input('expected_delivery_date')) {
             $validated['expected_delivery_date'] = Carbon::parse($request->input('expected_delivery_date'))->format('Y-m-d');
         }
@@ -382,8 +382,9 @@ class EnquiryController extends Controller
     {
         // Check if user can delete this enquiry
         $this->authorize('delete', $enquiry);
-        
+
         $enquiry->delete();
+
         return redirect()->route('enquiries.index')->with('success', 'Enquiry deleted successfully.');
     }
 
@@ -416,11 +417,11 @@ class EnquiryController extends Controller
 
         // Paginate results
         $enquiries = $query->paginate(10)->withQueryString();
-        
+
         $statuses = ['Open', 'Quoted', 'Approved', 'Declined'];
         $users = User::where('role', 'po')->get();
         $clients = Client::all();
-        
+
         // Set view type to trashed
         $viewType = 'trashed';
 
@@ -444,12 +445,12 @@ class EnquiryController extends Controller
     public function forceDelete($id)
     {
         // Only super-admins can permanently delete enquiries
-        if (!auth()->user()->hasRole('super-admin')) {
+        if (! auth()->user()->hasRole('super-admin')) {
             abort(403, 'You do not have permission to permanently delete enquiries. Only Super Admins can permanently delete enquiries.');
         }
 
         $enquiry = Enquiry::onlyTrashed()->findOrFail($id);
-        
+
         // If this enquiry was converted to a project, we need to handle that
         if ($enquiry->converted_to_project_id) {
             $project = Project::find($enquiry->converted_to_project_id);
@@ -458,10 +459,10 @@ class EnquiryController extends Controller
                 $project->forceDelete();
             }
         }
-        
+
         // Permanently delete the enquiry
         $enquiry->forceDelete();
-        
+
         return redirect()->route('enquiries.trashed')->with('success', 'Enquiry permanently deleted.');
     }
 
@@ -472,22 +473,22 @@ class EnquiryController extends Controller
     {
         // Check if user can view this enquiry
         $this->authorize('view', $enquiry);
-        
+
         // Check if enquiry log exists for this enquiry
         $existingEnquiryLog = $enquiry->enquiryLog()->first();
-        
+
         // Check if site survey exists for this enquiry
         $existingSiteSurvey = $enquiry->siteSurveys()->first();
-        
+
         // For enquiries, we can show the enquiry details as the client engagement
         $files = [
             [
                 'name' => 'Enquiry Log',
-                'route' => $existingEnquiryLog 
+                'route' => $existingEnquiryLog
                     ? route('enquiries.enquiry-log.show', [$enquiry, $existingEnquiryLog])
                     : route('enquiries.enquiry-log.create', $enquiry),
                 'icon' => 'bi-journal-text',
-                'description' => $existingEnquiryLog 
+                'description' => $existingEnquiryLog
                     ? 'View existing enquiry log details'
                     : 'Fill out the enquiry log form with detailed information',
                 'type' => $existingEnquiryLog ? 'Existing-Enquiry-Log' : 'Enquiry-Log-Form',
@@ -520,7 +521,7 @@ class EnquiryController extends Controller
                 'icon' => 'bi-clipboard2-pulse',
                 'description' => 'Complete the site survey form',
                 'type' => 'Site-Survey-Form',
-        ];
+            ];
         }
 
         return view('projects.files.client-engagement', compact('enquiry', 'files'));
@@ -533,7 +534,7 @@ class EnquiryController extends Controller
     {
         // Check if user can update this enquiry
         $this->authorize('update', $enquiry);
-        
+
         return view('projects.enquiry-log.create', compact('enquiry'));
     }
 
@@ -544,7 +545,7 @@ class EnquiryController extends Controller
     {
         // Check if user can view this enquiry
         $this->authorize('view', $enquiry);
-        
+
         return view('projects.enquiry-log.show', compact('enquiry', 'enquiryLog'));
     }
 
@@ -555,7 +556,7 @@ class EnquiryController extends Controller
     {
         // Check if user can update this enquiry
         $this->authorize('update', $enquiry);
-        
+
         $data = $request->validate([
             'venue' => 'required|string|max:255',
             'date_received' => 'required|date',
@@ -566,17 +567,17 @@ class EnquiryController extends Controller
             'assigned_to' => 'nullable|string|max:255',
             'follow_up_notes' => 'nullable|string',
         ]);
-    
+
         $data['project_name'] = $enquiry->project_name;
         $data['project_scope_summary'] = json_encode(
             array_filter(array_map('trim', explode(',', $data['project_scope_summary'])))
         );
-    
+
         // Create or update the enquiry log
         $enquiryLog = $enquiry->enquiryLog()->updateOrCreate([], $data);
-    
+
         return redirect()->route('enquiries.enquiry-log.show', [$enquiry, $enquiryLog])
-                         ->with('success', 'Enquiry Log created successfully.');
+            ->with('success', 'Enquiry Log created successfully.');
     }
 
     /**
@@ -586,7 +587,7 @@ class EnquiryController extends Controller
     {
         // Check if user can update this enquiry
         $this->authorize('update', $enquiry);
-        
+
         // Create new site survey with default values from enquiry
         $siteSurvey = new \App\Models\SiteSurvey([
             'client_name' => $enquiry->client_name,
@@ -595,24 +596,24 @@ class EnquiryController extends Controller
             'client_contact_person' => $enquiry->contact_person,
             'project_description' => $enquiry->project_name,
         ]);
-        
+
         // Get team members for enquiries (use assigned PO and any other relevant users)
         $teamMembers = collect();
         if ($enquiry->assigned_po) {
-            $teamMembers->push((object)['id' => 1, 'name' => $enquiry->assigned_po]);
+            $teamMembers->push((object) ['id' => 1, 'name' => $enquiry->assigned_po]);
         }
-        
+
         // Add some common team members for enquiries
         $commonTeamMembers = [
             ['id' => 2, 'name' => 'Project Manager'],
             ['id' => 3, 'name' => 'Site Supervisor'],
             ['id' => 4, 'name' => 'Technical Lead'],
         ];
-        
+
         foreach ($commonTeamMembers as $member) {
-            $teamMembers->push((object)$member);
+            $teamMembers->push((object) $member);
         }
-        
+
         // Derive client from enquiry name to prefill contact info
         $client = \App\Models\Client::where('FullName', $enquiry->client_name)->first();
 
@@ -632,20 +633,20 @@ class EnquiryController extends Controller
         // Get team members for enquiries (use assigned PO and any other relevant users)
         $teamMembers = collect();
         if ($enquiry->assigned_po) {
-            $teamMembers->push((object)['id' => 1, 'name' => $enquiry->assigned_po]);
+            $teamMembers->push((object) ['id' => 1, 'name' => $enquiry->assigned_po]);
         }
-        
+
         // Add some common team members for enquiries
         $commonTeamMembers = [
             ['id' => 2, 'name' => 'Project Manager'],
             ['id' => 3, 'name' => 'Site Supervisor'],
             ['id' => 4, 'name' => 'Technical Lead'],
         ];
-        
+
         foreach ($commonTeamMembers as $member) {
-            $teamMembers->push((object)$member);
+            $teamMembers->push((object) $member);
         }
-        
+
         return view('projects.site-survey.show', compact('enquiry', 'siteSurvey', 'teamMembers'));
     }
 
@@ -742,6 +743,7 @@ class EnquiryController extends Controller
         $this->authorize('view', $enquiry);
 
         $project = $enquiry->project; // Get the associated project
+
         return view('projects.files.quotation', compact('enquiry', 'project'));
     }
 
@@ -767,6 +769,7 @@ class EnquiryController extends Controller
     public function materialList(Enquiry $enquiry)
     {
         $project = $enquiry->project; // Get the associated project
+
         return view('projects.material-list.index', compact('enquiry', 'project'));
     }
 
@@ -774,6 +777,7 @@ class EnquiryController extends Controller
     {
         $project = $enquiry->project; // Get the associated project
         $materialLists = $enquiry->materialLists()->get();
+
         return view('projects.material-list.show', compact('enquiry', 'materialList', 'project'));
     }
 
@@ -785,6 +789,7 @@ class EnquiryController extends Controller
     public function quotation(Enquiry $enquiry)
     {
         $quotes = $enquiry->quotes()->latest()->paginate(10); // Fetch quotes for the enquiry
+
         return view('projects.quotes.index', compact('enquiry', 'quotes'));
     }
 
@@ -811,7 +816,7 @@ class EnquiryController extends Controller
         // Get team members for enquiries (use assigned PO and any other relevant users)
         $teamMembers = collect();
         if ($enquiry->assigned_po) {
-            $teamMembers->push((object)['id' => 1, 'name' => $enquiry->assigned_po]);
+            $teamMembers->push((object) ['id' => 1, 'name' => $enquiry->assigned_po]);
         }
         $commonTeamMembers = [
             ['id' => 2, 'name' => 'Project Manager'],
@@ -819,7 +824,7 @@ class EnquiryController extends Controller
             ['id' => 4, 'name' => 'Technical Lead'],
         ];
         foreach ($commonTeamMembers as $member) {
-            $teamMembers->push((object)$member);
+            $teamMembers->push((object) $member);
         }
         // Derive client from enquiry name to prefill contact info
         $client = \App\Models\Client::where('FullName', $enquiry->client_name)->first();
@@ -893,6 +898,7 @@ class EnquiryController extends Controller
         $validated['attendees'] = $request->attendees ?? [];
         $validated['action_items'] = $request->action_items ?? [];
         $siteSurvey->update($validated);
+
         return redirect()->route('enquiries.site-survey.show', [$enquiry, $siteSurvey])
             ->with('success', 'Site survey updated successfully!');
     }
@@ -903,6 +909,7 @@ class EnquiryController extends Controller
         $this->authorize('update', $enquiry);
 
         $siteSurvey->delete();
+
         return redirect()->route('enquiries.files', $enquiry)
             ->with('success', 'Site survey deleted successfully!');
     }
@@ -912,8 +919,8 @@ class EnquiryController extends Controller
      */
     public function skipSiteSurvey(Request $request, Enquiry $enquiry)
     {
-        // Check if user can edit this enquiry (not just view)
-        $this->authorize('update', $enquiry);
+        // Allow users who can view the enquiry to skip site survey
+        $this->authorize('view', $enquiry);
 
         $validated = $request->validate([
             'site_survey_skip_reason' => 'nullable|string|max:255',
@@ -933,8 +940,8 @@ class EnquiryController extends Controller
      */
     public function unskipSiteSurvey(Enquiry $enquiry)
     {
-        // Check if user can edit this enquiry (not just view)
-        $this->authorize('update', $enquiry);
+        // Allow users who can view the enquiry to unskip site survey
+        $this->authorize('view', $enquiry);
 
         $enquiry->update([
             'site_survey_skipped' => false,
@@ -951,6 +958,7 @@ class EnquiryController extends Controller
         $this->authorize('view', $enquiry);
 
         $designAssets = $enquiry->designAssets()->with('user')->orderBy('created_at', 'desc')->get();
+
         return view('projects.files.mockups', compact('enquiry', 'designAssets'));
     }
 
@@ -977,7 +985,7 @@ class EnquiryController extends Controller
             'enquiry_id' => $enquiry->id,
             'enquiry_log_id' => $enquiryLog->id,
             'request_data' => $request->all(),
-            'user_id' => auth()->id()
+            'user_id' => auth()->id(),
         ]);
 
         try {
@@ -991,27 +999,27 @@ class EnquiryController extends Controller
                 'assigned_to' => 'nullable|string|max:255',
                 'follow_up_notes' => 'nullable|string',
             ]);
-        
+
             $data['project_scope_summary'] = json_encode(
                 array_filter(array_map('trim', explode(',', $data['project_scope_summary'])))
             );
-        
+
             $enquiryLog->update($data);
-            
+
             \Log::info('Enquiry log updated successfully', [
                 'enquiry_id' => $enquiry->id,
                 'enquiry_log_id' => $enquiryLog->id,
-                'updated_data' => $data
+                'updated_data' => $data,
             ]);
-        
+
             return redirect()->route('enquiries.enquiry-log.show', [$enquiry, $enquiryLog])
-                             ->with('success', 'Enquiry Log updated successfully.');
+                ->with('success', 'Enquiry Log updated successfully.');
         } catch (\Illuminate\Validation\ValidationException $e) {
             \Log::error('Enquiry log validation failed', [
                 'enquiry_id' => $enquiry->id,
                 'enquiry_log_id' => $enquiryLog->id,
                 'validation_errors' => $e->errors(),
-                'request_data' => $request->all()
+                'request_data' => $request->all(),
             ]);
             throw $e;
         } catch (\Exception $e) {
@@ -1021,9 +1029,10 @@ class EnquiryController extends Controller
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'request_data' => $request->all()
+                'request_data' => $request->all(),
             ]);
-            return back()->with('error', 'Failed to update enquiry log: ' . $e->getMessage())->withInput();
+
+            return back()->with('error', 'Failed to update enquiry log: '.$e->getMessage())->withInput();
         }
     }
 
@@ -1036,8 +1045,9 @@ class EnquiryController extends Controller
         $this->authorize('update', $enquiry);
 
         $enquiryLog->delete();
+
         return redirect()->route('enquiries.files', $enquiry)
-                         ->with('success', 'Enquiry Log deleted successfully.');
+            ->with('success', 'Enquiry Log deleted successfully.');
     }
 
     /**
@@ -1052,7 +1062,8 @@ class EnquiryController extends Controller
         ];
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('projects.templates.enquiry-log', $data);
-        $filename = 'enquiry-log-enquiry-' . $enquiry->id . '.pdf';
+        $filename = 'enquiry-log-enquiry-'.$enquiry->id.'.pdf';
+
         return $pdf->download($filename);
     }
 
@@ -1068,7 +1079,8 @@ class EnquiryController extends Controller
         ];
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('projects.templates.enquiry-log', $data);
-        $filename = 'enquiry-log-enquiry-' . $enquiry->id . '.pdf';
+        $filename = 'enquiry-log-enquiry-'.$enquiry->id.'.pdf';
+
         return $pdf->stream($filename);
     }
 
@@ -1079,7 +1091,7 @@ class EnquiryController extends Controller
     {
         return \Maatwebsite\Excel\Facades\Excel::download(
             new \App\Exports\EnquiryLogExport($enquiry, $enquiryLog),
-            'enquiry-log-enquiry-' . $enquiry->id . '.xlsx'
+            'enquiry-log-enquiry-'.$enquiry->id.'.xlsx'
         );
     }
 
@@ -1094,7 +1106,8 @@ class EnquiryController extends Controller
         ];
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('projects.templates.site-survey', $data);
-        $filename = 'site-survey-enquiry-' . $enquiry->id . '.pdf';
+        $filename = 'site-survey-enquiry-'.$enquiry->id.'.pdf';
+
         return $pdf->download($filename);
     }
 
@@ -1109,7 +1122,8 @@ class EnquiryController extends Controller
         ];
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('projects.templates.site-survey', $data);
-        $filename = 'site-survey-enquiry-' . $enquiry->id . '.pdf';
+        $filename = 'site-survey-enquiry-'.$enquiry->id.'.pdf';
+
         return $pdf->stream($filename);
     }
 
@@ -1124,7 +1138,7 @@ class EnquiryController extends Controller
         }
 
         // Check if all first 4 phases are completed
-        if (!$enquiry->areFirstFourPhasesCompleted()) {
+        if (! $enquiry->areFirstFourPhasesCompleted()) {
             return back()->with('error', 'You can only convert an enquiry to a project when all first 4 phases are completed.');
         }
 
@@ -1133,12 +1147,12 @@ class EnquiryController extends Controller
 
             if ($project) {
                 return redirect()->route('projects.files.index', $project->id)
-                    ->with('success', 'Enquiry converted to project successfully! Project ID: ' . $project->project_id);
+                    ->with('success', 'Enquiry converted to project successfully! Project ID: '.$project->project_id);
             } else {
                 return back()->with('error', 'Conversion failed. Please check the enquiry details and try again.');
             }
         } catch (\Exception $e) {
-            return back()->with('error', 'An error occurred during conversion: ' . $e->getMessage());
+            return back()->with('error', 'An error occurred during conversion: '.$e->getMessage());
         }
     }
 }

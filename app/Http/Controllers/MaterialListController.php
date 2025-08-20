@@ -241,8 +241,8 @@ class MaterialListController extends Controller
 
         if (str_contains($request->route()->getName(), 'enquiries.')) {
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
-            // Check authorization for enquiry editing (not just viewing)
-            $this->authorize('update', $enquiry);
+            // Check authorization for enquiry access
+            $this->authorize('view', $enquiry);
             if ($materialList->enquiry_id != $enquiry->id) {
                 abort(404);
             }
@@ -251,8 +251,8 @@ class MaterialListController extends Controller
             if ($materialList->project_id != $project->id) {
                 abort(404);
             }
-            // Check authorization for project editing (not just viewing)
-            $this->authorize('edit', $project);
+            // Check authorization for project access
+            $this->authorize('view', $project);
         }
 
         // Check authorization for updating material list
@@ -304,8 +304,8 @@ class MaterialListController extends Controller
 
         if (str_contains($request->route()->getName(), 'enquiries.')) {
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
-            // Check authorization for enquiry editing (not just viewing)
-            $this->authorize('update', $enquiry);
+            // Check authorization for enquiry access
+            $this->authorize('view', $enquiry);
             if ($materialList->enquiry_id != $enquiry->id) {
                 abort(404);
             }
@@ -314,8 +314,8 @@ class MaterialListController extends Controller
             if ($materialList->project_id != $project->id) {
                 abort(404);
             }
-            // Check authorization for project editing (not just viewing)
-            $this->authorize('edit', $project);
+            // Check authorization for project access
+            $this->authorize('view', $project);
         }
 
         // Check authorization for updating material list
@@ -400,8 +400,8 @@ class MaterialListController extends Controller
 
         if (str_contains($request->route()->getName(), 'enquiries.')) {
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
-            // Check authorization for enquiry editing (not just viewing)
-            $this->authorize('update', $enquiry);
+            // Check authorization for enquiry access
+            $this->authorize('view', $enquiry);
             if ($materialList->enquiry_id != $enquiry->id) {
                 abort(404);
             }
@@ -410,8 +410,8 @@ class MaterialListController extends Controller
             if ($materialList->project_id != $project->id) {
                 abort(404);
             }
-            // Check authorization for project editing (not just viewing)
-            $this->authorize('edit', $project);
+            // Check authorization for project access
+            $this->authorize('view', $project);
         }
 
         // Check authorization for deleting material list

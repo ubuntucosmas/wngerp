@@ -2,27 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-use App\Models\Project;
-use App\Models\MaterialList;
-use App\Models\ProductionItem;
-use App\Models\ProductionParticular;
-use App\Models\BudgetItem;
-use App\Models\Inventory;
-use Illuminate\Support\Facades\DB;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\MaterialListExport;
 use App\Models\Enquiry;
+use App\Models\Inventory;
+use App\Models\MaterialList;
+use App\Models\Project;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
 
 class MaterialListController extends Controller
 {
     use AuthorizesRequests;
+
     /**
      * Display a listing of the material lists for the project.
      */
-    public function index(Project $project = null, Enquiry $enquiry = null)
+    public function index(?Project $project = null, ?Enquiry $enquiry = null)
     {
         // Check authorization for project access
         if ($project) {
@@ -39,12 +37,14 @@ class MaterialListController extends Controller
                 ->withCount(['productionItems', 'materialsHire', 'labourItems'])
                 ->latest()
                 ->paginate(15);
+
             return view('projects.material-list.index', compact('enquiry', 'materialLists'));
         } elseif ($project) {
             $materialLists = $project->materialLists()
                 ->withCount(['productionItems', 'materialsHire', 'labourItems'])
                 ->latest()
                 ->paginate(15);
+
             return view('projects.material-list.index', compact('project', 'materialLists'));
         } else {
             // Handle case where neither project nor enquiry is provided (e.g., redirect or show error)
@@ -85,7 +85,7 @@ class MaterialListController extends Controller
             'productionItems.particulars',
             'productionItems.template.category',
             'materialsHire',
-            'labourItems'
+            'labourItems',
         ]);
 
         $labourItemsByCategory = $materialList->labourItems->groupBy('category');
@@ -103,20 +103,20 @@ class MaterialListController extends Controller
 
         if (str_contains($request->route()->getName(), 'enquiries.')) {
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
-            // Check authorization for enquiry editing (not just viewing)
-            $this->authorize('update', $enquiry);
+            // Check authorization for enquiry access
+            $this->authorize('view', $enquiry);
         } else {
             $project = Project::findOrFail($projectOrEnquiryId);
-            // Check authorization for project editing (not just viewing)
-            $this->authorize('edit', $project);
+            // Check authorization for project access
+            $this->authorize('view', $project);
         }
 
         // Check authorization for creating material lists
         $this->authorize('create', MaterialList::class);
 
-        $inventoryItems = Inventory::whereHas('category', function($query) {
-                $query->whereIn('category_name', ['Consumables', 'Hire', 'Electricals']);
-            })
+        $inventoryItems = Inventory::whereHas('category', function ($query) {
+            $query->whereIn('category_name', ['Consumables', 'Hire', 'Electricals']);
+        })
             ->select('item_name', 'unit_of_measure')
             ->distinct('item_name')
             ->orderBy('item_name')
@@ -124,10 +124,10 @@ class MaterialListController extends Controller
             ->map(function ($item) {
                 return [
                     'name' => $item->item_name,
-                    'unit_of_measure' => $item->unit_of_measure
+                    'unit_of_measure' => $item->unit_of_measure,
                 ];
             });
-    
+
         return view('projects.material-list.create', [
             'project' => $project,
             'enquiry' => $enquiry,
@@ -135,9 +135,10 @@ class MaterialListController extends Controller
                 'start_date' => now(),
                 'end_date' => now()->addWeek(),
             ]),
-            'inventoryItems' => $inventoryItems
+            'inventoryItems' => $inventoryItems,
         ]);
     }
+
     /**
      * Store a newly created material list in storage.
      */
@@ -149,12 +150,12 @@ class MaterialListController extends Controller
 
             if (str_contains($request->route()->getName(), 'enquiries.')) {
                 $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
-                // Check authorization for enquiry editing (not just viewing)
-                $this->authorize('update', $enquiry);
+                // Check authorization for enquiry access
+                $this->authorize('view', $enquiry);
             } else {
                 $project = Project::findOrFail($projectOrEnquiryId);
-                // Check authorization for project editing (not just viewing)
-                $this->authorize('edit', $project);
+                // Check authorization for project access
+                $this->authorize('view', $project);
             }
 
             $validated = $request->validate([
@@ -203,13 +204,13 @@ class MaterialListController extends Controller
                 $this->saveMaterialsHire($materialList, $request->input('materials_hire', []));
                 $this->saveProductionItems($materialList, $request->input('production_items', []));
                 $this->saveLabourItems($materialList, $request->input('items', []));
-                
+
                 DB::commit();
 
                 // Update phase status after successful creation
                 if ($project) {
                     $this->updateProjectPhaseStatus($project);
-                    
+
                 } elseif ($enquiry) {
                     $this->updateEnquiryPhaseStatus($enquiry);
                 }
@@ -221,12 +222,13 @@ class MaterialListController extends Controller
                 }
             } catch (\Exception $e) {
                 DB::rollBack();
-                return back()->withInput()->withErrors(['error' => 'Failed to create material list. Error: ' . $e->getMessage()]);
+
+                return back()->withInput()->withErrors(['error' => 'Failed to create material list. Error: '.$e->getMessage()]);
             }
         } catch (\Illuminate\Validation\ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
-            return back()->withInput()->withErrors(['error' => 'An unexpected error occurred. Please try again. Error: ' . $e->getMessage()]);
+            return back()->withInput()->withErrors(['error' => 'An unexpected error occurred. Please try again. Error: '.$e->getMessage()]);
         }
     }
 
@@ -260,16 +262,16 @@ class MaterialListController extends Controller
             'productionItems.particulars',
             'productionItems.template.category',
             'materialsHire',
-            'labourItems' => function($query) {
+            'labourItems' => function ($query) {
                 $query->orderBy('category')->orderBy('item_name');
-            }
+            },
         ]);
-        
+
         $labourItemsByCategory = $materialList->labourItems->groupBy('category');
-        
-        $inventoryItems = Inventory::whereHas('category', function($query) {
-                $query->whereIn('category_name', ['Consumables', 'Hire', 'Electricals']);
-            })
+
+        $inventoryItems = Inventory::whereHas('category', function ($query) {
+            $query->whereIn('category_name', ['Consumables', 'Hire', 'Electricals']);
+        })
             ->select('item_name', 'unit_of_measure')
             ->distinct('item_name')
             ->orderBy('item_name')
@@ -277,16 +279,16 @@ class MaterialListController extends Controller
             ->map(function ($item) {
                 return [
                     'name' => $item->item_name,
-                    'unit_of_measure' => $item->unit_of_measure
+                    'unit_of_measure' => $item->unit_of_measure,
                 ];
             });
-        
+
         return view('projects.material-list.edit', [
             'project' => $project,
             'enquiry' => $enquiry,
             'materialList' => $materialList,
             'labourItemsByCategory' => $labourItemsByCategory,
-            'inventoryItems' => $inventoryItems
+            'inventoryItems' => $inventoryItems,
         ]);
     }
 
@@ -362,7 +364,7 @@ class MaterialListController extends Controller
             $this->saveMaterialsHire($materialList, $request->input('materials_hire', []));
             $this->saveProductionItems($materialList, $request->input('production_items', []));
             $this->saveLabourItems($materialList, $request->input('items', []));
-            
+
             DB::commit();
 
             // Update phase status after successful update
@@ -377,12 +379,12 @@ class MaterialListController extends Controller
             } else {
                 return redirect()->route('projects.material-list.show', [$project, $materialList])->with('success', 'Material list updated successfully!');
             }
-                
+
         } catch (\Exception $e) {
             DB::rollBack();
-            \Log::error('Failed to update material list: ' . $e->getMessage());
+            \Log::error('Failed to update material list: '.$e->getMessage());
             \Log::error($e->getTraceAsString());
-            
+
             return back()
                 ->withInput()
                 ->withErrors(['error' => 'Failed to update material list. Please try again.']);
@@ -416,18 +418,20 @@ class MaterialListController extends Controller
         $this->authorize('delete', $materialList);
 
         $materialList->delete();
-        
+
         if ($enquiry) {
             // Update phase status after deletion
             $this->updateEnquiryPhaseStatus($enquiry);
+
             return redirect()->route('enquiries.material-list.index', $enquiry)->with('success', 'Material list deleted successfully!');
         } else {
             // Update phase status after deletion
             $this->updateProjectPhaseStatus($project);
+
             return redirect()->route('projects.material-list.index', $project)->with('success', 'Material list deleted successfully!');
         }
     }
-    
+
     /**
      * Save materials for hire
      */
@@ -436,14 +440,14 @@ class MaterialListController extends Controller
         if (empty($materialsHire)) {
             return;
         }
-        
+
         $materialsData = [];
-        
+
         foreach ($materialsHire as $item) {
             // Check for both item_name and particular for backward compatibility
             $itemName = $item['item_name'] ?? $item['particular'] ?? null;
-            
-            if (!empty($itemName)) {
+
+            if (! empty($itemName)) {
                 $materialsData[] = [
                     'category' => 'Materials for Hire',
                     'item_name' => $itemName,
@@ -458,46 +462,47 @@ class MaterialListController extends Controller
                 ];
             }
         }
-        
-        if (!empty($materialsData)) {
+
+        if (! empty($materialsData)) {
             // Use materialsHire relationship which is already scoped to 'Materials for Hire'
             $materialList->materialsHire()->createMany($materialsData);
         }
     }
-    
+
     /**
      * Save production items
      */
     protected function saveProductionItems(MaterialList $materialList, array $productionItems)
     {
         \Log::info('saveProductionItems called with:', $productionItems);
-        
+
         if (empty($productionItems)) {
             \Log::info('No production items to save');
+
             return;
         }
-        
+
         foreach ($productionItems as $item) {
             // Check for both item_name and particular for backward compatibility
             $itemName = $item['item_name'] ?? $item['particular'] ?? null;
-            
+
             if (empty($itemName)) {
                 continue;
             }
-            
+
             // Create the main production item
             $productionItem = $materialList->productionItems()->create([
                 'item_name' => $itemName,
                 'template_id' => $item['template_id'] ?? null,
             ]);
-            
+
             // Add particulars if they exist
             \Log::info('Checking particulars for item:', $item);
-            if (!empty($item['particulars'])) {
+            if (! empty($item['particulars'])) {
                 \Log::info('Particulars found:', $item['particulars']);
                 $particulars = [];
                 foreach ($item['particulars'] as $particular) {
-                    if (!empty($particular['particular'])) {
+                    if (! empty($particular['particular'])) {
                         $particulars[] = [
                             'particular' => $particular['particular'],
                             'unit' => $particular['unit'] ?? null,
@@ -510,8 +515,8 @@ class MaterialListController extends Controller
                         ];
                     }
                 }
-                
-                if (!empty($particulars)) {
+
+                if (! empty($particulars)) {
                     \Log::info('Creating particulars:', $particulars);
                     $productionItem->particulars()->createMany($particulars);
                 } else {
@@ -522,7 +527,7 @@ class MaterialListController extends Controller
             }
         }
     }
-    
+
     /**
      * Save labor items
      */
@@ -531,19 +536,19 @@ class MaterialListController extends Controller
         if (empty($labourItems)) {
             return;
         }
-        
+
         $labourData = [];
-        
+
         foreach ($labourItems as $category => $items) {
-            if (!is_array($items)) {
+            if (! is_array($items)) {
                 continue;
             }
-            
+
             // Handle both indexed and associative arrays
             if (isset($items[0]) && is_array($items[0])) {
                 // Indexed array of items
                 foreach ($items as $item) {
-                    if (!empty($item['particular'])) {
+                    if (! empty($item['particular'])) {
                         $labourData[] = [
                             'category' => $category,
                             'item_name' => $item['particular'], // Map particular to item_name
@@ -559,7 +564,7 @@ class MaterialListController extends Controller
                 }
             } else {
                 // Single item
-                if (!empty($items['particular'])) {
+                if (! empty($items['particular'])) {
                     $labourData[] = [
                         'category' => $category,
                         'item_name' => $items['particular'], // Map particular to item_name
@@ -574,12 +579,12 @@ class MaterialListController extends Controller
                 }
             }
         }
-        
-        if (!empty($labourData)) {
+
+        if (! empty($labourData)) {
             $materialList->labourItems()->createMany($labourData);
         }
     }
-    
+
     /**
      * Download the material list as PDF
      */
@@ -604,28 +609,28 @@ class MaterialListController extends Controller
             }
             $parentModel = $project;
         }
-        
+
         $materialList->load([
             'productionItems.particulars',
             'materialsHire',
-            'labourItems'
+            'labourItems',
         ]);
-        
+
         $labourItemsByCategory = $materialList->labourItems->groupBy('category');
-        
+
         $pdf = Pdf::loadView('projects.templates.material-list', [
             'project' => $project,
             'enquiry' => $enquiry,
             'materialList' => $materialList,
-            'labourItemsByCategory' => $labourItemsByCategory
+            'labourItemsByCategory' => $labourItemsByCategory,
         ]);
-        
+
         $fileNamePrefix = ($parentModel instanceof Enquiry) ? 'enquiry_material-list_' : 'project_material-list_';
         $parentId = $parentModel->id ?? 'unknown';
-        
-        return $pdf->download($fileNamePrefix . $parentId . '_' . $materialList->id . '.pdf');
+
+        return $pdf->download($fileNamePrefix.$parentId.'_'.$materialList->id.'.pdf');
     }
-    
+
     /**
      * Display the material list PDF in the browser
      */
@@ -650,26 +655,26 @@ class MaterialListController extends Controller
             }
             $parentModel = $project;
         }
-        
+
         $materialList->load([
             'productionItems.particulars',
             'materialsHire',
-            'labourItems'
+            'labourItems',
         ]);
-        
+
         $labourItemsByCategory = $materialList->labourItems->groupBy('category');
-        
+
         $pdf = Pdf::loadView('projects.templates.material-list', [
             'project' => $project,
             'enquiry' => $enquiry,
             'materialList' => $materialList,
-            'labourItemsByCategory' => $labourItemsByCategory
+            'labourItemsByCategory' => $labourItemsByCategory,
         ]);
-        
+
         $fileNamePrefix = ($parentModel instanceof Enquiry) ? 'enquiry_material-list_' : 'project_material-list_';
         $parentId = $parentModel->id ?? 'unknown';
 
-        return $pdf->stream($fileNamePrefix . $parentId . '_' . $materialList->id . '.pdf');
+        return $pdf->stream($fileNamePrefix.$parentId.'_'.$materialList->id.'.pdf');
     }
 
     /**
@@ -700,7 +705,8 @@ class MaterialListController extends Controller
         $fileNamePrefix = ($parentModel instanceof Enquiry) ? 'enquiry_material-list_' : 'project_material-list_';
         $parentId = $parentModel->id ?? 'unknown';
 
-        $fileName = $fileNamePrefix . $parentId . '_' . $materialList->id . '.xlsx';
+        $fileName = $fileNamePrefix.$parentId.'_'.$materialList->id.'.xlsx';
+
         return Excel::download(new MaterialListExport($materialList, $enquiry, $project), $fileName);
     }
 

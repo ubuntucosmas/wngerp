@@ -3,7 +3,7 @@
 
 @section('content')
 <div class="container-fluid d-flex justify-content-center align-items-start py-4" style="min-height: 100vh; background: #f4f6fa;">
-    <div class="material-list-card card shadow-sm w-100" style="max-width: 1100px;">
+    <div class="material-list-card card shadow-sm w-100" style="max-width: 1600px;">
         <div class="card-header bg-white d-flex justify-content-between align-items-center border-bottom-0" style="border-radius: 16px 16px 0 0;">
             <h2 class="mb-0 fs-5 fw-bold">Edit Material List</h2>
             <a href="{{ (isset($enquiry) && is_object($enquiry) && isset($enquiry->id)) ? route('enquiries.material-list.index', $enquiry) : route('projects.material-list.index', $project) }}"
@@ -14,7 +14,7 @@
         </div>
         <div class="card-body p-0">
             <div class="row g-0">
-                <div class="col-md-2 sidebar-col">
+                <div class="col-md-1 sidebar-col">
                     <nav class="sidebar-nav sticky-top card h-100 shadow-sm mb-0" style="top: 80px; z-index: 100; border-radius: 12px 0 0 12px;">
                         <ul class="nav flex-column py-3 px-2">
                             <li class="nav-item"><a href="#basic-details" class="nav-link active" data-bs-toggle="tooltip" title="Go to Basic Details" aria-label="Go to Basic Details">Basic Details</a></li>
@@ -29,17 +29,20 @@
                         </ul>
                     </nav>
                 </div>
-                <div class="col-md-10 form-content-col">
+                <div class="col-md-11 form-content-col">
                     <form action="{{ isset($enquiry) ? route('enquiries.material-list.update', [$enquiry, $materialList]) : route('projects.material-list.update', [$project, $materialList]) }}" method="POST" class="p-3 position-relative" id="materialListForm">
                         @csrf
                         @method('PUT')
-                        <div class="form-container">
+                        <div class="accordion compact-accordion" id="materialListAccordion">
                             <!-- Basic Details -->
-                            <div id="basic-details" class="form-section-card">
-                                <div class="form-section-card-header">
-                                    <h5><i class="fas fa-info-circle me-2"></i>Basic Details</h5>
-                                </div>
-                                <div class="form-section-card-body">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingBasicDetails">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBasicDetails" aria-expanded="true" aria-controls="collapseBasicDetails">
+                                        <i class="fas fa-info-circle me-2"></i>Basic Details
+                                    </button>
+                                </h2>
+                                <div id="collapseBasicDetails" class="accordion-collapse collapse show" aria-labelledby="headingBasicDetails" data-bs-parent="#materialListAccordion">
+                                    <div class="accordion-body">
                                     <div class="row mb-3">
                                         <div class="col-md-6">
                                             <label for="project_name">{{ isset($enquiry) ? 'Enquiry' : 'Project' }} Name</label>
@@ -61,15 +64,19 @@
                                             <input type="date" class="form-control" name="end_date" value="{{ old('end_date', $materialList->end_date ? $materialList->end_date->format('Y-m-d') : '') }}">
                                         </div>
                                     </div>
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Materials - Production -->
-                            <div id="materials-production" class="form-section-card section-production">
-                                <div class="form-section-card-header">
-                                    <h5><i class="bi bi-box-seam me-2"></i>Materials - Production</h5>
-                                </div>
-                                <div class="form-section-card-body">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingMaterialsProduction">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMaterialsProduction" aria-expanded="false" aria-controls="collapseMaterialsProduction">
+                                        <i class="bi bi-box-seam me-2"></i>Materials - Production
+                                    </button>
+                                </h2>
+                                <div id="collapseMaterialsProduction" class="accordion-collapse collapse" aria-labelledby="headingMaterialsProduction" data-bs-parent="#materialListAccordion">
+                                    <div class="accordion-body">
                                     <div id="items-wrapper">
                                         @if($materialList->productionItems && count($materialList->productionItems))
                                             @foreach($materialList->productionItems as $piIndex => $item)
@@ -102,10 +109,26 @@
                                                             @foreach($item->particulars as $partIndex => $particular)
                                                                 <tr>
                                                                     <td>
-                                                                        <select name="production_items[{{ $piIndex }}][particulars][{{ $partIndex }}][particular]" class="form-select inventory-dropdown" required>
-                                                                            <option value="" disabled>-- Loading items --</option>
-                                                                            <option value="{{ $particular->particular }}" selected>{{ $particular->particular }}</option>
-                                                                        </select>
+                                                                        <div class="particular-input-group">
+                                                                            <div class="input-group">
+                                                                                <input type="text" 
+                                                                                       name="production_items[{{ $piIndex }}][particulars][{{ $partIndex }}][particular]" 
+                                                                                       class="form-control particular-input" 
+                                                                                       value="{{ old('production_items.'.$piIndex.'.particulars.'.$partIndex.'.particular', $particular->particular) }}" 
+                                                                                       placeholder="Type or select particular..."
+                                                                                       required>
+                                                                                <button class="btn btn-outline-secondary dropdown-toggle" 
+                                                                                        type="button" 
+                                                                                        data-bs-toggle="dropdown" 
+                                                                                        aria-expanded="false"
+                                                                                        title="Select from inventory">
+                                                                                    <i class="bi bi-list"></i>
+                                                                                </button>
+                                                                                <ul class="dropdown-menu inventory-dropdown-menu" style="max-height: 200px; overflow-y: auto;">
+                                                                                    <li><span class="dropdown-item-text text-muted small">Loading items...</span></li>
+                                                                                </ul>
+                                                                            </div>
+                                                                        </div>
                                                                     </td>
                                                                     <td><input type="text" name="production_items[{{ $piIndex }}][particulars][{{ $partIndex }}][unit]" class="form-control unit-field" value="{{ old('production_items.'.$piIndex.'.particulars.'.$partIndex.'.unit', $particular->unit) }}" readonly></td>
                                                                     <td><input type="number" step="0.01" name="production_items[{{ $piIndex }}][particulars][{{ $partIndex }}][quantity]" class="form-control" value="{{ old('production_items.'.$piIndex.'.particulars.'.$partIndex.'.quantity', $particular->quantity) }}" required></td>
@@ -185,11 +208,14 @@
                             </div>
 
                             <!-- Materials for Hire -->
-                            <div id="materials-hire" class="form-section-card section-hire">
-                                <div class="form-section-card-header">
-                                        <h5><i class="bi bi-tools me-2"></i>Items for Hire</h5>
-                                </div>
-                                <div class="form-section-card-body">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingMaterialsHire">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMaterialsHire" aria-expanded="false" aria-controls="collapseMaterialsHire">
+                                        <i class="bi bi-tools me-2"></i>Items for Hire
+                                    </button>
+                                </h2>
+                                <div id="collapseMaterialsHire" class="accordion-collapse collapse" aria-labelledby="headingMaterialsHire" data-bs-parent="#materialListAccordion">
+                                    <div class="accordion-body">
                                     <table class="table table-bordered" id="materialsHireTable">
                                         <thead>
                                             <tr>
@@ -225,57 +251,28 @@
                                     <button type="button" class="btn btn-success btn-sm btn-add-item" id="addHireRow">
                                         <i class="bi bi-plus-circle"></i> Add Row
                                         </button>
+                                    </div>
                                 </div>
+                            </div>
 
-                                @php
-                                    $subCategories = [
-                                        'Workshop labour' => ['Technicians', 'Carpenter', 'CNC', 'Welders', 'Project Officer','Meals'],
-                                        'Site' => ['Technicians', 'Pasters', 'Electricians','Off loaders','Project Officer','Meals'],
-                                        'Set down' => ['Technicians', 'Off loaders', 'Electricians', 'Meals'],
-                                        'Logistics' => ['Delivery to site', 'Delivery from site', 'Team transport to and from site set up', 'Team transport to and from set down','Materials Collection'],
-                                        'Outsourced' => ['Subcontractors', 'External Services', 'Specialized Equipment', 'Third-party Vendors', 'Consultants', 'Freelancers'],
-                                        ];
-                                    @endphp
+                            <!-- Approval -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingApproval">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseApproval" aria-expanded="false" aria-controls="collapseApproval">
+                                        <i class="bi bi-check-circle me-2"></i>Approval
+                                    </button>
+                                </h2>
+                                <div id="collapseApproval" class="accordion-collapse collapse" aria-labelledby="headingApproval" data-bs-parent="#materialListAccordion">
+                                    <div class="accordion-body">
+                                        <div class="mb-4">
+                                            <label for="approved_by">Prepared By:</label>
+                                            <input type="text" name="approved_by" class="form-control mb-2 required" value="{{ old('approved_by', $materialList->approved_by) }}" required>
 
-                                <!-- @foreach($subCategories as $category => $roles)
-                                    <div class="section-card section-labor">
-                                        <h5 class="section-header">
-                                            <i class="bi bi-people me-2"></i>{{ $category }}
-                                        </h5>
-                                        <table class="table table-bordered">
-                                            <thead>
-                                                <tr>
-                                                    <th>Particular</th>
-                                                    <th>Unit Of Measure</th>
-                                                    <th>Quantity</th>
-                                                    <th>Unit Price</th>
-                                                    <th>Comment</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @php $labourItems = $labourItemsByCategory[$category] ?? []; @endphp
-                                                @foreach($roles as $index => $role)
-                                                    <tr>
-                                                        <td><input type="text" name="items[{{ $category }}][{{ $index }}][particular]" class="form-control" value="{{ $labourItems[$index]->particular ?? $role }}" {{ isset($labourItems[$index]) ? '' : 'readonly' }}></td>
-                                                        <td><input type="text" name="items[{{ $category }}][{{ $index }}][unit]" class="form-control" value="{{ $labourItems[$index]->unit ?? ($category === 'Logistics' ? 'Trips' : 'pax') }}"></td>
-                                                        <td><input type="number" step="0.01" name="items[{{ $category }}][{{ $index }}][quantity]" class="form-control" value="{{ $labourItems[$index]->quantity ?? '' }}"></td>
-                                                        <td><input type="number" step="0.01" name="items[{{ $category }}][{{ $index }}][unit_price]" class="form-control" value="{{ $labourItems[$index]->unit_price ?? '' }}"></td>
-                                                        <td><input type="text" name="items[{{ $category }}][{{ $index }}][comment]" class="form-control" value="{{ $labourItems[$index]->comment ?? '' }}"></td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
+                                            <label for="approved_departments">Departments</label>
+                                            <input type="text" name="approved_departments" class="form-control" placeholder="Production, Finance" value="{{ old('approved_departments', $materialList->approved_departments) }}" required>
                                         </div>
-                                    @endforeach -->
-
-                                <div class="mb-4">
-                                    <label for="approved_by">Approved By:</label>
-                                    <input type="text" name="approved_by" class="form-control mb-2 required" value="{{ old('approved_by', $materialList->approved_by) }}" required>
-
-                                    <label for="approved_departments">Department</label>
-                                    <input type="text" name="approved_departments" class="form-control" placeholder="Production, Finance" value="{{ old('approved_departments', $materialList->approved_departments) }}" required>
+                                    </div>
                                 </div>
-
                             </div>
                         </div>
                         <!-- Sticky Action Bar -->
@@ -298,27 +295,80 @@
             </div>
         </div>
     </div>
+    <!-- Template Selection Modal -->
+    <div class="modal fade" id="templateModal" tabindex="-1" aria-labelledby="templateModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="templateModalLabel">
+                        <i class="bi bi-file-earmark-plus me-2"></i>Add Item from Template
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="templateCategory" class="form-label">Category</label>
+                            <select class="form-select" id="templateCategory">
+                                <option value="">All Categories</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="templateSearch" class="form-label">Search Templates</label>
+                            <input type="text" class="form-control" id="templateSearch" placeholder="Search templates...">
+                        </div>
+                    </div>
+                    
+                    <div id="templatesList" class="row">
+                        <!-- Templates will be loaded here -->
+                    </div>
+                    
+                    <div id="templateLoading" class="text-center py-4" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading templates...</p>
+                    </div>
+                    
+                    <div id="templateEmpty" class="text-center py-4" style="display: none;">
+                        <i class="bi bi-inbox fs-1 text-muted"></i>
+                        <h6 class="mt-3">No templates found</h6>
+                        <p class="text-muted">Create templates first to use this feature.</p>
+                        <a href="{{ route('templates.templates.create') }}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus-circle"></i> Create Template
+                        </a>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Confirmation Modal for Remove Item Group -->
+<div class="modal fade" id="confirmRemoveModal" tabindex="-1" aria-labelledby="confirmRemoveModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmRemoveModalLabel">Confirm Removal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to remove this item and all its particulars?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmRemoveBtn">Remove</button>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
 @push('styles')
 <style>
-    .section-card {
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        padding: 1.5rem;
-        margin-bottom: 2rem;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .section-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-    }
-    .section-production { background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-left: 4px solid #4e73df; }
-    .section-hire { background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-left: 4px solid #36b9cc; }
-    .section-labor { background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-left: 4px solid #1cc88a; }
-    .section-header { color: #2e59d9; font-weight: 600; margin-bottom: 1.5rem; padding-bottom: 0.75rem; border-bottom: 2px solid #e3e6f0; }
-    .btn-add-item { border-radius: 20px; font-weight: 500; padding: 0.4rem 1.25rem; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
+    body { background: #f4f6fa; }
     .material-list-card {
         border-radius: 16px;
         background: #fff;
@@ -348,6 +398,37 @@
     .form-content-col {
         padding-left: 0;
     }
+    .compact-accordion .accordion-item {
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        margin-bottom: 1rem;
+        border: none;
+        background: #f8f9fa;
+    }
+    .compact-accordion .accordion-button {
+        border-radius: 10px 10px 0 0;
+        padding: 0.75rem 1.25rem;
+        font-size: 1.05rem;
+        background: #f4f6fa;
+    }
+    .compact-accordion .accordion-body {
+        padding: 1rem 1.25rem;
+        background: #fff;
+        border-radius: 0 0 10px 10px;
+    }
+    .floating-summary-bar {
+        position: sticky;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: #f8f9fb;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+        padding: 0.5rem 1.5rem;
+        z-index: 1050;
+        border-top: 1px solid #e3e6f0;
+        border-radius: 0 0 12px 12px;
+        margin-top: 1.5rem;
+    }
     .sticky-action-bar {
         padding: 1rem 1.5rem 1rem 1.5rem;
         box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
@@ -360,11 +441,62 @@
         .form-content-col { width: 100%; }
     }
     @media (max-width: 600px) {
+        .compact-accordion .accordion-body, .compact-accordion .accordion-button {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+        .floating-summary-bar { padding: 0.5rem 0.5rem; }
         .sticky-action-bar {
             padding: 0.5rem 0.5rem;
             margin-left: 0;
             margin-right: 0;
         }
+    }
+
+    /* Enhanced styles for the hybrid particular input */
+    .particular-input-group {
+        position: relative;
+    }
+    .particular-input-group .input-group {
+        width: 100%;
+    }
+    .particular-input {
+        border-right: none;
+    }
+    .particular-input:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        z-index: 3;
+    }
+    .particular-input-group .dropdown-toggle {
+        border-left: none;
+        background: #f8f9fa;
+        border-color: #ced4da;
+    }
+    .particular-input-group .dropdown-toggle:hover {
+        background: #e9ecef;
+    }
+    .inventory-dropdown-menu {
+        width: 100%;
+        min-width: 250px;
+    }
+    .inventory-dropdown-menu .dropdown-item {
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+    }
+    .inventory-dropdown-menu .dropdown-item:hover {
+        background-color: #f8f9fa;
+    }
+    .inventory-dropdown-menu .dropdown-item:active {
+        background-color: #e9ecef;
+    }
+    .inventory-dropdown-menu .dropdown-item-text {
+        padding: 0.5rem 1rem;
+    }
+    /* Highlight matching text in dropdown */
+    .inventory-dropdown-menu .dropdown-item mark {
+        background-color: #fff3cd;
+        padding: 0;
     }
 </style>
 @endpush
@@ -405,7 +537,6 @@ $(document).ready(function() {
                         <th>Quantity</th>
                         <!-- <th>Unit Price</th> -->
                         <th>Comment</th>
-                        <th>Design Reference</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -438,9 +569,25 @@ $(document).ready(function() {
         const newRow = `
             <tr>
                 <td>
-                    <select name="production_items[${itemIndex}][particulars][${particularIndex}][particular]" class="form-select inventory-dropdown" required>
-                        <option value="" selected disabled>-- Loading items --</option>
-                    </select>
+                    <div class="particular-input-group">
+                        <div class="input-group">
+                            <input type="text" 
+                                   name="production_items[${itemIndex}][particulars][${particularIndex}][particular]" 
+                                   class="form-control particular-input" 
+                                   placeholder="Type or select particular..."
+                                   required>
+                            <button class="btn btn-outline-secondary dropdown-toggle" 
+                                    type="button" 
+                                    data-bs-toggle="dropdown" 
+                                    aria-expanded="false"
+                                    title="Select from inventory">
+                                <i class="bi bi-list"></i>
+                            </button>
+                            <ul class="dropdown-menu inventory-dropdown-menu" style="max-height: 200px; overflow-y: auto;">
+                                <li><span class="dropdown-item-text text-muted small">Loading items...</span></li>
+                            </ul>
+                        </div>
+                    </div>
                 </td>
                 <td><input type="text" name="production_items[${itemIndex}][particulars][${particularIndex}][unit]" class="form-control unit-field" readonly></td>
                 <td><input type="number" step="0.01" name="production_items[${itemIndex}][particulars][${particularIndex}][quantity]" class="form-control" required></td>
@@ -451,7 +598,7 @@ $(document).ready(function() {
         const $newRow = $(newRow);
         $itemGroup.find('.particulars-body').append($newRow);
         particularCounters[itemIndex] = particularIndex + 1;
-        initializeProductionRow($newRow);
+        initializeHybridInput($newRow);
     });
 
     // Function to load inventory items into dropdown
@@ -497,7 +644,7 @@ $(document).ready(function() {
         });
     }
 
-    // Function to initialize a production row
+    // Function to initialize a production row (old dropdown system)
     function initializeProductionRow($row) {
         const $select = $row.find('.inventory-dropdown');
         const $unitField = $row.find('.unit-field');
@@ -508,9 +655,117 @@ $(document).ready(function() {
         }
     }
 
-    // Initialize all existing particulars dropdowns on page load
+    // Function to initialize hybrid input system
+    function initializeHybridInput($row) {
+        const $input = $row.find('.particular-input');
+        const $dropdownMenu = $row.find('.inventory-dropdown-menu');
+        const $unitField = $row.find('.unit-field');
+        const $dropdownToggle = $row.find('.dropdown-toggle');
+        
+        if ($input.data('initialized')) return;
+        
+        // Load inventory items into dropdown menu
+        loadInventoryForHybrid($dropdownMenu, $input, $unitField);
+        
+        // Handle input changes for filtering
+        $input.on('input', function() {
+            const searchTerm = $(this).val().toLowerCase();
+            filterInventoryItems($dropdownMenu, searchTerm);
+        });
+        
+        // Handle dropdown item selection
+        $dropdownMenu.on('click', '.dropdown-item', function(e) {
+            e.preventDefault();
+            const selectedText = $(this).text().trim();
+            const selectedUnit = $(this).data('unit') || '';
+            
+            $input.val(selectedText);
+            $unitField.val(selectedUnit);
+            $dropdownToggle.dropdown('hide');
+        });
+        
+        $input.data('initialized', true);
+    }
+    
+    // Function to load inventory items for hybrid input
+    function loadInventoryForHybrid($menu, $input, $unitField) {
+        $.ajax({
+            url: '{{ route("api.inventory.particulars-items") }}',
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                $menu.empty();
+                if (data.length === 0) {
+                    $menu.append('<li><span class="dropdown-item-text text-muted small">No items found</span></li>');
+                    return;
+                }
+                
+                data.forEach(item => {
+                    const $item = $('<li><a class="dropdown-item" href="#" data-unit="' + 
+                                  (item.unit_of_measure || '') + '">' + 
+                                  item.name + '</a></li>');
+                    $menu.append($item);
+                });
+                
+                // Store original data for filtering
+                $menu.data('original-items', data);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error loading inventory items:', error);
+                $menu.html('<li><span class="dropdown-item-text text-danger small">Error loading items</span></li>');
+            }
+        });
+    }
+    
+    // Function to filter inventory items based on search term
+    function filterInventoryItems($menu, searchTerm) {
+        const originalItems = $menu.data('original-items') || [];
+        $menu.empty();
+        
+        if (!searchTerm) {
+            // Show all items if no search term
+            originalItems.forEach(item => {
+                const $item = $('<li><a class="dropdown-item" href="#" data-unit="' + 
+                              (item.unit_of_measure || '') + '">' + 
+                              item.name + '</a></li>');
+                $menu.append($item);
+            });
+            return;
+        }
+        
+        // Filter items based on search term
+        const filteredItems = originalItems.filter(item => 
+            item.name.toLowerCase().includes(searchTerm)
+        );
+        
+        if (filteredItems.length === 0) {
+            $menu.append('<li><span class="dropdown-item-text text-muted small">No matching items</span></li>');
+            return;
+        }
+        
+        filteredItems.forEach(item => {
+            const highlightedName = item.name.replace(
+                new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'),
+                '<mark>$&</mark>'
+            );
+            const $item = $('<li><a class="dropdown-item" href="#" data-unit="' + 
+                          (item.unit_of_measure || '') + '">' + 
+                          highlightedName + '</a></li>');
+            $menu.append($item);
+        });
+    }
+
+    // Initialize all existing particulars (both hybrid and dropdown systems) on page load
     $('.item-group .particulars-body tr').each(function() {
-        initializeProductionRow($(this));
+        const $row = $(this);
+        // Check if this row uses hybrid input or traditional dropdown
+        if ($row.find('.particular-input-group').length > 0) {
+            // This is a hybrid input row
+            initializeHybridInput($row);
+        } else {
+            // This is a traditional dropdown row
+            initializeProductionRow($row);
+        }
     });
 
     // Initialize the default particular row that's already in the HTML (for new items)

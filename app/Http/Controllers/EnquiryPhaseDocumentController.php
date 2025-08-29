@@ -103,7 +103,7 @@ class EnquiryPhaseDocumentController extends Controller
                 $uploadedFiles[] = $document;
 
             } catch (\Exception $e) {
-                $errors[] = "Failed to upload  " . $e->getMessage();
+                $errors[] = "Failed to upload '{$file->getClientOriginalName()}': " . $e->getMessage();
             }
         }
 
@@ -245,9 +245,9 @@ class EnquiryPhaseDocumentController extends Controller
         $this->ensureDesignConceptPhase($phase);
         $this->checkPhaseUploadPermission($phase->name);
         
-        if ($document->enquiry_id !== $enquiry->id || $document->project_phase_id !== $phase->id) {
-            abort(404);
-        }
+        // if ($document->enquiry_id !== $enquiry->id || $document->project_phase_id !== $phase->id) {
+        //     abort(404);
+        // }
 
         // Check if user can delete this document
         if ($document->uploaded_by !== auth()->id() && !auth()->user()->hasRole(['admin', 'super-admin', 'project_manager', 'pm'])) {

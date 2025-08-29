@@ -103,7 +103,7 @@ class EnquiryPhaseDocumentController extends Controller
                 $uploadedFiles[] = $document;
 
             } catch (\Exception $e) {
-                $errors[] = "Failed to upload '{$file->getClientOriginalName()}': " . $e->getMessage();
+                $errors[] = "Failed to upload  " . $e->getMessage();
             }
         }
 

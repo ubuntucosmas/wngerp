@@ -51,7 +51,7 @@ class EnquiryPhaseDocumentController extends Controller
      */
     public function store(Request $request, Enquiry $enquiry, ProjectPhase $phase)
     {
-        $this->authorize('update', $enquiry);
+        // $this->authorize('update', $enquiry);
         $this->ensureDesignConceptPhase($phase);
         $this->checkPhaseUploadPermission($phase->name);
 

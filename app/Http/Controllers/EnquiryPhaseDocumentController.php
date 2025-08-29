@@ -37,7 +37,7 @@ class EnquiryPhaseDocumentController extends Controller
      */
     public function create(Enquiry $enquiry, ProjectPhase $phase)
     {
-        $this->authorize('update', $enquiry);
+        // $this->authorize('update', $enquiry);
         $this->ensureDesignConceptPhase($phase);
         
         // Check if user has permission to upload to this phase
@@ -241,7 +241,7 @@ class EnquiryPhaseDocumentController extends Controller
      */
     public function destroy(Enquiry $enquiry, ProjectPhase $phase, PhaseDocument $document)
     {
-        $this->authorize('update', $enquiry);
+        // $this->authorize('update', $enquiry);
         $this->ensureDesignConceptPhase($phase);
         $this->checkPhaseUploadPermission($phase->name);
         

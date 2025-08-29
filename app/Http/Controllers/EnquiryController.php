@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Client;
 use App\Models\Enquiry;
+use App\Models\PhaseDocument;
 use App\Models\Project;
 use App\Models\User;
 use Carbon\Carbon;
@@ -196,6 +197,12 @@ class EnquiryController extends Controller
 
         // Design & Concept Development
         $designAssets = $enquiry->designAssets;
+        $designPhase = $enquiry->phases()->where('name', 'Design & Concept Development')->first();
+        $phaseDocuments = $designPhase ? PhaseDocument::where('enquiry_id', $enquiry->id)
+            ->where('project_phase_id', $designPhase->id)
+            ->active()
+            ->get() : collect();
+            
         $completions['Design & Concept Development'] = [
             'design_assets' => [
                 'completed' => $designAssets->count() > 0,
@@ -207,6 +214,17 @@ class EnquiryController extends Controller
                     'Latest Asset: '.$designAssets->first()->name,
                     'Uploaded By: '.($designAssets->first()->user->name ?? 'N/A'),
                 ] : ['No design assets found'],
+            ],
+            'phase_documents' => [
+                'completed' => $phaseDocuments->count() > 0,
+                'title' => 'Phase Documents',
+                'status' => $phaseDocuments->count() > 0 ? 'Completed' : 'Not Started',
+                'date' => $phaseDocuments->count() > 0 ? $phaseDocuments->first()->created_at->format('M d, Y') : null,
+                'details' => $phaseDocuments->count() > 0 ? [
+                    'Total Documents: '.$phaseDocuments->count(),
+                    'Latest Document: '.$phaseDocuments->first()->original_filename,
+                    'Uploaded By: '.($phaseDocuments->first()->uploader->name ?? 'N/A'),
+                ] : ['No phase documents found'],
             ],
         ];
 
@@ -265,6 +283,16 @@ class EnquiryController extends Controller
             $completions = $phaseCompletions[$phase->name];
 
             if (isset($completions)) {
+                // Special logic for Design & Concept Development phase
+                if ($phase->name === 'Design & Concept Development') {
+                    // Check if phase documents exist - if yes, mark as Completed regardless of design assets
+                    if (isset($completions['phase_documents']) && $completions['phase_documents']['completed']) {
+                        $phase->update(['status' => 'Completed']);
+                        continue; // Skip the normal logic for this phase
+                    }
+                }
+                
+                // Normal logic for other phases or when no phase documents exist
                 $totalItems = count($completions);
                 $completedItems = collect($completions)->where('completed', true)->count();
 

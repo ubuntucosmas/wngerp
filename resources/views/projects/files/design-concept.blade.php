@@ -54,14 +54,24 @@
             </a>
         </div>
 
-        @if(!isset($enquiry))
-        <!-- Phase Documents Card -->
+        <!-- Phase Documents Card for Project or Enquiry-->
         <div class="col-lg-6 col-md-6 mb-4">
-            @php
-                $designPhase = $project->phases()->where('name', 'Design & Concept Development')->first();
-                $documentCount = $designPhase ? $designPhase->activeDocuments()->count() : 0;
-            @endphp
-            <a href="{{ $designPhase ? route('projects.phases.documents.index', [$project, $designPhase]) : '#' }}" class="text-decoration-none {{ !$designPhase ? 'disabled-link' : '' }}">
+            @if(!isset($enquiry))
+                @php
+                    $designPhase = $project->phases()->where('name', 'Design & Concept Development')->first();
+                    $documentCount = $designPhase ? $designPhase->activeDocuments()->count() : 0;
+                @endphp
+                <a href="{{ $designPhase ? route('projects.phases.documents.index', [$project, $designPhase]) : '#' }}" class="text-decoration-none {{ !$designPhase ? 'disabled-link' : '' }}">
+            @else
+                @php
+                    $designPhase = $enquiry->phases()->where('name', 'Design & Concept Development')->first();
+                    $documentCount = $designPhase ? \App\Models\PhaseDocument::where('enquiry_id', $enquiry->id)
+                        ->where('project_phase_id', $designPhase->id)
+                        ->active()
+                        ->count() : 0;
+                @endphp
+                <a href="{{ $designPhase ? route('enquiries.phases.documents.index', [$enquiry, $designPhase]) : '#' }}" class="text-decoration-none {{ !$designPhase ? 'disabled-link' : '' }}">
+            @endif
                 <div class="file-card h-100 {{ !$designPhase ? 'disabled-card' : '' }}">
                     <div class="d-flex align-items-start">
                         <div class="file-card-icon me-3">
@@ -87,16 +97,6 @@
                 </div>
             </a>
         </div>
-        @endif
-
-    @if(isset($enquiry))
-        <div class="col-12">
-            <div class="alert alert-info">
-                <i class="bi bi-info-circle me-2"></i>
-                <strong>Design & Concept Development</strong> functionality will be available once the enquiry is converted to a project.
-            </div>
-        </div>
-    @endif
 
     <style>
         .file-card {

@@ -2,54 +2,57 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Enquiry;
 use App\Models\PhaseDocument;
-use App\Models\Project;
 use App\Models\ProjectPhase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
-class PhaseDocumentController extends Controller
+class EnquiryPhaseDocumentController extends Controller
 {
     use AuthorizesRequests;
+
     /**
-     * Display documents for a specific project phase.
+     * Display documents for a specific enquiry phase.
      */
-    public function index(Project $project, ProjectPhase $phase)
+    public function index(Enquiry $enquiry, ProjectPhase $phase)
     {
-        $this->authorize('view', $project);
+        $this->authorize('view', $enquiry);
+        $this->ensureDesignConceptPhase($phase);
         
-        $documents = PhaseDocument::where('project_id', $project->id)
+        $documents = PhaseDocument::where('enquiry_id', $enquiry->id)
             ->where('project_phase_id', $phase->id)
             ->active()
             ->with('uploader')
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('projects.phases.documents.index', compact('project', 'phase', 'documents'));
+        return view('projects.phases.documents.enquiry-index', compact('enquiry', 'phase', 'documents'));
     }
 
     /**
      * Show the form for uploading documents.
      */
-    public function create(Project $project, ProjectPhase $phase)
+    public function create(Enquiry $enquiry, ProjectPhase $phase)
     {
-        $this->authorize('edit', $project);
+        $this->authorize('update', $enquiry);
+        $this->ensureDesignConceptPhase($phase);
         
         // Check if user has permission to upload to this phase
         $this->checkPhaseUploadPermission($phase->name);
         
-        return view('projects.phases.documents.create', compact('project', 'phase'));
+        return view('projects.phases.documents.enquiry-create', compact('enquiry', 'phase'));
     }
 
     /**
-     * Store uploaded documents.
+     * Store uploaded documents for enquiry phase.
      */
-    public function store(Request $request, Project $project, ProjectPhase $phase)
+    public function store(Request $request, Enquiry $enquiry, ProjectPhase $phase)
     {
-        $this->authorize('edit', $project);
+        $this->authorize('update', $enquiry);
+        $this->ensureDesignConceptPhase($phase);
         $this->checkPhaseUploadPermission($phase->name);
 
         $request->validate([
@@ -74,8 +77,8 @@ class PhaseDocumentController extends Controller
                 $extension = $file->getClientOriginalExtension();
                 $storedName = Str::uuid() . '.' . $extension;
                 
-                // Create directory path based on project and phase
-                $directory = "phase-documents/{$project->id}/{$phase->id}";
+                // Create directory path based on enquiry and phase
+                $directory = "enquiry-phase-documents/{$enquiry->id}/{$phase->id}";
                 $filePath = $directory . '/' . $storedName;
 
                 // Store the file
@@ -84,7 +87,7 @@ class PhaseDocumentController extends Controller
                 // Create database record
                 $document = PhaseDocument::create([
                     'project_phase_id' => $phase->id,
-                    'project_id' => $project->id,
+                    'enquiry_id' => $enquiry->id,
                     'phase_name' => $phase->name,
                     'original_filename' => $originalName,
                     'stored_filename' => $storedName,
@@ -104,17 +107,34 @@ class PhaseDocumentController extends Controller
             }
         }
 
-        // Auto-complete phase logic: mark phase as Completed if any document was uploaded
+        // Auto-complete phase logic for enquiry phases: mark phase as Completed if any document was uploaded
         try {
+            \Log::info('Enquiry phase document upload - status update attempt', [
+                'enquiry_id' => $enquiry->id,
+                'phase_id' => $phase->id,
+                'phase_name' => $phase->name,
+                'current_status' => $phase->status,
+                'uploaded_files_count' => count($uploadedFiles),
+            ]);
+            
             if (count($uploadedFiles) > 0) {
-                $phase->update(['status' => 'Completed']);
+                $updated = $phase->update(['status' => 'Completed']);
+                
+                \Log::info('Enquiry phase status update result', [
+                    'enquiry_id' => $enquiry->id,
+                    'phase_id' => $phase->id,
+                    'phase_name' => $phase->name,
+                    'update_successful' => $updated,
+                    'new_status' => $phase->fresh()->status,
+                ]);
             }
         } catch (\Exception $e) {
-            \Log::warning('Phase auto-complete on upload failed', [
-                'project_id' => $project->id,
+            \Log::error('Phase auto-complete on upload failed', [
+                'enquiry_id' => $enquiry->id,
                 'phase_id' => $phase->id,
                 'phase_name' => $phase->name,
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
         }
 
@@ -150,32 +170,34 @@ class PhaseDocumentController extends Controller
             ]);
         }
 
-        return redirect()->route('projects.phases.documents.index', [$project, $phase])
+        return redirect()->route('enquiries.phases.documents.index', [$enquiry, $phase])
             ->with($messageType, $message);
     }
 
     /**
      * Display the specified document.
      */
-    public function show(Project $project, ProjectPhase $phase, PhaseDocument $document)
+    public function show(Enquiry $enquiry, ProjectPhase $phase, PhaseDocument $document)
     {
-        $this->authorize('view', $project);
+        $this->authorize('view', $enquiry);
+        $this->ensureDesignConceptPhase($phase);
         
-        if ($document->project_id !== $project->id || $document->project_phase_id !== $phase->id) {
+        if ($document->enquiry_id !== $enquiry->id || $document->project_phase_id !== $phase->id) {
             abort(404);
         }
 
-        return view('projects.phases.documents.show', compact('project', 'phase', 'document'));
+        return view('projects.phases.documents.enquiry-show', compact('enquiry', 'phase', 'document'));
     }
 
     /**
      * Download the specified document.
      */
-    public function download(Project $project, ProjectPhase $phase, PhaseDocument $document)
+    public function download(Enquiry $enquiry, ProjectPhase $phase, PhaseDocument $document)
     {
-        $this->authorize('view', $project);
+        $this->authorize('view', $enquiry);
+        $this->ensureDesignConceptPhase($phase);
         
-        if ($document->project_id !== $project->id || $document->project_phase_id !== $phase->id) {
+        if ($document->enquiry_id !== $enquiry->id || $document->project_phase_id !== $phase->id) {
             abort(404);
         }
 
@@ -189,13 +211,14 @@ class PhaseDocumentController extends Controller
     /**
      * Preview the specified document in browser.
      */
-    public function preview(Project $project, ProjectPhase $phase, PhaseDocument $document)
+    public function preview(Enquiry $enquiry, ProjectPhase $phase, PhaseDocument $document)
     {
-        $this->authorize('view', $project);
+        $this->authorize('view', $enquiry);
+        $this->ensureDesignConceptPhase($phase);
         
-        // if ($document->project_id !== $project->id || $document->project_phase_id !== $phase->id) {
-        //     abort(404);
-        // }
+        if ($document->enquiry_id !== $enquiry->id || $document->project_phase_id !== $phase->id) {
+            abort(404);
+        }
 
         if (!$document->fileExists()) {
             abort(404, 'File not found.');
@@ -216,14 +239,15 @@ class PhaseDocumentController extends Controller
     /**
      * Remove the specified document.
      */
-    public function destroy(Project $project, ProjectPhase $phase, PhaseDocument $document)
+    public function destroy(Enquiry $enquiry, ProjectPhase $phase, PhaseDocument $document)
     {
-        $this->authorize('edit', $project);
+        $this->authorize('update', $enquiry);
+        $this->ensureDesignConceptPhase($phase);
         $this->checkPhaseUploadPermission($phase->name);
         
-        // if ($document->project_id !== $project->id || $document->project_phase_id !== $phase->id) {
-        //     abort(404);
-        // }
+        if ($document->enquiry_id !== $enquiry->id || $document->project_phase_id !== $phase->id) {
+            abort(404);
+        }
 
         // Check if user can delete this document
         if ($document->uploaded_by !== auth()->id() && !auth()->user()->hasRole(['admin', 'super-admin', 'project_manager', 'pm'])) {
@@ -233,15 +257,15 @@ class PhaseDocumentController extends Controller
         $filename = $document->original_filename;
         $document->delete(); // This will also delete the file due to the model's booted method
 
-        // Auto-revert phase logic for project phases
+        // Auto-revert phase logic for enquiry phases
         // If no documents remain for Design & Concept Development, revert to 'Not Started'
         try {
             if ($phase->name === 'Design & Concept Development') {
-                $remainingDocsCount = PhaseDocument::where('project_id', $project->id)
+                $remainingDocsCount = PhaseDocument::where('enquiry_id', $enquiry->id)
                     ->forPhase('Design & Concept Development')
                     ->active()
                     ->count();
-                $designAssetsCount = \App\Models\DesignAsset::where('project_id', $project->id)->count();
+                $designAssetsCount = \App\Models\DesignAsset::where('enquiry_id', $enquiry->id)->count();
                 
                 // If no documents and no design assets remain, revert to 'Not Started'
                 if ($remainingDocsCount === 0 && $designAssetsCount === 0) {
@@ -250,7 +274,7 @@ class PhaseDocumentController extends Controller
             }
         } catch (\Exception $e) {
             \Log::warning('Phase auto-revert on document deletion failed', [
-                'project_id' => $project->id,
+                'enquiry_id' => $enquiry->id,
                 'phase_id' => $phase->id,
                 'phase_name' => $phase->name,
                 'error' => $e->getMessage(),
@@ -264,18 +288,19 @@ class PhaseDocumentController extends Controller
             ]);
         }
 
-        return redirect()->route('projects.phases.documents.index', [$project, $phase])
+        return redirect()->route('enquiries.phases.documents.index', [$enquiry, $phase])
             ->with('success', "Document '{$filename}' deleted successfully.");
     }
 
     /**
      * Bulk download documents as ZIP.
      */
-    public function bulkDownload(Project $project, ProjectPhase $phase)
+    public function bulkDownload(Enquiry $enquiry, ProjectPhase $phase)
     {
-        $this->authorize('view', $project);
+        $this->authorize('view', $enquiry);
+        $this->ensureDesignConceptPhase($phase);
         
-        $documents = PhaseDocument::where('project_id', $project->id)
+        $documents = PhaseDocument::where('enquiry_id', $enquiry->id)
             ->where('project_phase_id', $phase->id)
             ->active()
             ->get();
@@ -285,7 +310,7 @@ class PhaseDocumentController extends Controller
         }
 
         $zip = new \ZipArchive();
-        $zipFileName = Str::slug($project->name) . '-' . Str::slug($phase->name) . '-documents.zip';
+        $zipFileName = Str::slug($enquiry->project_name) . '-' . Str::slug($phase->name) . '-documents.zip';
         $zipPath = storage_path('app/temp/' . $zipFileName);
         
         // Ensure temp directory exists
@@ -309,6 +334,39 @@ class PhaseDocumentController extends Controller
     }
 
     /**
+     * Get documents via AJAX for dynamic loading.
+     */
+    public function getDocuments(Enquiry $enquiry, ProjectPhase $phase)
+    {
+        $this->authorize('view', $enquiry);
+        $this->ensureDesignConceptPhase($phase);
+        
+        $documents = PhaseDocument::where('enquiry_id', $enquiry->id)
+            ->where('project_phase_id', $phase->id)
+            ->active()
+            ->with('uploader')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'documents' => $documents->map(function ($doc) use ($enquiry, $phase) {
+                return [
+                    'id' => $doc->id,
+                    'original_filename' => $doc->original_filename,
+                    'file_size_human' => $doc->file_size_human,
+                    'document_type' => $doc->document_type,
+                    'icon_class' => $doc->icon_class,
+                    'created_at' => $doc->created_at->format('M d, Y H:i'),
+                    'uploader_name' => $doc->uploader->name,
+                    'description' => $doc->description,
+                    'download_url' => route('enquiries.phases.documents.download', [$enquiry, $phase, $doc]),
+                    'can_delete' => $doc->uploaded_by === auth()->id() || auth()->user()->hasRole(['admin', 'super-admin', 'project_manager', 'pm']),
+                ];
+            })
+        ]);
+    }
+
+    /**
      * Check if user has permission to upload to this phase.
      */
     private function checkPhaseUploadPermission($phaseName)
@@ -320,7 +378,7 @@ class PhaseDocumentController extends Controller
             return true;
         }
         
-        // Define phase permissions
+        // Define phase permissions (same as project phase permissions)
         $phasePermissions = [
             'Design & Concept Development' => ['project_officer', 'project_manager', 'design', 'po', 'pm'],
             'Client Engagement & Briefing' => ['project_officer', 'project_manager', 'po', 'pm'],
@@ -370,36 +428,13 @@ class PhaseDocumentController extends Controller
         $extension = strtolower($file->getClientOriginalExtension());
         return in_array($extension, $allowedExtensions);
     }
-
     /**
-     * Get documents via AJAX for dynamic loading.
+     * Ensure we're only handling documents in the second phase during enquiry: Design & Concept Development.
      */
-    public function getDocuments(Project $project, ProjectPhase $phase)
+    private function ensureDesignConceptPhase(ProjectPhase $phase)
     {
-        $this->authorize('view', $project);
-        
-        $documents = PhaseDocument::where('project_id', $project->id)
-            ->where('project_phase_id', $phase->id)
-            ->active()
-            ->with('uploader')
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return response()->json([
-            'documents' => $documents->map(function ($doc) {
-                return [
-                    'id' => $doc->id,
-                    'original_filename' => $doc->original_filename,
-                    'file_size_human' => $doc->file_size_human,
-                    'document_type' => $doc->document_type,
-                    'icon_class' => $doc->icon_class,
-                    'created_at' => $doc->created_at->format('M d, Y H:i'),
-                    'uploader_name' => $doc->uploader->name,
-                    'description' => $doc->description,
-                    'download_url' => route('projects.phases.documents.download', [$project, $phase, $doc]),
-                    'can_delete' => $doc->uploaded_by === auth()->id() || auth()->user()->hasRole(['admin', 'super-admin', 'project_manager', 'pm']),
-                ];
-            })
-        ]);
+        if ($phase->name !== 'Design & Concept Development') {
+            abort(404, 'Phase documents are only available in the Design & Concept Development phase during enquiry.');
+        }
     }
 }

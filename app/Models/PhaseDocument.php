@@ -13,6 +13,7 @@ class PhaseDocument extends Model
     protected $fillable = [
         'project_phase_id',
         'project_id',
+        'enquiry_id',
         'phase_name',
         'original_filename',
         'stored_filename',
@@ -47,6 +48,14 @@ class PhaseDocument extends Model
     public function project()
     {
         return $this->belongsTo(Project::class);
+    }
+
+    /**
+     * Get the enquiry that owns the document.
+     */
+    public function enquiry()
+    {
+        return $this->belongsTo(Enquiry::class);
     }
 
     /**

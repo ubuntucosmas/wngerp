@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class Enquiry extends Model
@@ -254,6 +255,39 @@ class Enquiry extends Model
             $enquiryLog = $this->enquiryLog;
             if ($enquiryLog) {
                 $enquiryLog->update(['project_id' => $project->id]);
+            }
+
+            // Transfer phase documents from enquiry to project
+            $phaseDocuments = \App\Models\PhaseDocument::where('enquiry_id', $this->id)->get();
+            foreach ($phaseDocuments as $document) {
+                // Move the file from enquiry directory to project directory
+                $oldPath = $document->file_path;
+                $newDirectory = "phase-documents/{$project->id}/{$document->project_phase_id}";
+                $newPath = $newDirectory . '/' . $document->stored_filename;
+                
+                try {
+                    // Ensure the new directory exists
+                    Storage::disk('public')->makeDirectory($newDirectory);
+                    
+                    // Move the file
+                    if (Storage::disk('public')->exists($oldPath)) {
+                        Storage::disk('public')->move($oldPath, $newPath);
+                    }
+                    
+                    // Update the document record
+                    $document->update([
+                        'project_id' => $project->id,
+                        'enquiry_id' => null,
+                        'file_path' => $newPath,
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::warning('Failed to transfer phase document during conversion', [
+                        'enquiry_id' => $this->id,
+                        'project_id' => $project->id,
+                        'document_id' => $document->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
             }
 
             // Add remaining phases (from Production onwards) to the project

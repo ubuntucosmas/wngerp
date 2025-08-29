@@ -31,7 +31,7 @@ class CloseOutReportController extends Controller
 
     public function showCreatePage(Project $project)
     {
-        $this->authorize('edit', $project);
+        // $this->authorize('edit', $project);
         return view('projects.close-out-report.create', compact('project'));
     }
 

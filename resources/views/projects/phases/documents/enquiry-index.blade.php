@@ -526,7 +526,7 @@
                                 data-bs-placement="top">
                             <i class="bi bi-eye"></i>
                         </button>
-                        @if($document->uploaded_by === auth()->id() || auth()->user()->hasRole(['admin', 'super-admin', 'project_manager', 'pm']))
+                        @if($document->uploaded_by === auth()->id() || auth()->user()->hasRole(['admin', 'super-admin', 'project_manager', 'po', 'pm']))
                         <button type="button" class="btn btn-danger btn-sm" 
                                 onclick="deleteDocument({{ $document->id }}, '{{ $document->original_filename }}')"
                                 title="Permanently delete {{ $document->original_filename }}"

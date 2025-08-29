@@ -250,7 +250,7 @@ class EnquiryPhaseDocumentController extends Controller
         // }
 
         // Check if user can delete this document
-        if ($document->uploaded_by !== auth()->id() && !auth()->user()->hasRole(['admin', 'super-admin', 'project_manager', 'pm'])) {
+        if ($document->uploaded_by !== auth()->id() && !auth()->user()->hasRole(['admin', 'super-admin', 'project_manager', 'po', 'pm'])) {
             return redirect()->back()->with('error', 'You can only delete documents you uploaded.');
         }
 

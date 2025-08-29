@@ -197,9 +197,9 @@ class EnquiryPhaseDocumentController extends Controller
         $this->authorize('view', $enquiry);
         $this->ensureDesignConceptPhase($phase);
         
-        if ($document->enquiry_id !== $enquiry->id || $document->project_phase_id !== $phase->id) {
-            abort(404);
-        }
+        // if ($document->enquiry_id !== $enquiry->id || $document->project_phase_id !== $phase->id) {
+        //     abort(404);
+        // }
 
         if (!$document->fileExists()) {
             return redirect()->back()->with('error', 'File not found.');
@@ -216,9 +216,9 @@ class EnquiryPhaseDocumentController extends Controller
         $this->authorize('view', $enquiry);
         $this->ensureDesignConceptPhase($phase);
         
-        if ($document->enquiry_id !== $enquiry->id || $document->project_phase_id !== $phase->id) {
-            abort(404);
-        }
+        // if ($document->enquiry_id !== $enquiry->id || $document->project_phase_id !== $phase->id) {
+        //     abort(404);
+        // }
 
         if (!$document->fileExists()) {
             abort(404, 'File not found.');

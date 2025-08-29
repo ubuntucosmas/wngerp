@@ -75,7 +75,7 @@ class CloseOutReportController extends Controller
 
     public function edit(Project $project, CloseOutReport $report)
     {
-        $this->authorize('edit', $project);
+        // $this->authorize('edit', $project);
         // Load necessary relationships
         $project->load(['client', 'projectOfficer', 'materialLists', 'budgets', 'siteSurveys']);
         return view('projects.close-out-report.edit-page', compact('project', 'report'));

@@ -484,10 +484,10 @@
         @endphp
         
         @if($isConvertedProject)
-            <div class="alert alert-success alert-sm mb-3">
+            <!-- <div class="alert alert-success alert-sm mb-3">
                 <i class="bi bi-check-circle me-2"></i>
                 <strong>Converted Project:</strong> This project was converted from an enquiry. The first 4 phases are completed from the enquiry phase, and the remaining phases are ready for project execution.
-            </div>
+            </div> -->
         @elseif(!$showAllPhases)
             <div class="alert alert-info alert-sm mb-3">
                 <i class="bi bi-info-circle me-2"></i>

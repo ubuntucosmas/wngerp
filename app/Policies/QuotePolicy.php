@@ -56,7 +56,7 @@ class QuotePolicy
             return true;
         }
 
-        if ($user->hasAnyRole(['super-admin', 'pm', 'admin'])) {
+        if ($user->hasAnyRole(['super-admin', 'pm', 'po', 'admin'])) {
             return true;
         }
 

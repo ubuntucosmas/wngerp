@@ -69,17 +69,16 @@ class QuoteController extends Controller
 
         if (str_contains($request->route()->getName(), 'enquiries.')) {
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
-            // Check if user can edit this enquiry
-            $this->authorize('update', $enquiry);
+            // Check if user can view this enquiry
+            $this->authorize('view', $enquiry);
         } else {
             $project = Project::findOrFail($projectOrEnquiryId);
-            // Check if user can edit this project (not just view)
-            $this->authorize('edit', $project);
+            // Check if user can view this project
+            $this->authorize('view', $project);
         }
 
-        if (!auth()->user()->hasAnyRole(['finance', 'accounts', 'super-admin'])) {
-            abort(403, 'Only Finance or Accounts can create budgets.');
-        }
+        // Check if user can create quotes using the Quote policy
+        $this->authorize('create', Quote::class);
 
         $budget = null;
         if ($request->has('project_budget_id')) {
@@ -159,13 +158,16 @@ class QuoteController extends Controller
 
         if (str_contains($request->route()->getName(), 'enquiries.')) {
             $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
-            // Check if user can edit this enquiry
-            $this->authorize('update', $enquiry);
+            // Check if user can view this enquiry
+            $this->authorize('view', $enquiry);
         } else {
             $project = Project::findOrFail($projectOrEnquiryId);
-            // Check if user can edit this project (not just view)
-            $this->authorize('edit', $project);
+            // Check if user can view this project
+            $this->authorize('view', $project);
         }
+
+        // Check if user can create quotes using the Quote policy
+        $this->authorize('create', Quote::class);
 
         DB::beginTransaction();
         

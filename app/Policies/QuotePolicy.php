@@ -46,24 +46,8 @@ class QuotePolicy
      */
     public function create(User $user): bool
     {
-        // Super admins and PMs can create quotes
-        // POs can only create quotes for projects they are assigned to
-        // Allow creation, but check project assignment in controller
-        $project = $quote->project;
-        $enquiry = $quote->enquiry;
-
-        if (!$project && $enquiry) {
-            return true;
-        }
-
-        if ($user->hasAnyRole(['super-admin', 'pm', 'po', 'admin'])) {
-            return true;
-        }
-
-        if ($user->hasRole('po')) {
-            return $project->project_officer_id === $user->id;
-        }
-        return true; // Allow creation, but check project assignment in controller
+        // Super admins, PMs, POs, and admins can create quotes
+        return $user->hasAnyRole(['super-admin', 'pm', 'po', 'admin']);
     }
 
     /**

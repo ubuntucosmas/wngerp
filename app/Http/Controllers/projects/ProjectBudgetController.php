@@ -175,8 +175,14 @@ class ProjectBudgetController extends Controller
             // $this->authorize('edit', $project);
         }
 
-        if (!auth()->user()->hasRole('po|pm|super-admin')) {
-            return back()->with('error', 'Only Project Officers, Project Managers and Super Admins can submit budgets.');
+        // Check if user can manage budget for this project/enquiry
+        if ($project) {
+            $this->authorize('manage-project-budget', $project);
+        } else {
+            // For enquiries, check if user has appropriate role
+            if (!auth()->user()->hasAnyRole(['po', 'pm', 'super-admin', 'admin'])) {
+                return back()->with('error', 'Only Project Officers, Project Managers, Admins and Super Admins can submit budgets.');
+            }
         }
     
         // Validate required fields
@@ -331,8 +337,14 @@ class ProjectBudgetController extends Controller
             // $this->authorize('edit', $project);
         }
 
-    if (!auth()->user()->hasAnyRole(['finance', 'accounts', 'super-admin','po','pm'])) {
-        abort(403, 'Only Finance or Accounts can edit budgets.');
+    // Check if user can manage budget for this project/enquiry
+    if ($project) {
+        $this->authorize('manage-project-budget', $project);
+    } else {
+        // For enquiries, check if user has appropriate role
+        if (!auth()->user()->hasAnyRole(['finance', 'accounts', 'super-admin', 'po', 'pm', 'admin'])) {
+            abort(403, 'Only Finance, Accounts, Project Officers, Project Managers, Admins and Super Admins can edit budgets.');
+        }
     }
     if ($budget->status === 'approved') {
         if ($enquiry) {
@@ -375,8 +387,14 @@ class ProjectBudgetController extends Controller
             // $this->authorize('edit', $project);
         }
 
-    if (!auth()->user()->hasAnyRole(['finance', 'accounts', 'super-admin'])) {
-        abort(403, 'Not authorized.');
+    // Check if user can manage budget for this project/enquiry
+    if ($project) {
+        $this->authorize('manage-project-budget', $project);
+    } else {
+        // For enquiries, check if user has appropriate role
+        if (!auth()->user()->hasAnyRole(['finance', 'accounts', 'super-admin', 'po', 'pm', 'admin'])) {
+            abort(403, 'Only Finance, Accounts, Project Officers, Project Managers, Admins and Super Admins can update budgets.');
+        }
     }
     if ($budget->status === 'approved') {
         if ($enquiry) {

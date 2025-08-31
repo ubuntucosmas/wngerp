@@ -161,7 +161,16 @@
                                             </div>
                                             <div>
                                                 <div class="d-flex align-items-center gap-2 mb-1">
-                                                    <h6 class="fw-semibold mb-0">Quote #{{ $quote->id }}</h6>
+                                                    @php
+                                                        $quoteNumber = $quotes->total() - $loop->index - (($quotes->currentPage() - 1) * $quotes->perPage());
+                                                        $ordinalSuffix = match($quoteNumber % 10) {
+                                                            1 => $quoteNumber % 100 === 11 ? 'th' : 'st',
+                                                            2 => $quoteNumber % 100 === 12 ? 'th' : 'nd', 
+                                                            3 => $quoteNumber % 100 === 13 ? 'th' : 'rd',
+                                                            default => 'th'
+                                                        };
+                                                    @endphp
+                                                    <h6 class="fw-semibold mb-0">{{ $quoteNumber }}{{ $ordinalSuffix }} Quote</h6>
                                                     @if($quote->status === 'approved')
                                                         <span class="badge bg-success">
                                                             <i class="bi bi-check-circle me-1"></i>Approved

@@ -1,6 +1,6 @@
 @extends('layouts.master')
 
-@section('title', "Quote #{$quote->id}")
+@section('title', $quoteName)
 
 @section('content')
 <div class="container-fluid py-4">
@@ -14,20 +14,20 @@
                         <li class="breadcrumb-item"><a href="{{ route('enquiries.files', $enquiry) }}">{{ $enquiry->project_name }}</a></li>
                         <li class="breadcrumb-item"><a href="{{ route('enquiries.files.quotation', $enquiry) }}">Budget & Quotation</a></li>
                         <li class="breadcrumb-item"><a href="{{ route('enquiries.quotes.index', $enquiry) }}">Quotes</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">View Quote #{{ $quote->id }}</li>
+                        <li class="breadcrumb-item active" aria-current="page">View {{ $quoteName }}</li>
                     @elseif(isset($project) && $project)
                         <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
                         <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">{{ $project->name }}</a></li>
                         <li class="breadcrumb-item"><a href="{{ route('projects.quotation.index', $project) }}">Budget & Quotation</a></li>
                         <li class="breadcrumb-item"><a href="{{ route('quotes.index', $project) }}">Quotes</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">View Quote #{{ $quote->id }}</li>
+                        <li class="breadcrumb-item active" aria-current="page">View {{ $quoteName }}</li>
                     @else
                         <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">View Quote #{{ $quote->id }}</li>
+                        <li class="breadcrumb-item active" aria-current="page">View {{ $quoteName }}</li>
                     @endif
                 </ol>
             </nav>
-            <h2 class="mb-0">View Quote #{{ $quote->id }}</h2>
+            <h2 class="mb-0">{{ $quoteName }}</h2>
         </div>
         <div class="page-actions">
             @if(isset($enquiry) && $enquiry)
@@ -127,13 +127,11 @@
                                 </div>
                                 <address class="mb-0 text-muted small" style="line-height: 1.6;">
                                     @if(isset($enquiry) && $enquiry)
-                                    Enquiry ID: {{ $enquiry->id }}<br>
                                     Enquiry Name: {{ $enquiry->project_name }}<br>
                                     @elseif(isset($project) && $project)
                                     Project ID: {{ $project->project_id }}<br>
                                     Project Name: {{ $project->name }}<br>
                                     @endif
-                                    <a href="mailto:admin@woodnorkgreen.co.ke" class="text-decoration-none text-muted">admin@woodnorkgreen.co.ke</a><br>
                                 </address>
                             </div>
                         </div>

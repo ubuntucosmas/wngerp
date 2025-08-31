@@ -93,61 +93,25 @@ class QuoteController extends Controller
             return back()->with('error', 'No budget found for this ' . ($enquiry ? 'enquiry' : 'project') . '. Please create a budget first.');
         }
         
-        // Group budget items by category
-        $budgetItems = $budget->items->groupBy('category');
+        // Use the hybrid customization service
+        $customizationService = new \App\Services\QuoteCustomizationService();
+        $quoteData = $customizationService->prepareBudgetForQuote($budget);
         
-        // Organize items for the view
-        $productionItems = collect();
-        $materialsForHire = collect();
-        $labourItems = collect();
-        
-        foreach ($budgetItems as $category => $items) {
-            if (str_contains(strtolower($category), 'production')) {
-                // Group production items by item_name
-                $groupedByItem = $items->groupBy('item_name');
-                foreach ($groupedByItem as $itemName => $particulars) {
-                    $productionItems->push([
-                        'item_name' => $itemName,
-                        'particulars' => $particulars->map(function($item) {
-                            return [
-                                'particular' => $item->particular,
-                                'unit' => $item->unit,
-                                'quantity' => $item->quantity,
-                                'unit_price' => $item->unit_price,
-                                'comment' => $item->comment,
-                                'template_id' => $item->template_id
-                            ];
-                        })
-                    ]);
-                }
-            } elseif (str_contains(strtolower($category), 'hire')) {
-                $materialsForHire = $items->map(function($item) {
-                    return [
-                        'particular' => $item->particular,
-                        'unit' => $item->unit,
-                        'quantity' => $item->quantity,
-                        'unit_price' => $item->unit_price,
-                        'comment' => $item->comment
-                    ];
-                });
-            } else {
-                // Other categories (labour, etc.)
-                $labourItems = $items->map(function($item) {
-                    return [
-                        'particular' => $item->particular,
-                        'unit' => $item->unit,
-                        'quantity' => $item->quantity,
-                        'unit_price' => $item->unit_price,
-                        'comment' => $item->comment
-                    ];
-                });
-            }
-        }
+        // Prepare data for the hybrid quote creation view
+        $hybridData = [
+            'budget' => $budget,
+            'raw_categories' => $quoteData['raw_categories'],
+            'suggested_items' => $quoteData['suggested_quote_items'],
+            'cost_summary' => $quoteData['cost_summary'],
+            'customization_options' => $quoteData['customization_options'],
+            'total_internal_cost' => $budget->budget_total,
+            'suggested_total_price' => collect($quoteData['suggested_quote_items'])->sum('suggested_quote_price')
+        ];
         
         if ($enquiry) {
-            return view('projects.quotes.create', compact('enquiry', 'productionItems', 'materialsForHire', 'labourItems', 'budget'));
+            return view('projects.quotes.create-hybrid', compact('enquiry', 'hybridData'));
         } else {
-            return view('projects.quotes.create', compact('project', 'productionItems', 'materialsForHire', 'labourItems', 'budget'));
+            return view('projects.quotes.create-hybrid', compact('project', 'hybridData'));
         }
     }
 
@@ -343,11 +307,35 @@ class QuoteController extends Controller
         $vatRate = 0.16; // 16% VAT - you can make this configurable
         $vatAmount = $subtotal * $vatRate;
         $total = $subtotal + $vatAmount;
+
+        // Calculate quote position for sequential naming
+        if ($enquiry) {
+            $allQuotes = Quote::where('enquiry_id', $enquiry->id)
+                ->orderBy('quote_date', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->pluck('id')
+                ->toArray();
+        } else {
+            $allQuotes = Quote::where('project_id', $project->id)
+                ->orderBy('quote_date', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->pluck('id')
+                ->toArray();
+        }
+        
+        $quotePosition = array_search($quote->id, $allQuotes) + 1;
+        $ordinalSuffix = match($quotePosition % 10) {
+            1 => $quotePosition % 100 === 11 ? 'th' : 'st',
+            2 => $quotePosition % 100 === 12 ? 'th' : 'nd', 
+            3 => $quotePosition % 100 === 13 ? 'th' : 'rd',
+            default => 'th'
+        };
+        $quoteName = $quotePosition . $ordinalSuffix . ' Quote';
     
         if ($enquiry) {
-            return view('projects.quotes.show', compact('enquiry', 'quote', 'subtotal', 'vatRate', 'vatAmount', 'total'));
+            return view('projects.quotes.show', compact('enquiry', 'quote', 'subtotal', 'vatRate', 'vatAmount', 'total', 'quoteName'));
         } else {
-            return view('projects.quotes.show', compact('project', 'quote', 'subtotal', 'vatRate', 'vatAmount', 'total'));
+            return view('projects.quotes.show', compact('project', 'quote', 'subtotal', 'vatRate', 'vatAmount', 'total', 'quoteName'));
         }
     }
 

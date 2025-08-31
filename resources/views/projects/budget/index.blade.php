@@ -54,7 +54,16 @@
                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                     <div class="flex-grow-1">
                                         <h6 class="card-title mb-1 fw-semibold text-dark">
-                                            Budget #{{ $budget->id }}
+                                            @php
+                                                $budgetNumber = $budgets->total() - $loop->index - (($budgets->currentPage() - 1) * $budgets->perPage());
+                                                $ordinalSuffix = match($budgetNumber % 10) {
+                                                    1 => $budgetNumber % 100 === 11 ? 'th' : 'st',
+                                                    2 => $budgetNumber % 100 === 12 ? 'th' : 'nd', 
+                                                    3 => $budgetNumber % 100 === 13 ? 'th' : 'rd',
+                                                    default => 'th'
+                                                };
+                                            @endphp
+                                            {{ $budgetNumber }}{{ $ordinalSuffix }} Budget
                                             @if($budget->status)
                                                 Status:<span class="bg-{{ $budget->status === 'approved' ? 'success' : ($budget->status === 'draft' ? 'info' : 'secondary') }} ms-2">
                                 {{ ucfirst($budget->status) }}

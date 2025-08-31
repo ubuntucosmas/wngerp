@@ -157,7 +157,36 @@ class ProjectBudgetController extends Controller
             }
         }
 
-        return view('projects.budget.show', compact('project', 'enquiry', 'budget'));
+        // Calculate budget position for sequential naming
+        if ($enquiry) {
+            $allBudgets = ProjectBudget::where('enquiry_id', $enquiry->id)
+                ->orderBy('created_at', 'asc')
+                ->pluck('id')
+                ->toArray();
+        } else {
+            $allBudgets = ProjectBudget::where(function($query) use ($project) {
+                $query->where('project_id', $project->id);
+                
+                // Also check if this project was converted from an enquiry
+                $enquirySource = $project->enquirySource;
+                if ($enquirySource) {
+                    $query->orWhere('enquiry_id', $enquirySource->id);
+                }
+            })->orderBy('created_at', 'asc')
+                ->pluck('id')
+                ->toArray();
+        }
+        
+        $budgetPosition = array_search($budget->id, $allBudgets) + 1;
+        $ordinalSuffix = match($budgetPosition % 10) {
+            1 => $budgetPosition % 100 === 11 ? 'th' : 'st',
+            2 => $budgetPosition % 100 === 12 ? 'th' : 'nd', 
+            3 => $budgetPosition % 100 === 13 ? 'th' : 'rd',
+            default => 'th'
+        };
+        $budgetName = $budgetPosition . $ordinalSuffix . ' Budget';
+
+        return view('projects.budget.show', compact('project', 'enquiry', 'budget', 'budgetName'));
     }
 
     public function store(Request $request, $projectOrEnquiryId)
@@ -337,13 +366,13 @@ class ProjectBudgetController extends Controller
             // $this->authorize('edit', $project);
         }
 
-    // Check if user can manage budget for this project/enquiry
+    // Check if user can manage budget for this project/enquiry (same as creation)
     if ($project) {
         $this->authorize('manage-project-budget', $project);
     } else {
-        // For enquiries, check if user has appropriate role
-        if (!auth()->user()->hasAnyRole(['finance', 'accounts', 'super-admin', 'po', 'pm', 'admin'])) {
-            abort(403, 'Only Finance, Accounts, Project Officers, Project Managers, Admins and Super Admins can edit budgets.');
+        // For enquiries, check if user has appropriate role (same as creation)
+        if (!auth()->user()->hasAnyRole(['po', 'pm', 'super-admin', 'admin'])) {
+            abort(403, 'Only Project Officers, Project Managers, Admins and Super Admins can edit budgets.');
         }
     }
     if ($budget->status === 'approved') {
@@ -356,19 +385,61 @@ class ProjectBudgetController extends Controller
         }
     }
 
-    // Fetch all items and group them by category
-    $items = $budget->items()->get()->groupBy('category');
-
-    // Separate production items for special handling in the view
-    $productionItems = $items->pull('Materials - Production', collect())->groupBy('item_name');
-
-    // The rest of the items are grouped normally
-    $groupedItems = $items;
+    // Load budget with items for editing
+    $budget->load('items');
+    
+    // Get all budget items as array to avoid Collection method conflicts
+    $allItems = $budget->items->toArray();
+    
+    // Group items by category manually
+    $grouped = [];
+    $productionItems = [];
+    
+    foreach ($allItems as $item) {
+        $category = $item['category'] ?? 'Other';
+        
+        if ($category === 'Materials - Production') {
+            $itemName = $item['item_name'] ?? 'Unknown';
+            if (!isset($productionItems[$itemName])) {
+                $productionItems[$itemName] = [
+                    'item_name' => $itemName,
+                    'template_id' => $item['template_id'] ?? null,
+                    'particulars' => []
+                ];
+            }
+            $productionItems[$itemName]['particulars'][] = (object)[
+                'id' => $item['id'],
+                'particular' => $item['particular'],
+                'unit' => $item['unit'],
+                'quantity' => $item['quantity'],
+                'unit_price' => $item['unit_price'],
+                'budgeted_cost' => $item['budgeted_cost'],
+                'comment' => $item['comment'],
+            ];
+        } else {
+            if (!isset($grouped[$category])) {
+                $grouped[$category] = [];
+            }
+            $grouped[$category][] = (object)$item;
+        }
+    }
+    
+    // Convert production items to objects and add to budget
+    $budget->productionItems = array_values(array_map(function($item) {
+        return (object)$item;
+    }, $productionItems));
+    
+    // Convert grouped items to collections for template compatibility
+    $groupedItems = [];
+    foreach ($grouped as $category => $items) {
+        $groupedItems[$category] = collect($items);
+    }
+    $groupedItems = collect($groupedItems);
 
     if ($enquiry) {
-        return view('projects.budget.edit', compact('enquiry', 'budget', 'groupedItems', 'productionItems'));
+        return view('projects.budget.edit', compact('enquiry', 'budget', 'groupedItems', 'grouped'));
     } else {
-        return view('projects.budget.edit', compact('project', 'budget', 'groupedItems', 'productionItems'));
+        return view('projects.budget.edit', compact('project', 'budget', 'groupedItems', 'grouped'));
     }
 }
 
@@ -387,13 +458,13 @@ class ProjectBudgetController extends Controller
             // $this->authorize('edit', $project);
         }
 
-    // Check if user can manage budget for this project/enquiry
+    // Check if user can manage budget for this project/enquiry (same as creation)
     if ($project) {
         $this->authorize('manage-project-budget', $project);
     } else {
-        // For enquiries, check if user has appropriate role
-        if (!auth()->user()->hasAnyRole(['finance', 'accounts', 'super-admin', 'po', 'pm', 'admin'])) {
-            abort(403, 'Only Finance, Accounts, Project Officers, Project Managers, Admins and Super Admins can update budgets.');
+        // For enquiries, check if user has appropriate role (same as creation)
+        if (!auth()->user()->hasAnyRole(['po', 'pm', 'super-admin', 'admin'])) {
+            abort(403, 'Only Project Officers, Project Managers, Admins and Super Admins can update budgets.');
         }
     }
     if ($budget->status === 'approved') {
@@ -406,6 +477,14 @@ class ProjectBudgetController extends Controller
         }
     }
 
+    // Validate required fields (same as store method)
+    $request->validate([
+        'start_date' => 'required|date',
+        'end_date' => 'required|date|after_or_equal:start_date',
+        'approved_by' => 'required|string|max:255',
+        'approved_departments' => 'required|string|max:255',
+    ]);
+
     // Log the edit before making changes
     BudgetEditLog::create([
         'project_budget_id' => $budget->id,
@@ -416,48 +495,66 @@ class ProjectBudgetController extends Controller
     DB::beginTransaction();
 
     try {
-        $total = 0;
+        // Delete existing items to rebuild (simpler approach for consistency)
+        $budget->items()->delete();
+        
         $items = $request->input('items', []);
+        $productionItems = $request->input('production_items', []);
+        $totalCost = 0;
 
+        // Handle regular items (same as store method)
         foreach ($items as $category => $group) {
-            foreach ($group as $index => $itemData) {
-                $isExisting = is_numeric($index);
-
-                $data = [
-                    'particular'     => $itemData['particular'] ?? '',
-                    'unit'           => $itemData['unit'] ?? '',
-                    'quantity'       => $itemData['quantity'] ?? 0,
-                    'unit_price'     => $itemData['unit_price'] ?? 0,
-                    'budgeted_cost'  => $itemData['budgeted_cost'] ?? 0,
-                    'comment'        => $itemData['comment'] ?? '',
-                    'category'       => $category,
-                ];
-
-                if ($isExisting) {
-                    $item = BudgetItem::findOrFail($index);
-                    $item->update($data);
-                } else {
-                    BudgetItem::create(array_merge($data, [
-                        'project_budget_id' => $budget->id,
-                    ]));
-                }
-
-                $total += $data['budgeted_cost'];
+            foreach ($group as $item) {
+                BudgetItem::create([
+                    'project_budget_id' => $budget->id,
+                    'category' => $category,
+                    'item_name' => $item['item_name'] ?? null,
+                    'particular' => $item['particular'] ?? '',
+                    'unit' => $item['unit'] ?? '',
+                    'quantity' => $item['quantity'] ?? 0,
+                    'unit_price' => $item['unit_price'] ?? 0,
+                    'budgeted_cost' => $item['budgeted_cost'] ?? 0,
+                    'comment' => $item['comment'] ?? '',
+                ]);
+                $totalCost += $item['budgeted_cost'] ?? 0;
             }
         }
 
-        $invoice = round($total * 1.16, 2);
-        $profit = $invoice - $total;
+        // Handle production items (same as store method)
+        foreach ($productionItems as $prod) {
+            $itemName = $prod['item_name'] ?? null;
+            $templateId = $prod['template_id'] ?? null;
+            if (!isset($prod['particulars'])) continue;
+            foreach ($prod['particulars'] as $particular) {
+                BudgetItem::create([
+                    'project_budget_id' => $budget->id,
+                    'category' => 'Materials - Production',
+                    'item_name' => $itemName,
+                    'template_id' => $templateId,
+                    'particular' => $particular['particular'] ?? '',
+                    'unit' => $particular['unit'] ?? '',
+                    'quantity' => $particular['quantity'] ?? 0,
+                    'unit_price' => $particular['unit_price'] ?? 0,
+                    'budgeted_cost' => $particular['budgeted_cost'] ?? 0,
+                    'comment' => $particular['comment'] ?? '',
+                ]);
+                $totalCost += $particular['budgeted_cost'] ?? 0;
+            }
+        }
+
+        // Calculate invoice and profit (same as store method)
+        $invoice = round($totalCost * 1.16, 2);
+        $profit = $invoice - $totalCost;
 
         $budget->update([
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
-            'budget_total' => (float) $total,
+            'budget_total' => (float) $totalCost,
             'invoice' => $invoice,
             'profit' => $profit,
             'approved_by' => $request->approved_by,
             'approved_departments' => $request->approved_departments,
-            'status' => $request->status ?? 'approved',
+            'status' => $request->status ?? 'draft', // Keep as draft unless explicitly approved
         ]);
 
         DB::commit();

@@ -1,6 +1,6 @@
 @extends('layouts.master')
 
-@section('title', 'Budget Details')
+@section('title', $budgetName)
 
 @section('content')
 <div class="container-fluid p-0">
@@ -29,7 +29,7 @@
                     @endif
                 </ol>
             </nav>
-                    <h4 class="mb-0 fw-bold text-dark">Budget #{{ $budget->id }}</h4>
+                    <h4 class="mb-0 fw-bold text-dark">{{ $budgetName }}</h4>
                     <p class="text-muted small mb-0">{{ \Carbon\Carbon::parse($budget->start_date)->format('M d, Y') }} - {{ \Carbon\Carbon::parse($budget->end_date)->format('M d, Y') }}</p>
         </div>
                                 <div class="d-flex gap-2">

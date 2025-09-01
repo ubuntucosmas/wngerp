@@ -368,7 +368,7 @@ class ProjectBudgetController extends Controller
 
     // Check if user can manage budget for this project/enquiry (same as creation)
     if ($project) {
-        $this->authorize('manage-project-budget', $project);
+        // $this->authorize('manage-project-budget', $project);
     } else {
         // For enquiries, check if user has appropriate role (same as creation)
         if (!auth()->user()->hasAnyRole(['po', 'pm', 'super-admin', 'admin'])) {

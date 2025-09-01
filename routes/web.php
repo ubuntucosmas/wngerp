@@ -394,6 +394,8 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
         Route::delete('quotes/{quote}', [QuoteController::class, 'destroy'])->name('enquiries.quotes.destroy');
         Route::get('quotes/{quote}/download', [QuoteController::class, 'downloadQuote'])->name('enquiries.quotes.download');
         Route::get('quotes/{quote}/print', [QuoteController::class, 'printQuote'])->name('enquiries.quotes.print');
+        Route::get('quotes/{quote}/download-internal', [QuoteController::class, 'downloadInternalQuote'])->name('enquiries.quotes.download-internal');
+        Route::get('quotes/{quote}/print-internal', [QuoteController::class, 'printInternalQuote'])->name('enquiries.quotes.print-internal');
         Route::get('quotes/{quote}/excel', [QuoteController::class, 'exportExcel'])->name('enquiries.quotes.excel');
     });
 
@@ -604,6 +606,8 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
             Route::delete('quotes/{quote}', [QuoteController::class, 'destroy'])->name('destroy');
             Route::get('quotes/{quote}/download', [QuoteController::class, 'downloadQuote'])->name('download');
             Route::get('quotes/{quote}/print', [QuoteController::class, 'printQuote'])->name('print');
+            Route::get('quotes/{quote}/download-internal', [QuoteController::class, 'downloadInternalQuote'])->name('download-internal');
+            Route::get('quotes/{quote}/print-internal', [QuoteController::class, 'printInternalQuote'])->name('print-internal');
             Route::get('quotes/{quote}/excel', [QuoteController::class, 'exportExcel'])->name('excel');
         });
 

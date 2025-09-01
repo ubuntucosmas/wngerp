@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Quote - {{ isset($project) ? $project->name : ($enquiry ? $enquiry->project_name : 'Quote') }}</title>
+  <title>Internal Quote Analysis - {{ isset($project) ? $project->name : ($enquiry ? $enquiry->project_name : 'Quote') }}</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -52,6 +52,16 @@
       margin-bottom: 2px;
     }
 
+    .internal-warning {
+      background: #dc3545;
+      color: white;
+      padding: 8px;
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 10px;
+      border-radius: 4px;
+    }
+
     .section {
       margin-bottom: 6px;
     }
@@ -96,37 +106,6 @@
       width: 85%;
     }
 
-    .terms {
-      font-size: 9px;
-      line-height: 1.3;
-      margin-top: 10px;
-    }
-
-    .terms ol {
-      margin: 4px 0 0 15px;
-    }
-
-    .signature-section {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 12px;
-    }
-
-    .signature-box {
-      width: 48%;
-      border-top: 1px solid #ccc;
-      padding-top: 3px;
-      font-size: 9px;
-      text-align: left;
-    }
-
-    .footer {
-      text-align: center;
-      font-size: 8px;
-      margin-top: 10px;
-      color: #777;
-    }
-
     .item-group {
       margin-bottom: 8px;
     }
@@ -140,24 +119,37 @@
       border-bottom: none;
     }
 
-    .template-badge {
-      background: #17a2b8;
-      color: white;
-      padding: 1px 4px;
+    .profit-info {
+      font-size: 9px;
+      color: #28a745;
+    }
+
+    .cost-info {
+      font-size: 9px;
+      color: #6c757d;
+    }
+
+    .footer {
+      text-align: center;
       font-size: 8px;
-      border-radius: 2px;
-      margin-left: 4px;
+      margin-top: 10px;
+      color: #777;
     }
   </style>
 </head>
 <body>
   <div class="container">
+    <!-- Internal Warning -->
+    <div class="internal-warning">
+      ⚠️ INTERNAL DOCUMENT - CONFIDENTIAL - DO NOT SHARE WITH CLIENTS ⚠️
+    </div>
+
     <!-- Header -->
     <div class="company-header">
     <div class="logo">
         <img src="{{ public_path('images/wng-logo.png') }}" alt="Company Logo">
     </div>
-      <h1>WOODNORKGREEN</h1>
+      <h1>WOODNORKGREEN - INTERNAL QUOTE ANALYSIS</h1>
       <p>Karen Village Art Centre, Ngong Rd Nairobi</p>
       <p>www.woodnorkgreen.co.ke | admin@woodnorkgreen.co.ke | +254780 397798</p>
     </div>
@@ -174,7 +166,7 @@
       </div>
     </div>
 
-    <!-- Client & Project Info (Redesigned) -->
+    <!-- Client & Project Info -->
     <div class="section">
       <div class="section-title">CLIENT & PROJECT INFORMATION</div>
       <table style="width:100%; background:#f8f9fa; border-radius:6px; margin-bottom:8px;">
@@ -208,11 +200,13 @@
       </table>
     </div>
 
-    <!-- Quote Items -->
+    <!-- Detailed Internal Analysis -->
     <div class="section">
-      <div class="section-title">QUOTE ITEMS</div>
+      <div class="section-title">DETAILED COST & PROFIT ANALYSIS</div>
       @php 
         $subtotal = 0; 
+        $totalCost = 0;
+        $totalProfit = 0;
         
         // Group items by item name (for production items) or description (for other items)
         $groupedItems = $quote->lineItems->groupBy(function($item) {
@@ -225,122 +219,101 @@
       
       @foreach($groupedItems as $itemName => $items)
         @php
+          $itemTotalCost = $items->sum('total_cost');
           $itemTotalQuotePrice = $items->sum('quote_price');
+          $itemTotalProfit = $itemTotalQuotePrice - $itemTotalCost;
           $subtotal += $itemTotalQuotePrice;
+          $totalCost += $itemTotalCost;
+          $totalProfit += $itemTotalProfit;
         @endphp
         
         <div class="item-group">
           <div class="item-group-title">
             {{ $loop->iteration }}. {{ $itemName }}
             @if($items->count() > 1)
-              <span style="font-size:8px; color:#6c757d;">({{ $items->count() }} components)</span>
+              <span style="font-size:8px; color:#6c757d;">({{ $items->count() }} items)</span>
             @endif
           </div>
           
           <table>
             <thead>
               <tr>
-                <th style="width: 50%;">Description</th>
-                <th style="width: 15%;">Quantity</th>
-                <th style="width: 20%;">Unit Price (KES)</th>
-                <th style="width: 15%;">Total (KES)</th>
+                <th>Description</th>
+                <th>Qty</th>
+                <th>Unit Cost</th>
+                <th>Total Cost</th>
+                <th>Profit Margin</th>
+                <th>Quote Price</th>
+                <th>Profit Amount</th>
               </tr>
             </thead>
             <tbody>
               @foreach($items as $item)
+                @php
+                  $profitMargin = $item->profit_margin ?? 0;
+                  $profitAmount = $item->quote_price - $item->total_cost;
+                @endphp
                 <tr>
                   <td>{{ $item->description }}</td>
-                  <td style="text-align: center;">{{ number_format($item->quantity, 0) }}</td>
-                  <td style="text-align: right;">{{ number_format($item->quote_price / $item->quantity, 2) }}</td>
-                  <td style="text-align: right;"><strong>{{ number_format($item->quote_price, 2) }}</strong></td>
+                  <td>{{ number_format($item->quantity, 2) }}</td>
+                  <td>{{ number_format($item->unit_price, 2) }}</td>
+                  <td class="cost-info">{{ number_format($item->total_cost, 2) }}</td>
+                  <td class="profit-info">{{ number_format($profitMargin, 2) }}%</td>
+                  <td><strong>{{ number_format($item->quote_price, 2) }}</strong></td>
+                  <td class="profit-info">+{{ number_format($profitAmount, 2) }}</td>
                 </tr>
               @endforeach
             </tbody>
-            @if($items->count() > 1)
             <tfoot>
               <tr style="background:#f8f9fa;">
                 <td colspan="3"><strong>Subtotal for {{ $itemName }}:</strong></td>
-                <td style="text-align: right;"><strong>{{ number_format($itemTotalQuotePrice, 2) }}</strong></td>
+                <td class="cost-info"><strong>{{ number_format($itemTotalCost, 2) }}</strong></td>
+                <td class="profit-info"><strong>{{ $itemTotalCost > 0 ? number_format(($itemTotalProfit / $itemTotalCost) * 100, 2) : '0.00' }}%</strong></td>
+                <td><strong>{{ number_format($itemTotalQuotePrice, 2) }}</strong></td>
+                <td class="profit-info"><strong>+{{ number_format($itemTotalProfit, 2) }}</strong></td>
               </tr>
             </tfoot>
-            @endif
           </table>
         </div>
       @endforeach
     </div>
 
-    <!-- Price Summary -->
+    <!-- Internal Summary -->
     <div class="section">
-      <div class="section-title">PRICE SUMMARY</div>
+      <div class="section-title">INTERNAL FINANCIAL SUMMARY</div>
       <table class="totals" style="width: 100%;">
         <tr>
-          <td class="label">Subtotal:</td>
+          <td class="label">Total Internal Cost:</td>
+          <td class="cost-info"><strong>{{ number_format($totalCost, 2) }} KES</strong></td>
+        </tr>
+        <tr>
+          <td class="label">Total Profit:</td>
+          <td class="profit-info"><strong>+{{ number_format($totalProfit, 2) }} KES ({{ $totalCost > 0 ? number_format(($totalProfit / $totalCost) * 100, 2) : '0.00' }}%)</strong></td>
+        </tr>
+        <tr>
+          <td class="label">Quote Subtotal:</td>
           <td><strong>{{ number_format($subtotal, 2) }} KES</strong></td>
         </tr>
         <tr>
           <td class="label">VAT (16%):</td>
           <td>{{ number_format($subtotal * 0.16, 2) }} KES</td>
         </tr>
-        <tr style="background:#e8f5e8; font-size: 12px;">
-          <td class="label"><strong>TOTAL AMOUNT:</strong></td>
+        <tr style="background:#e8f5e8;">
+          <td class="label"><strong>Total Quote Amount:</strong></td>
           <td><strong>{{ number_format($subtotal * 1.16, 2) }} KES</strong></td>
+        </tr>
+        <tr style="background:#fff3cd;">
+          <td class="label"><strong>Net Profit After VAT:</strong></td>
+          <td class="profit-info"><strong>+{{ number_format($totalProfit, 2) }} KES ({{ $totalCost > 0 ? number_format(($totalProfit / $totalCost) * 100, 2) : '0.00' }}% margin)</strong></td>
         </tr>
       </table>
     </div>
 
-    <!-- Terms -->
-    <div class="terms">
-      <strong>TERMS AND CONDITIONS - Quotation is Valid for 15 Days</strong>
-      <!-- Payment, Obligations, Approval -->
-      <div class="terms">
-        <h4>PAYMENT TERMS</h4>
-        <ul>
-          <li>Deposit Payment: 70% deposit to commence works</li>
-          <li>Balance Payment: Provide PD cheque for 3 weeks upon complete delivery</li>
-          <li>Late Payment Penalty: 2% Monthly for Late Payments</li>
-          <li>Production begins after receipt of LPO and deposit</li>
-          <li>The total quote amount is inclusive of 16% VAT</li>
-        </ul>
-  
-        <h4>CLIENT OBLIGATIONS</h4>
-        <ul>
-          <li>Setup & Branding Time: Client must provide ample time for setup</li>
-          <li>Pre-Production Approvals: Client must approve pre-production on time</li>
-        </ul>
-  
-        <h4>APPROVAL & EXECUTION</h4>
-        <ul>
-          <li>Approval Required Before Work: Client must approve before work starts</li>
-          <li>Change Requests: Any changes will be billed separately</li>
-        </ul>
-      </div>
-
-    <!-- Signatures -->
-    <div class="signature-section">
-      <div class="signature-box">
-        Authorized By:<br><br>
-        ________________________<br>
-        Woodnork Green
-      </div>
-      <div class="signature-box">
-        Client Approval:<br><br>
-        ________________________<br>
-        @if(isset($project) && $project && $project->client)
-          {{ $project->client->FullName }}
-        @else
-          {{ $quote->customer_name }}
-        @endif
-      </div>
-    </div>
-
     <!-- Footer -->
     <div class="footer">
-        <div class="footer">
-            <p>Woodnork Green Ltd | Tel: +254 780 397 798 or Email: admin@woodnorkgreen.co.ke  or
-                Physical Address: Karen Village, Ngong Road, Nairobi, Kenya | Wesbsite: www.woodnorkgreen.co.ke</p>
-          <p>Document generated on {{ now()->format('M d, Y \a\t H:i') }}</p>
-          <p>&copy; {{ now()->year }} WOODNORKGREEN. All rights reserved.</p>
-        </div>
+      <p><strong>CONFIDENTIAL INTERNAL DOCUMENT</strong></p>
+      <p>Generated on {{ now()->format('M d, Y \a\t H:i') }} by {{ auth()->user()->name ?? 'System' }}</p>
+      <p>&copy; {{ now()->year }} WOODNORKGREEN. Internal Use Only.</p>
     </div>
   </div>
 </body>

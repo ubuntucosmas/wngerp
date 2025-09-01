@@ -593,6 +593,31 @@ class QuoteController extends Controller
             return $pdf->download('quote-project-' . $project->id . '-' . $quote->id . '.pdf');
         }
     }
+
+    public function downloadInternalQuote(Request $request, $projectOrEnquiryId, Quote $quote)
+    {
+        // Only allow internal users to download internal quotes
+        if (!auth()->user()->hasAnyRole(['super-admin', 'admin', 'pm', 'finance'])) {
+            abort(403, 'You do not have permission to download internal quote analysis.');
+        }
+
+        $project = null;
+        $enquiry = null;
+
+        if (str_contains($request->route()->getName(), 'enquiries.')) {
+            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+        } else {
+            $project = Project::findOrFail($projectOrEnquiryId);
+        }
+
+        if ($enquiry) {
+            $pdf = Pdf::loadView('projects.templates.quote-internal', compact('enquiry', 'quote'));
+            return $pdf->download('internal-quote-analysis-enquiry-' . $enquiry->id . '-' . $quote->id . '.pdf');
+        } else {
+            $pdf = Pdf::loadView('projects.templates.quote-internal', compact('project', 'quote'));
+            return $pdf->download('internal-quote-analysis-project-' . $project->id . '-' . $quote->id . '.pdf');
+        }
+    }
     
     public function printQuote(Request $request, $projectOrEnquiryId, Quote $quote)
     {
@@ -619,6 +644,31 @@ class QuoteController extends Controller
         } else {
             $pdf = Pdf::loadView('projects.templates.quote', compact('project', 'quote'));
             return $pdf->stream('quote-project-' . $project->id . '-' . $quote->id . '.pdf');
+        }
+    }
+
+    public function printInternalQuote(Request $request, $projectOrEnquiryId, Quote $quote)
+    {
+        // Only allow internal users to print internal quotes
+        if (!auth()->user()->hasAnyRole(['super-admin', 'admin', 'pm', 'finance'])) {
+            abort(403, 'You do not have permission to print internal quote analysis.');
+        }
+
+        $project = null;
+        $enquiry = null;
+
+        if (str_contains($request->route()->getName(), 'enquiries.')) {
+            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+        } else {
+            $project = Project::findOrFail($projectOrEnquiryId);
+        }
+
+        if ($enquiry) {
+            $pdf = Pdf::loadView('projects.templates.quote-internal', compact('enquiry', 'quote'));
+            return $pdf->stream('internal-quote-analysis-enquiry-' . $enquiry->id . '-' . $quote->id . '.pdf');
+        } else {
+            $pdf = Pdf::loadView('projects.templates.quote-internal', compact('project', 'quote'));
+            return $pdf->stream('internal-quote-analysis-project-' . $project->id . '-' . $quote->id . '.pdf');
         }
     }
 

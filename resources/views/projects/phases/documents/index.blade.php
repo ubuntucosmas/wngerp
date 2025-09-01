@@ -879,25 +879,104 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => {
             console.log('Response status:', response.status);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            console.log('Response headers:', response.headers);
+            
+            // Handle different response types
+            if (response.status === 413) {
+                throw new Error('File too large. Please check file size limits.');
             }
+            if (response.status === 422) {
+                return response.json().then(data => {
+                    throw new Error('Validation failed: ' + (data.message || 'Invalid file data'));
+                });
+            }
+            if (response.status === 500) {
+                return response.text().then(text => {
+                    console.error('Server error response:', text);
+                    throw new Error('Server error occurred. Please check server logs.');
+                });
+            }
+            if (!response.ok) {
+                return response.text().then(text => {
+                    console.error('Error response:', text);
+                    throw new Error(`HTTP error! status: ${response.status} - ${text.substring(0, 100)}`);
+                });
+            }
+            
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                return response.text().then(text => {
+                    console.error('Non-JSON response:', text);
+                    throw new Error('Server returned non-JSON response');
+                });
+            }
+            
             return response.json();
         })
         .then(data => {
             console.log('Upload response:', data);
             if (data.success) {
-                alert('Files uploaded successfully!');
-                location.reload();
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: data.message || 'Files uploaded successfully!',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    alert(data.message || 'Files uploaded successfully!');
+                    location.reload();
+                }
             } else {
-                alert('Upload failed: ' + (data.message || 'Unknown error'));
+                const errorMsg = data.message || 'Upload failed for unknown reason';
+                const errors = data.errors || [];
+                let fullMessage = errorMsg;
+                
+                if (errors.length > 0) {
+                    fullMessage += '\n\nDetailed errors:\n' + errors.join('\n');
+                }
+                
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'Upload Failed',
+                        text: fullMessage,
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                } else {
+                    alert(fullMessage);
+                }
+                
                 uploadBtn.disabled = false;
                 progressContainer.style.display = 'none';
             }
         })
         .catch(error => {
             console.error('Upload error:', error);
-            alert('Upload failed: ' + error.message);
+            
+            let errorMessage = 'Upload failed: ' + error.message;
+            
+            // Add troubleshooting hints
+            if (error.message.includes('413') || error.message.includes('too large')) {
+                errorMessage += '\n\nTroubleshooting:\n- Check file size (max 50MB per file)\n- Contact administrator if files are within limits';
+            } else if (error.message.includes('500') || error.message.includes('Server error')) {
+                errorMessage += '\n\nTroubleshooting:\n- Server configuration issue\n- Check server logs\n- Contact administrator';
+            } else if (error.message.includes('Network')) {
+                errorMessage += '\n\nTroubleshooting:\n- Check internet connection\n- Try again in a few moments';
+            }
+            
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Upload Error',
+                    text: errorMessage,
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            } else {
+                alert(errorMessage);
+            }
             uploadBtn.disabled = false;
             progressContainer.style.display = 'none';
         });

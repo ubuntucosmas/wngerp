@@ -411,6 +411,12 @@
 
 
     </script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <!-- Bootstrap Bundle JS (includes Popper) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
@@ -445,57 +451,135 @@
                 }
             });
 
+            let sessionWarningShown = false;
+            let sessionExpired = false;
+
+            // Function to handle session expiration
+            function handleSessionExpiration(message = 'Your session has expired. Please log in again.') {
+                if (sessionExpired) return; // Prevent multiple redirects
+                sessionExpired = true;
+                
+                // Show a more user-friendly notification
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'Session Expired',
+                        text: message,
+                        icon: 'warning',
+                        confirmButtonText: 'Login Again',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false
+                    }).then(() => {
+                        window.location.href = '{{ route("login") }}';
+                    });
+                } else {
+                    alert(message);
+                    window.location.href = '{{ route("login") }}';
+                }
+            }
+
             // Global AJAX error handler for session expiration
             $(document).ajaxError(function(event, xhr, settings) {
                 if (xhr.status === 401) {
-                    // Session expired
                     let response = xhr.responseJSON;
                     let message = response && response.message ? response.message : 'Your session has expired. Please log in again.';
-                    
-                    // Show alert
-                    alert(message);
-                    
-                    // Redirect to login
-                    let loginUrl = response && response.redirect ? response.redirect : '{{ route("login") }}';
-                    window.location.href = loginUrl;
+                    handleSessionExpiration(message);
                 }
             });
 
-            // Check session status periodically (every 5 minutes)
+            // Check session status periodically (every 2 minutes)
             setInterval(function() {
+                if (sessionExpired) return; // Don't check if already expired
+                
                 $.ajax({
                     url: '{{ route("session.check") }}',
                     type: 'GET',
+                    timeout: 10000, // 10 second timeout
                     success: function(response) {
                         if (!response.authenticated) {
-                            alert('Your session has expired. Please log in again.');
-                            window.location.href = '{{ route("login") }}';
+                            handleSessionExpiration();
                         }
                     },
                     error: function(xhr) {
                         if (xhr.status === 401) {
-                            alert('Your session has expired. Please log in again.');
-                            window.location.href = '{{ route("login") }}';
+                            handleSessionExpiration();
                         }
+                        // Ignore other errors (network issues, etc.)
                     }
                 });
-            }, 300000); // 5 minutes = 300000 milliseconds
+            }, 120000); // 2 minutes = 120000 milliseconds
 
-            // Warn user before session expires (1 minute before)
-            @if(config('session.lifetime') > 1)
+            // Warn user before session expires (2 minutes before expiration)
+            @if(config('session.lifetime') > 2)
             setTimeout(function() {
-                if (confirm('Your session will expire in 1 minute. Click OK to extend your session.')) {
-                    // Make a simple request to extend session
+                if (sessionExpired || sessionWarningShown) return;
+                sessionWarningShown = true;
+                
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'Session Expiring Soon',
+                        text: 'Your session will expire in 2 minutes. Would you like to extend it?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Extend Session',
+                        cancelButtonText: 'Let it expire'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: '{{ route("session.extend") }}',
+                                type: 'POST',
+                                success: function() {
+                                    Swal.fire('Success', 'Your session has been extended', 'success');
+                                    sessionWarningShown = false; // Allow future warnings
+                                },
+                                error: function() {
+                                    Swal.fire('Error', 'Failed to extend session', 'error');
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    if (confirm('Your session will expire in 2 minutes. Click OK to extend your session.')) {
+                        $.ajax({
+                            url: '{{ route("session.extend") }}',
+                            type: 'POST',
+                            success: function() {
+                                alert('Session extended successfully');
+                                sessionWarningShown = false; // Allow future warnings
+                            },
+                            error: function() {
+                                alert('Failed to extend session');
+                            }
+                        });
+                    }
+                }
+            }, {{ (config('session.lifetime') - 2) * 60000 }}); // Convert minutes to milliseconds, minus 2 minutes
+            @endif
+
+            // Handle browser tab visibility changes
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden && !sessionExpired) {
+                    // Tab became visible, check session status
                     $.ajax({
-                        url: '{{ route("session.extend") }}',
-                        type: 'POST',
-                        success: function() {
-                            console.log('Session extended');
+                        url: '{{ route("session.check") }}',
+                        type: 'GET',
+                        success: function(response) {
+                            if (!response.authenticated) {
+                                handleSessionExpiration('Your session expired while you were away. Please log in again.');
+                            }
+                        },
+                        error: function(xhr) {
+                            if (xhr.status === 401) {
+                                handleSessionExpiration('Your session expired while you were away. Please log in again.');
+                            }
                         }
                     });
                 }
-            }, {{ (config('session.lifetime') - 1) * 60000 }}); // Convert minutes to milliseconds, minus 1 minute
-            @endif
+            });
+
+            // Handle page unload/reload to prevent session checks
+            window.addEventListener('beforeunload', function() {
+                sessionExpired = true; // Prevent session checks during page transition
+            });
         });
     </script>
 </body>

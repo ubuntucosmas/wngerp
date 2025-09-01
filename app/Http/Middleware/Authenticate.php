@@ -26,11 +26,12 @@ class Authenticate extends Middleware
      */
     protected function unauthenticated($request, array $guards)
     {
-        if ($request->expectsJson()) {
+        if ($request->expectsJson() || $request->ajax()) {
             // For AJAX requests, return JSON response
             return response()->json([
                 'message' => 'Your session has expired. Please log in again.',
-                'redirect' => route('login')
+                'redirect' => route('login'),
+                'authenticated' => false
             ], 401);
         }
 

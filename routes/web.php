@@ -33,6 +33,56 @@ Route::middleware(['auth'])->group(function () {
         session()->regenerate();
         return response()->json(['success' => true, 'message' => 'Session extended']);
     })->name('session.extend');
+
+    // Test page for session expiration (remove in production)
+    Route::get('/test-session', function () {
+        return view('test-session');
+    })->name('test.session');
+
+    // Test upload functionality (remove in production)
+    Route::get('/test-upload', function () {
+        return view('test-upload');
+    })->name('test.upload');
+    
+    Route::post('/test-upload', function (Request $request) {
+        try {
+            $request->validate([
+                'test_file' => 'required|file|max:51200', // 50MB
+            ]);
+
+            $file = $request->file('test_file');
+            $directory = 'test-uploads';
+            $filename = time() . '_' . $file->getClientOriginalName();
+            
+            // Test storage
+            $stored = $file->storeAs($directory, $filename, 'public');
+            
+            if ($stored) {
+                $fileSize = Storage::disk('public')->size($stored);
+                $exists = Storage::disk('public')->exists($stored);
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Test upload successful',
+                    'details' => [
+                        'original_name' => $file->getClientOriginalName(),
+                        'stored_path' => $stored,
+                        'file_size' => $fileSize,
+                        'exists' => $exists,
+                        'mime_type' => $file->getMimeType(),
+                    ]
+                ]);
+            } else {
+                throw new Exception('Storage operation failed');
+            }
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
+        }
+    })->name('test.upload.store');
 }); 
 
 // Admin Routes

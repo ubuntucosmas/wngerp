@@ -63,9 +63,38 @@ class PhaseDocumentController extends Controller
 
         foreach ($request->file('files') as $file) {
             try {
+                // Enhanced logging for debugging
+                \Log::info('Processing file upload', [
+                    'original_name' => $file->getClientOriginalName(),
+                    'size' => $file->getSize(),
+                    'mime_type' => $file->getMimeType(),
+                    'extension' => $file->getClientOriginalExtension(),
+                    'project_id' => $project->id,
+                    'phase_id' => $phase->id,
+                    'user_id' => auth()->id(),
+                ]);
+
                 // Validate file type
                 if (!$this->isAllowedFileType($file)) {
-                    $errors[] = "File '{$file->getClientOriginalName()}' has an unsupported file type.";
+                    $error = "File '{$file->getClientOriginalName()}' has an unsupported file type.";
+                    $errors[] = $error;
+                    \Log::warning('File type validation failed', [
+                        'file' => $file->getClientOriginalName(),
+                        'extension' => $file->getClientOriginalExtension(),
+                        'mime_type' => $file->getMimeType(),
+                    ]);
+                    continue;
+                }
+
+                // Check file size (50MB limit)
+                if ($file->getSize() > 52428800) {
+                    $error = "File '{$file->getClientOriginalName()}' exceeds the 50MB size limit.";
+                    $errors[] = $error;
+                    \Log::warning('File size validation failed', [
+                        'file' => $file->getClientOriginalName(),
+                        'size' => $file->getSize(),
+                        'limit' => 52428800,
+                    ]);
                     continue;
                 }
 
@@ -78,8 +107,30 @@ class PhaseDocumentController extends Controller
                 $directory = "phase-documents/{$project->id}/{$phase->id}";
                 $filePath = $directory . '/' . $storedName;
 
+                // Ensure directory exists
+                if (!Storage::disk('public')->exists($directory)) {
+                    Storage::disk('public')->makeDirectory($directory);
+                    \Log::info('Created directory', ['directory' => $directory]);
+                }
+
                 // Store the file
-                $file->storeAs($directory, $storedName, 'public');
+                $stored = $file->storeAs($directory, $storedName, 'public');
+                
+                if (!$stored) {
+                    throw new \Exception('Failed to store file to disk');
+                }
+
+                // Verify file was actually stored
+                if (!Storage::disk('public')->exists($filePath)) {
+                    throw new \Exception('File was not found after storage operation');
+                }
+
+                \Log::info('File stored successfully', [
+                    'original_name' => $originalName,
+                    'stored_name' => $storedName,
+                    'file_path' => $filePath,
+                    'stored_size' => Storage::disk('public')->size($filePath),
+                ]);
 
                 // Create database record
                 $document = PhaseDocument::create([
@@ -99,8 +150,23 @@ class PhaseDocumentController extends Controller
 
                 $uploadedFiles[] = $document;
 
+                \Log::info('Document record created', [
+                    'document_id' => $document->id,
+                    'original_name' => $originalName,
+                ]);
+
             } catch (\Exception $e) {
-                $errors[] = "Failed to upload '{$file->getClientOriginalName()}': " . $e->getMessage();
+                $error = "Failed to upload '{$file->getClientOriginalName()}': " . $e->getMessage();
+                $errors[] = $error;
+                
+                \Log::error('File upload failed', [
+                    'file' => $file->getClientOriginalName(),
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'project_id' => $project->id,
+                    'phase_id' => $phase->id,
+                    'user_id' => auth()->id(),
+                ]);
             }
         }
 

@@ -201,16 +201,16 @@
                                             <div class="card-body">
                                                 <div class="d-flex justify-content-between">
                                                     <strong>Subtotal:</strong>
-                                                    <span id="quoteSubtotal">${{ number_format($hybridData['suggested_total_price'], 2) }}</span>
+                                                    <span id="quoteSubtotal">KES{{ number_format($hybridData['suggested_total_price'], 2) }}</span>
                                                 </div>
                                                 <div class="d-flex justify-content-between">
                                                     <strong>VAT (16%):</strong>
-                                                    <span id="quoteVat">${{ number_format($hybridData['suggested_total_price'] * 0.16, 2) }}</span>
+                                                    <span id="quoteVat">KES{{ number_format($hybridData['suggested_total_price'] * 0.16, 2) }}</span>
                                                 </div>
                                                 <hr>
                                                 <div class="d-flex justify-content-between">
                                                     <strong>Total:</strong>
-                                                    <strong id="quoteTotal">${{ number_format($hybridData['suggested_total_price'] * 1.16, 2) }}</strong>
+                                                    <strong id="quoteTotal">KES{{ number_format($hybridData['suggested_total_price'] * 1.16, 2) }}</strong>
                                                 </div>
                                             </div>
                                         </div>

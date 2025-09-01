@@ -271,9 +271,9 @@ function calculateQuoteTotals() {
     const vat = subtotal * 0.16;
     const total = subtotal + vat;
     
-    document.getElementById('quoteSubtotal').textContent = '$' + subtotal.toFixed(2);
-    document.getElementById('quoteVat').textContent = '$' + vat.toFixed(2);
-    document.getElementById('quoteTotal').textContent = '$' + total.toFixed(2);
+    document.getElementById('quoteSubtotal').textContent = 'KES-' + subtotal.toFixed(2);
+    document.getElementById('quoteVat').textContent = 'KES-' + vat.toFixed(2);
+    document.getElementById('quoteTotal').textContent = 'KES-' + total.toFixed(2);
 }
 
 function addCustomItem() {

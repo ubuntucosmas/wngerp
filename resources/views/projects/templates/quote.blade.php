@@ -2,345 +2,488 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Quote - {{ isset($project) ? $project->name : ($enquiry ? $enquiry->project_name : 'Quote') }}</title>
+  <title>Quote - {{ $project->name ?? $enquiry->project_name ?? 'Quote' }}</title>
   <style>
+    :root {
+      --bs-primary: #0d6efd;
+      --bs-success: #198754;
+      --bs-info: #0dcaf0;
+      --bs-warning: #ffc107;
+      --bs-danger: #dc3545;
+      --bs-light: #f8f9fa;
+      --bs-secondary: #6c757d;
+      --bs-dark: #212529;
+      --bs-border-color: #dee2e6;
+      --bs-table-hover: rgba(13, 110, 253, 0.05);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       font-size: 11px;
-      color: #0c2d48;
-      margin: 10mm;
+      color: var(--bs-dark);
+      margin: 8mm;
+      background: white;
+      line-height: 1.4;
     }
 
     .container {
       max-width: 100%;
-      margin: auto;
+      margin: 0 auto;
+      background: white;
     }
+
+    /* Header */
+    .header-section {
+      display: grid;
+      grid-template-columns: 120px 1fr 120px;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--bs-primary);
+    }
+
     .logo img {
-        text-align: center;
-        margin-bottom: 10px;
-        height: 60px;
+      height: 50px;
+      width: auto;
     }
 
-    .company-header {
+    .company-info {
       text-align: center;
-      margin-bottom: 8px;
     }
 
-    .company-header h1 {
+    .company-info h1 {
       font-size: 16px;
-      margin: 0;
-      color: #145da0;
+      color: var(--bs-primary);
+      font-weight: 700;
+      margin-bottom: 3px;
     }
 
-    .company-header p {
+    .company-info p {
+      font-size: 9px;
+      color: var(--bs-secondary);
       margin: 1px 0;
-      font-size: 10px;
     }
 
-    hr {
-      border: none;
-      border-top: 1px solid #b1d4e0;
-      margin: 10px 0;
-    }
-
-    .section-title {
-      font-weight: bold;
-      background: #b1d4e0;
-      padding: 4px 6px;
-      color: #0c2d48;
-      font-size: 10px;
-      margin-bottom: 2px;
-    }
-
-    .section {
-      margin-bottom: 6px;
-    }
-
-    .two-col {
-      display: flex;
-      justify-content: space-between;
-      flex-wrap: wrap;
-    }
-
-    .two-col div {
-      width: 48%;
-      margin-bottom: 2px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 6px;
-      font-size: 10px;
-    }
-
-    th, td {
-      border: 1px solid #ccc;
-      padding: 4px 5px;
-      text-align: left;
-    }
-
-    th {
-      background: #eaf3fa;
-      font-weight: bold;
-    }
-
-    .totals td {
-      border: none;
-      padding: 3px 5px;
-    }
-
-    .totals td.label {
+    .quote-badge {
       text-align: right;
       font-weight: bold;
-      width: 85%;
+      color: var(--bs-primary);
+      font-size: 12px;
     }
 
-    .terms {
-      font-size: 9px;
-      line-height: 1.3;
-      margin-top: 10px;
+    /* Info Grid */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 15px;
     }
 
-    .terms ol {
-      margin: 4px 0 0 15px;
+    .info-section {
+      border: 1px solid var(--bs-border-color);
+      border-radius: 4px;
     }
 
-    .signature-section {
+    .info-header {
+      background: var(--bs-light);
+      padding: 6px 10px;
+      font-weight: 600;
+      font-size: 10px;
+      text-transform: uppercase;
+      color: var(--bs-primary);
+      border-bottom: 1px solid var(--bs-border-color);
+    }
+
+    .info-content {
+      padding: 8px 10px;
+    }
+
+    .info-row {
       display: flex;
       justify-content: space-between;
-      margin-top: 12px;
+      margin-bottom: 4px;
+      font-size: 10px;
     }
 
-    .signature-box {
-      width: 48%;
-      border-top: 1px solid #ccc;
-      padding-top: 3px;
+    .info-label {
+      font-weight: 600;
+      color: var(--bs-secondary);
+      min-width: 60px;
+    }
+
+    .info-value {
+      color: var(--bs-dark);
+      text-align: right;
+    }
+
+    /* Items Table */
+    .items-section {
+      margin-bottom: 15px;
+    }
+
+    .section-header {
+    background: #0dcaf0;
+      color: white;
+      padding: 8px 12px;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      margin-bottom: 0;
+    }
+
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10px;
+      border: 1px solid var(--bs-border-color);
+    }
+
+    .items-table th,
+    .items-table td {
+      border: 1px solid var(--bs-border-color);
+      padding: 6px;
+    }
+
+    .items-table th {
+      background: var(--bs-light);
+      font-weight: 600;
       font-size: 9px;
-      text-align: left;
+      text-transform: uppercase;
     }
 
+    .items-table td {
+      vertical-align: top;
+    }
+
+    .items-table tbody tr:nth-child(even) {
+      background: var(--bs-light);
+    }
+
+    .items-table tbody tr:hover {
+      background: var(--bs-table-hover);
+    }
+
+    .text-center { text-align: center; }
+    .text-right { text-align: right; }
+    .font-mono { font-family: 'Courier New', monospace; }
+
+    /* Summary */
+    .summary-section {
+      margin-top: 15px;
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 20px;
+    }
+
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    .summary-table td {
+      padding: 6px 12px;
+      border-bottom: 1px solid var(--bs-border-color);
+    }
+
+    .summary-label {
+      text-align: right;
+      font-weight: 600;
+      color: var(--bs-secondary);
+      width: 70%;
+    }
+
+    .summary-value {
+      text-align: right;
+      font-family: 'Courier New', monospace;
+      font-weight: 600;
+      color: var(--bs-success);
+    }
+
+    .total-row {
+      background: var(--bs-success);
+      color: white;
+    }
+
+    .total-row td {
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    /* Terms */
+    .terms-section {
+      font-size: 9px;
+      line-height: 1.3;
+      color: var(--bs-secondary);
+      margin-top: 15px;
+      padding: 10px;
+      background: var(--bs-light);
+      border-left: 3px solid var(--bs-primary);
+    }
+
+    .terms-title {
+      font-weight: 600;
+      color: var(--bs-primary);
+      margin-bottom: 5px;
+      font-size: 10px;
+    }
+
+    .terms-flex {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .terms-left {
+      flex: 2;
+    }
+
+    .terms-right {
+      flex: 1;
+    }
+
+    .terms-left h5 {
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--bs-primary);
+      margin: 10px 0 3px;
+    }
+
+    .terms-left ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .terms-left li {
+      margin-bottom: 2px;
+      padding-left: 8px;
+      position: relative;
+    }
+
+    .terms-left li:before {
+      content: "•";
+      color: var(--bs-primary);
+      position: absolute;
+      left: 0;
+    }
+
+    .banking-info {
+      background: #f0f8ff;
+      padding: 8px;
+      border-radius: 4px;
+      border-left: 3px solid #0066cc;
+    }
+
+    .banking-info h6 {
+      font-size: 9px;
+      font-weight: 600;
+      color: #0066cc;
+      margin-bottom: 4px;
+    }
+
+    .banking-info .bank-detail {
+      font-size: 8px;
+      margin-bottom: 1px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .highlight-red {
+      color: #dc3545;
+      font-weight: 600;
+    }
+
+    /* Footer */
     .footer {
       text-align: center;
       font-size: 8px;
-      margin-top: 10px;
-      color: #777;
+      color: var(--bs-secondary);
+      margin-top: 20px;
+      padding-top: 10px;
+      border-top: 1px solid var(--bs-border-color);
     }
 
-    .item-group {
-      margin-bottom: 8px;
-    }
-
-    .item-group-title {
-      background: #f8f9fa;
-      padding: 3px 5px;
-      font-weight: bold;
-      font-size: 10px;
-      border: 1px solid #ccc;
-      border-bottom: none;
-    }
-
-    .template-badge {
-      background: #17a2b8;
-      color: white;
-      padding: 1px 4px;
-      font-size: 8px;
-      border-radius: 2px;
-      margin-left: 4px;
+    /* Print */
+    @media print {
+      body { margin: 5mm; font-size: 10px; }
+      .items-table tbody tr:hover { background: transparent; }
     }
   </style>
 </head>
 <body>
   <div class="container">
     <!-- Header -->
-    <div class="company-header">
-    <div class="logo">
+    <div class="header-section">
+      <div class="logo">
         <img src="{{ public_path('images/wng-logo.png') }}" alt="Company Logo">
-    </div>
-      <h1>WOODNORKGREEN</h1>
-      <p>Karen Village Art Centre, Ngong Rd Nairobi</p>
-      <p>www.woodnorkgreen.co.ke | admin@woodnorkgreen.co.ke | +254780 397798</p>
-    </div>
-
-    <!-- Quote Info -->
-    <hr>
-    <div class="section">
-      <div class="section-title">QUOTE INFORMATION</div>
-      <div class="two-col">
-        <div><strong>Date:</strong> {{ $quote->quote_date ? $quote->quote_date->format('Y-m-d') : 'N/A' }}</div>
-        <div><strong>Quote #:</strong> Q-{{ str_pad($quote->id, 4, '0', STR_PAD_LEFT) }}</div>
-        <div><strong>Ref:</strong> {{ $quote->reference }}</div>
-        <div><strong>Start:</strong> {{ $quote->project_start_date ? $quote->project_start_date->format('Y-m-d') : 'N/A' }}</div>
+      </div>
+      <div class="company-info">
+        <h1>WOODNORKGREEN</h1>
+        <p>Karen Village Art Centre, Ngong Rd Nairobi</p>
+        <p>www.woodnorkgreen.co.ke | admin@woodnorkgreen.co.ke | +254780 397798</p>
+      </div>
+      <div class="quote-badge">
+        QUOTE
       </div>
     </div>
 
-    <!-- Client & Project Info (Redesigned) -->
-    <div class="section">
-      <div class="section-title">CLIENT & PROJECT INFORMATION</div>
-      <table style="width:100%; background:#f8f9fa; border-radius:6px; margin-bottom:8px;">
-        <tr>
-          <td style="width:50%; vertical-align:top; padding:8px 12px;">
-            <div style="font-weight:bold; color:#198754; font-size:12px;">Customer</div>
-            <div style="font-size:11px; font-weight:bold;">{{ $quote->customer_name }}</div>
-            @if($quote->customer_location)
-              <div style="color:#555; font-size:10px; margin-bottom:2px;">Location: {{ $quote->customer_location }}</div>
-            @endif
-            @if(isset($project) && $project)
-              <div style="color:#888; font-size:10px;">Project ID: {{ $project->project_id }}</div>
-              <div style="color:#888; font-size:10px;">Project Name: {{ $project->name }}</div>
-            @elseif(isset($enquiry) && $enquiry)
-              <div style="color:#888; font-size:10px;">Enquiry ID: {{ $enquiry->id }}</div>
-              <div style="color:#888; font-size:10px;">Enquiry Name: {{ $enquiry->project_name }}</div>
-            @endif
-          </td>
-          <td style="width:50%; vertical-align:top; padding:8px 12px;">
-            @if($quote->attention)
-              <div style="font-size:10px;"><strong>Attn:</strong> {{ $quote->attention }}</div>
-            @endif
-            @if($quote->reference)
-              <div style="font-size:10px;"><strong>Ref:</strong> {{ $quote->reference }}</div>
-            @endif
-            @if($quote->project_start_date)
-              <div style="font-size:10px;"><strong>Project Start:</strong> {{ $quote->project_start_date ? $quote->project_start_date->format('M d, Y') : 'N/A' }}</div>
-            @endif
-          </td>
-        </tr>
-      </table>
+    <!-- Info -->
+    <div class="info-grid">
+      <div class="info-section">
+        <div class="info-header">Quote Details</div>
+        <div class="info-content">
+          <div class="info-row">
+            <span class="info-label">Date:</span>
+            <span class="info-value">{{ $quote->quote_date?->format('M d, Y') ?? 'N/A' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Valid Until:</span>
+            <span class="info-value">{{ $quote->quote_date?->addDays(15)->format('M d, Y') ?? 'N/A' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <div class="info-header">Client Information</div>
+        <div class="info-content">
+          <div class="info-row">
+            <span class="info-label">Client:</span>
+            <span class="info-value bold">{{ $quote->customer_name }}</span>
+          </div>
+          @if($quote->customer_location)
+          <div class="info-row">
+            <span class="info-label">Location:</span>
+            <span class="info-value">{{ $quote->customer_location }}</span>
+          </div>
+          @endif
+          @if($quote->attention)
+          <div class="info-row">
+            <span class="info-label">Attention:</span>
+            <span class="info-value">{{ $quote->attention }}</span>
+          </div>
+          @endif
+          @if(isset($project) && $project)
+          <div class="info-row">
+            <span class="info-label">Project:</span>
+            <span class="info-value">{{ $project->name }}</span>
+          </div>
+          @elseif(isset($enquiry) && $enquiry)
+          <div class="info-row">
+            <span class="info-label">Enquiry:</span>
+            <span class="info-value">{{ $enquiry->project_name }}</span>
+          </div>
+          @endif
+        </div>
+      </div>
     </div>
 
-    <!-- Quote Items -->
-    <div class="section">
-      <div class="section-title">QUOTE ITEMS</div>
+    <!-- Items -->
+    <div class="items-section">
+      <div class="section-header">Quote Items</div>
       @php 
         $subtotal = 0; 
-        
-        // Group items by item name (for production items) or description (for other items)
-        $groupedItems = $quote->lineItems->groupBy(function($item) {
-            if (str_contains($item->comment ?? '', 'Item Name:')) {
-                return str_replace('Item Name: ', '', explode(' | ', $item->comment)[0]);
-            }
-            return $item->description;
-        });
+        $itemNumber = 1;
       @endphp
-      
-      @foreach($groupedItems as $itemName => $items)
-        @php
-          $itemTotalQuotePrice = $items->sum('quote_price');
-          $subtotal += $itemTotalQuotePrice;
-        @endphp
-        
-        <div class="item-group">
-          <div class="item-group-title">
-            {{ $loop->iteration }}. {{ $itemName }}
-            @if($items->count() > 1)
-              <span style="font-size:8px; color:#6c757d;">({{ $items->count() }} components)</span>
-            @endif
-          </div>
-          
-          <table>
-            <thead>
-              <tr>
-                <th style="width: 50%;">Description</th>
-                <th style="width: 15%;">Quantity</th>
-                <th style="width: 20%;">Unit Price (KES)</th>
-                <th style="width: 15%;">Total (KES)</th>
-              </tr>
-            </thead>
-            <tbody>
-              @foreach($items as $item)
-                <tr>
-                  <td>{{ $item->description }}</td>
-                  <td style="text-align: center;">{{ number_format($item->quantity, 0) }}</td>
-                  <td style="text-align: right;">{{ number_format($item->quote_price / $item->quantity, 2) }}</td>
-                  <td style="text-align: right;"><strong>{{ number_format($item->quote_price, 2) }}</strong></td>
-                </tr>
-              @endforeach
-            </tbody>
-            @if($items->count() > 1)
-            <tfoot>
-              <tr style="background:#f8f9fa;">
-                <td colspan="3"><strong>Subtotal for {{ $itemName }}:</strong></td>
-                <td style="text-align: right;"><strong>{{ number_format($itemTotalQuotePrice, 2) }}</strong></td>
-              </tr>
-            </tfoot>
-            @endif
-          </table>
-        </div>
-      @endforeach
-    </div>
-
-    <!-- Price Summary -->
-    <div class="section">
-      <div class="section-title">PRICE SUMMARY</div>
-      <table class="totals" style="width: 100%;">
-        <tr>
-          <td class="label">Subtotal:</td>
-          <td><strong>{{ number_format($subtotal, 2) }} KES</strong></td>
-        </tr>
-        <tr>
-          <td class="label">VAT (16%):</td>
-          <td>{{ number_format($subtotal * 0.16, 2) }} KES</td>
-        </tr>
-        <tr style="background:#e8f5e8; font-size: 12px;">
-          <td class="label"><strong>TOTAL AMOUNT:</strong></td>
-          <td><strong>{{ number_format($subtotal * 1.16, 2) }} KES</strong></td>
-        </tr>
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th style="width: 5%;">#</th>
+            <th style="width: 50%;">Description</th>
+            <th style="width: 10%;">Qty</th>
+            <th style="width: 15%;">Unit Price</th>
+            <th style="width: 15%;">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach($quote->lineItems as $item)
+            @php $subtotal += $item->quote_price; @endphp
+            <tr>
+              <td class="text-center">{{ $itemNumber++ }}</td>
+              <td>{{ $item->description }}</td>
+              <td class="text-center">{{ number_format($item->quantity, 0) }}</td>
+              <td class="text-right font-mono">{{ number_format($item->quote_price / $item->quantity, 2) }}</td>
+              <td class="text-right font-mono bold">{{ number_format($item->quote_price, 2) }}</td>
+            </tr>
+          @endforeach
+        </tbody>
       </table>
     </div>
 
-    <!-- Terms -->
-    <div class="terms">
-      <strong>TERMS AND CONDITIONS - Quotation is Valid for 15 Days</strong>
-      <!-- Payment, Obligations, Approval -->
-      <div class="terms">
-        <h4>PAYMENT TERMS</h4>
-        <ul>
-          <li>Deposit Payment: 70% deposit to commence works</li>
-          <li>Balance Payment: Provide PD cheque for 3 weeks upon complete delivery</li>
-          <li>Late Payment Penalty: 2% Monthly for Late Payments</li>
-          <li>Production begins after receipt of LPO and deposit</li>
-          <li>The total quote amount is inclusive of 16% VAT</li>
-        </ul>
-  
-        <h4>CLIENT OBLIGATIONS</h4>
-        <ul>
-          <li>Setup & Branding Time: Client must provide ample time for setup</li>
-          <li>Pre-Production Approvals: Client must approve pre-production on time</li>
-        </ul>
-  
-        <h4>APPROVAL & EXECUTION</h4>
-        <ul>
-          <li>Approval Required Before Work: Client must approve before work starts</li>
-          <li>Change Requests: Any changes will be billed separately</li>
-        </ul>
+    <!-- Summary -->
+    <div class="summary-section">
+      <div></div>
+      <div>
+        <table class="summary-table">
+          <tr>
+            <td class="summary-label">Subtotal:</td>
+            <td class="summary-value">KES {{ number_format($subtotal, 2) }}</td>
+          </tr>
+          <tr>
+            <td class="summary-label">VAT (16%):</td>
+            <td class="summary-value">KES {{ number_format($subtotal * 0.16, 2) }}</td>
+          </tr>
+          <tr class="total-row">
+            <td class="summary-label">Total Amount:</td>
+            <td class="summary-value">KES {{ number_format($subtotal * 1.16, 2) }}</td>
+          </tr>
+        </table>
       </div>
+    </div>
 
-    <!-- Signatures -->
-    <div class="signature-section">
-      <div class="signature-box">
-        Authorized By:<br><br>
-        ________________________<br>
-        Woodnork Green
-      </div>
-      <div class="signature-box">
-        Client Approval:<br><br>
-        ________________________<br>
-        @if(isset($project) && $project && $project->client)
-          {{ $project->client->FullName }}
-        @else
-          {{ $quote->customer_name }}
-        @endif
+    <!-- Terms + Banking -->
+    <div class="terms-section">
+      <div class="terms-title">Terms & Conditions - Quote Valid for 15 Days</div>
+      <div class="terms-flex">
+        <div class="terms-left">
+          <h5>Payment Terms</h5>
+          <ul>
+            <li>Deposit Payment: Within agreed timelines (per email)</li>
+            <li>Balance Payment: Upon complete delivery</li>
+            <li>Late Payment Penalty: 2% Monthly for late payments</li>
+            <li>Production begins after receipt of LPO and payment of 70% deposit</li>
+            <li>Total Quote amount is inclusive of 16% VAT</li>
+          </ul>
+          <h5>Client Obligations</h5>
+          <ul>
+            <li>Provide ample time for setup & branding</li>
+            <li>Approve pre-production on time</li>
+          </ul>
+          <h5>Approval & Execution</h5>
+          <ul>
+            <li>Approval required before work starts</li>
+            <li>Change requests will be billed separately</li>
+          </ul>
+        </div>
+        <div class="terms-right">
+          <h5>Banking Information</h5>
+          <div class="banking-info">
+            <h6>Cheques payable to: Woodnork Green Limited</h6>
+            <div class="bank-detail"><strong>Account Name:</strong> Woodnork Green Ltd</div>
+            <div class="bank-detail"><strong>Bank Name:</strong> <span class="highlight-red">NCBA Bank</span></div>
+            <div class="bank-detail"><strong>Bank Code:</strong> 07000</div>
+            <div class="bank-detail"><strong>Branch:</strong> Kenyatta Avenue</div>
+            <div class="bank-detail"><strong>Branch Code:</strong> 125</div>
+            <div class="bank-detail"><strong>Account Number:</strong> <span class="highlight-red">1002970089</span></div>
+            <div class="bank-detail"><strong>SWIFT Code:</strong> CBAFKENX</div>
+            <div class="bank-detail"><strong>Paybill:</strong> <span class="highlight-red">880100</span></div>
+            <div class="bank-detail"><strong>A/C:</strong> <span class="highlight-red">1002970089</span></div>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Footer -->
     <div class="footer">
-        <div class="footer">
-            <p>Woodnork Green Ltd | Tel: +254 780 397 798 or Email: admin@woodnorkgreen.co.ke  or
-                Physical Address: Karen Village, Ngong Road, Nairobi, Kenya | Wesbsite: www.woodnorkgreen.co.ke</p>
-          <p>Document generated on {{ now()->format('M d, Y \a\t H:i') }}</p>
-          <p>&copy; {{ now()->year }} WOODNORKGREEN. All rights reserved.</p>
-        </div>
+      <p><strong>Woodnork Green Ltd</strong> | Tel: +254 780 397 798 | Email: admin@woodnorkgreen.co.ke</p>
+      <p>Karen Village, Ngong Road, Nairobi, Kenya | www.woodnorkgreen.co.ke</p>
+      <p>Generated: {{ now()->format('M d, Y \a\t H:i') }} | &copy; {{ now()->year }} All rights reserved</p>
     </div>
   </div>
 </body>

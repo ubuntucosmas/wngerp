@@ -360,21 +360,10 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
         Route::get('budgets/{budget}/download', [ProjectBudgetController::class, 'download'])->name('enquiries.budget.download');
         Route::get('budgets/{budget}/print', [ProjectBudgetController::class, 'print'])->name('enquiries.budget.print');
         Route::post('budgets/{budget}/approve', [ProjectBudgetController::class, 'approve'])->name('enquiries.budget.approve');
-    });
-
-    // Enquiry Budgets
-    Route::prefix('enquiries/{enquiry}')->group(function () {
-        Route::get('budgets', [ProjectBudgetController::class, 'index'])->name('enquiries.budget.index');
-        Route::get('budgets/create', [ProjectBudgetController::class, 'create'])->name('enquiries.budget.create');
-        Route::post('budgets', [ProjectBudgetController::class, 'store'])->name('enquiries.budget.store');
-        Route::get('budgets/{budget}', [ProjectBudgetController::class, 'show'])->name('enquiries.budget.show');
-        Route::get('budgets/{budget}/edit', [ProjectBudgetController::class, 'edit'])->name('enquiries.budget.edit');
-        Route::put('budgets/{budget}', [ProjectBudgetController::class, 'update'])->name('enquiries.budget.update');
-        Route::delete('budgets/{budget}', [ProjectBudgetController::class, 'destroy'])->name('enquiries.budget.destroy');
-        Route::get('budgets/{budget}/export', [ProjectBudgetController::class, 'export'])->name('enquiries.budget.export');
-        Route::get('budgets/{budget}/download', [ProjectBudgetController::class, 'download'])->name('enquiries.budget.download');
-        Route::get('budgets/{budget}/print', [ProjectBudgetController::class, 'print'])->name('enquiries.budget.print');
-        Route::post('budgets/{budget}/approve', [ProjectBudgetController::class, 'approve'])->name('enquiries.budget.approve');
+        
+        // Excel Import Routes for Enquiry Budgets
+        Route::get('budgets/create-from-excel', [ProjectBudgetController::class, 'createFromExcel'])->name('enquiries.budget.create-from-excel');
+        Route::post('budgets/import-excel', [ProjectBudgetController::class, 'importFromExcel'])->name('enquiries.budget.import-excel');
     });
 
     
@@ -458,7 +447,7 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
     Route::resource('clients', ClientController::class);
     });
 
-    Route::prefix('projects/{project}')->middleware(['role:pm|po|super-admin'])->group(function () {
+    Route::prefix('projects/{project}')->middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
         // Site Survey Routes
         Route::get('site-survey', [SiteSurveyController::class, 'create'])->name('projects.site-survey.create');
         Route::post('site-survey', [SiteSurveyController::class, 'store'])->name('projects.site-survey.store');
@@ -628,17 +617,37 @@ Route::middleware(['auth', 'role:pm|po|super-admin'])->group(function () {
         Route::get('budgets/{budget}/print', [ProjectBudgetController::class, 'print'])->name('budget.print');
         Route::post('budgets/{budget}/approve', [ProjectBudgetController::class, 'approve'])->name('budget.approve');
         
+        // Excel Import Routes for Project Budgets
+        Route::get('budgets/create-from-excel', [ProjectBudgetController::class, 'createFromExcel'])->name('budget.create-from-excel');
+        Route::post('budgets/import-excel', [ProjectBudgetController::class, 'importFromExcel'])->name('budget.import-excel');
+        
         });
 
-    
+    // Global Budget Template Download Route
+    Route::get('/budget/download-template', [ProjectBudgetController::class, 'downloadTemplate'])->name('budget.download-template');
 
     
-
+// Excel upload routes for Projects
+Route::middleware(['auth'])->group(function () {
+    // Project Budget Excel Import
+    Route::get('/projects/{project}/budget/create-from-excel', [ProjectBudgetController::class, 'createFromExcel'])
+        ->name('budget.create-from-excel');
+    Route::post('/projects/{project}/budget/import-excel', [ProjectBudgetController::class, 'importFromExcel'])
+        ->name('budget.import-excel');
+    
+    // Enquiry Budget Excel Import
+    Route::get('/enquiries/{enquiry}/budget/create-from-excel', [ProjectBudgetController::class, 'createFromExcel'])
+        ->name('enquiries.budget.create-from-excel');
+    Route::post('/enquiries/{enquiry}/budget/import-excel', [ProjectBudgetController::class, 'importFromExcel'])
+        ->name('enquiries.budget.import-excel');
+    
+    // Download Excel template
+    Route::get('/budget/download-template', [ProjectBudgetController::class, 'downloadTemplate'])
+        ->name('budget.download-template');
+});
     
 
-//francis
-        
-//francis
+
 
         // Production Routes
         Route::prefix('production/{project}')->name('projects.production.')->group(function () {

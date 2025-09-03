@@ -212,8 +212,7 @@
                                     <td class="py-3">
                                         <div>
                                             <span class="fw-semibold">{{ $quote->quote_date->format('M d, Y') }}</span>
-                                            <br>
-                                            <small class="text-muted">{{ $quote->quote_date->diffForHumans() }}</small>
+            
                                         </div>
                                     </td>
                                     <td class="py-3 text-end">

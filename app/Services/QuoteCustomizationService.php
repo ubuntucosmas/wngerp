@@ -233,15 +233,15 @@ class QuoteCustomizationService
         $additionalServicesText = $additionalCount > 0 ? " and {$additionalCount} additional services" : "";
         
         $descriptions = [
-            'Equipment & Materials' => "Equipment rental and materials including {$mainItemsText}{$additionalText}",
-            'Professional Services' => "Professional services including {$mainItemsText}{$additionalServicesText}",
-            'On-Site Services' => "On-site services and support including {$mainItemsText}{$additionalServicesText}",
-            'Event Breakdown & Cleanup' => "Event breakdown and cleanup services including {$mainItemsText}{$additionalServicesText}",
-            'Transportation & Logistics' => "Transportation and logistics services including {$mainItemsText}{$additionalServicesText}",
-            'Specialized Services' => "Specialized services including {$mainItemsText}{$additionalServicesText}"
+            'Equipment & Materials' => "(Equipment rental and materials) {$mainItemsText}{$additionalText}",
+            'Professional Services' => "(Professional services) {$mainItemsText}{$additionalServicesText}",
+            'On-Site Services' => "(On-site services and support) {$mainItemsText}{$additionalServicesText}",
+            'Event Breakdown & Cleanup' => "(Event breakdown and cleanup services) {$mainItemsText}{$additionalServicesText}",
+            'Transportation & Logistics' => "(Transportation and logistics services) {$mainItemsText}{$additionalServicesText}",
+            'Specialized Services' => "(Specialized services) {$mainItemsText}{$additionalServicesText}"
         ];
         
-        return $descriptions[$category] ?? "Services including {$mainItemsText}{$additionalText}";
+        return $descriptions[$category] ?? "(Services) {$mainItemsText}{$additionalText}";
     }
     
     /**
@@ -327,16 +327,19 @@ class QuoteCustomizationService
                 'item_name' => $itemName,
                 'total_cost' => $particulars->sum('budgeted_cost'),
                 'particular_count' => $particulars->count(),
+                'suggested_margin' => $this->calculateCategoryMargin($itemName),
                 'options' => [
                     'consolidated' => [
                         'description' => $this->generateProductionItemDescription($itemName, $particulars),
                         'line_items' => 1,
-                        'detail_level' => 'summary'
+                        'detail_level' => 'summary',
+                        'client_friendly' => true
                     ],
                     'itemized' => [
                         'description' => "Individual {$itemName} components",
                         'line_items' => $particulars->count(),
                         'detail_level' => 'detailed',
+                        'client_friendly' => false,
                         'items' => $particulars->map(function($particular) {
                             return [
                                 'description' => $particular->particular,
@@ -351,13 +354,84 @@ class QuoteCustomizationService
                         'description' => $itemName,
                         'line_items' => 1,
                         'detail_level' => 'moderate',
-                        'sub_items' => $particulars->pluck('particular')->toArray()
+                        'client_friendly' => true,
+                        'sub_items' => $particulars->pluck('particular')->toArray(),
+                        'expandable' => true // This matches our accordion implementation
                     ]
                 ]
             ];
         }
         
         return $alternatives;
+    }
+    
+    /**
+     * Calculate category-specific profit margins
+     */
+    private function calculateCategoryMargin(string $itemName): float
+    {
+        $marginMappings = [
+            'booth' => 30.0,
+            'stage' => 35.0,
+            'sound' => 25.0,
+            'lighting' => 28.0,
+            'decoration' => 40.0,
+            'furniture' => 22.0,
+            'catering' => 15.0,
+            'transport' => 20.0
+        ];
+        
+        $itemLower = strtolower($itemName);
+        
+        foreach ($marginMappings as $keyword => $margin) {
+            if (str_contains($itemLower, $keyword)) {
+                return $margin;
+            }
+        }
+        
+        return 25.0; // Default margin
+    }
+    
+    /**
+     * Generate Excel import validation rules
+     */
+    public function getExcelValidationRules(): array
+    {
+        return [
+            'production_items' => [
+                'required_columns' => ['Item Name', 'Particular', 'Unit', 'Quantity', 'Unit Price'],
+                'optional_columns' => ['Comment', 'Template ID'],
+                'validation_rules' => [
+                    'Item Name' => 'required|string|max:255',
+                    'Particular' => 'required|string|max:255',
+                    'Unit' => 'required|string|max:50',
+                    'Quantity' => 'required|numeric|min:0.01',
+                    'Unit Price' => 'required|numeric|min:0'
+                ]
+            ],
+            'materials_hire' => [
+                'required_columns' => ['Item Name', 'Particular', 'Unit', 'Quantity', 'Unit Price'],
+                'optional_columns' => ['Comment'],
+                'validation_rules' => [
+                    'Item Name' => 'required|string|max:255',
+                    'Particular' => 'required|string|max:255',
+                    'Unit' => 'required|string|max:50',
+                    'Quantity' => 'required|numeric|min:0.01',
+                    'Unit Price' => 'required|numeric|min:0'
+                ]
+            ],
+            'labour_items' => [
+                'required_columns' => ['Category', 'Particular', 'Unit', 'Quantity', 'Unit Price'],
+                'optional_columns' => ['Comment'],
+                'validation_rules' => [
+                    'Category' => 'required|string|max:255',
+                    'Particular' => 'required|string|max:255',
+                    'Unit' => 'required|string|max:50',
+                    'Quantity' => 'required|numeric|min:0.01',
+                    'Unit Price' => 'required|numeric|min:0'
+                ]
+            ]
+        ];
     }
     
     /**
@@ -374,6 +448,96 @@ class QuoteCustomizationService
                     'count' => $categoryItems->count()
                 ];
             })->toArray()
+        ];
+    }
+    
+    /**
+     * Prepare quote data specifically for accordion display
+     * This method creates the perfect structure for our accordion quote view
+     */
+    public function prepareAccordionQuoteData(ProjectBudget $budget): array
+    {
+        $budgetItems = $budget->items;
+        $productionItems = $budgetItems->where('category', 'Materials - Production');
+        $otherItems = $budgetItems->where('category', '!=', 'Materials - Production');
+        
+        $accordionItems = [];
+        
+        // Handle production items - group by item_name for accordion
+        if ($productionItems->isNotEmpty()) {
+            $productionGroups = $productionItems->groupBy('item_name');
+            
+            foreach ($productionGroups as $itemName => $itemParticulars) {
+                $totalCost = $itemParticulars->sum('budgeted_cost');
+                $suggestedPrice = $this->calculateSuggestedPrice($itemParticulars);
+                $profit = $suggestedPrice - $totalCost;
+                
+                $accordionItems[] = [
+                    'item_name' => $itemName,
+                    'category' => 'Event Production & Setup',
+                    'total_cost' => $totalCost,
+                    'suggested_quote_price' => $suggestedPrice,
+                    'profit' => $profit,
+                    'profit_margin_percentage' => $totalCost > 0 ? (($profit / $totalCost) * 100) : 0,
+                    'component_count' => $itemParticulars->count(),
+                    'has_multiple_components' => $itemParticulars->count() > 1,
+                    'template_info' => $itemParticulars->first()->template ?? null,
+                    'components' => $itemParticulars->map(function($item) {
+                        return [
+                            'description' => $item->particular,
+                            'quantity' => $item->quantity,
+                            'unit' => $item->unit,
+                            'unit_price' => $item->unit_price,
+                            'total_cost' => $item->budgeted_cost,
+                            'comment' => $item->comment,
+                            'suggested_quote_price' => $this->calculateSuggestedPrice(collect([$item]))
+                        ];
+                    })->toArray()
+                ];
+            }
+        }
+        
+        // Handle other categories - group by category
+        $otherGroups = $otherItems->groupBy('category');
+        
+        foreach ($otherGroups as $category => $categoryItems) {
+            $totalCost = $categoryItems->sum('budgeted_cost');
+            $suggestedPrice = $this->calculateSuggestedPrice($categoryItems);
+            $profit = $suggestedPrice - $totalCost;
+            
+            $accordionItems[] = [
+                'item_name' => $this->determineQuoteCategory($category, $categoryItems->first()->particular),
+                'category' => $category,
+                'total_cost' => $totalCost,
+                'suggested_quote_price' => $suggestedPrice,
+                'profit' => $profit,
+                'profit_margin_percentage' => $totalCost > 0 ? (($profit / $totalCost) * 100) : 0,
+                'component_count' => $categoryItems->count(),
+                'has_multiple_components' => $categoryItems->count() > 1,
+                'template_info' => null,
+                'components' => $categoryItems->map(function($item) {
+                    return [
+                        'description' => $item->particular,
+                        'quantity' => $item->quantity,
+                        'unit' => $item->unit,
+                        'unit_price' => $item->unit_price,
+                        'total_cost' => $item->budgeted_cost,
+                        'comment' => $item->comment,
+                        'suggested_quote_price' => $this->calculateSuggestedPrice(collect([$item]))
+                    ];
+                })->toArray()
+            ];
+        }
+        
+        return [
+            'accordion_items' => $accordionItems,
+            'summary' => [
+                'total_cost' => $accordionItems ? array_sum(array_column($accordionItems, 'total_cost')) : 0,
+                'total_quote_price' => $accordionItems ? array_sum(array_column($accordionItems, 'suggested_quote_price')) : 0,
+                'total_profit' => $accordionItems ? array_sum(array_column($accordionItems, 'profit')) : 0,
+                'item_count' => count($accordionItems),
+                'component_count' => $budgetItems->count()
+            ]
         ];
     }
 }

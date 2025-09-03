@@ -33,10 +33,16 @@
                         <i class="bi bi-arrow-left me-1"></i>Back
             </a>
             @hasanyrole('finance|po|pm|super-admin')
-                    <a href="{{ isset($enquiry) ? route('enquiries.budget.create', $enquiry) : (isset($project) ? route('budget.create', $project) : '#') }}" 
-                       class="btn btn-primary btn-sm">
-                        <i class="bi bi-plus-circle me-1"></i>New Budget
-            </a>
+                    <div class="btn-group" role="group">
+                        <a href="{{ isset($enquiry) ? route('enquiries.budget.create', $enquiry) : (isset($project) ? route('budget.create', $project) : '#') }}" 
+                           class="btn btn-primary btn-sm">
+                            <i class="bi bi-plus-circle me-1"></i>New Budget
+                        </a>
+                        <a href="{{ isset($enquiry) ? route('enquiries.budget.create-from-excel', $enquiry) : (isset($project) ? route('budget.create-from-excel', $project) : '#') }}" 
+                           class="btn btn-success btn-sm">
+                            <i class="bi bi-file-earmark-excel me-1"></i>Import from Excel
+                        </a>
+                    </div>
             @endhasanyrole
                 </div>
             </div>
@@ -198,10 +204,16 @@
                 <h5 class="text-muted mb-2">No Budgets Found</h5>
                 <p class="text-muted mb-4">Get started by creating your first budget for this {{ isset($enquiry) ? 'enquiry' : 'project' }}.</p>
                 @hasanyrole('finance|po|pm|super-admin')
-                <a href="{{ isset($enquiry) ? route('enquiries.budget.create', $enquiry) : (isset($project) ? route('budget.create', $project) : '#') }}" 
-                   class="btn btn-primary">
-                    <i class="bi bi-plus-circle me-1"></i>Create Budget
-                </a>
+                <div class="d-flex gap-2 justify-content-center">
+                    <a href="{{ isset($enquiry) ? route('enquiries.budget.create', $enquiry) : (isset($project) ? route('budget.create', $project) : '#') }}" 
+                       class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-1"></i>Create Budget
+                    </a>
+                    <a href="{{ isset($enquiry) ? route('enquiries.budget.create-from-excel', $enquiry) : (isset($project) ? route('budget.create-from-excel', $project) : '#') }}" 
+                       class="btn btn-success">
+                        <i class="bi bi-file-earmark-excel me-1"></i>Import from Excel
+                    </a>
+                </div>
                 @endhasanyrole
             </div>
         @endif

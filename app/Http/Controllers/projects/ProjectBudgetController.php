@@ -12,6 +12,9 @@ use App\Exports\ProjectBudgetExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\BudgetEditLog;
 use App\Models\Enquiry;
+use App\Imports\BudgetImport;
+use App\Exports\BudgetTemplateExport;
+use Illuminate\Http\UploadedFile;
 
 class ProjectBudgetController extends Controller
 {
@@ -695,6 +698,149 @@ class ProjectBudgetController extends Controller
         } else {
             return view('projects.budget.print', compact('project', 'budget'));
         }
+    }
+
+    /**
+     * Show Excel upload form for budget creation
+     */
+    public function createFromExcel(Request $request, $projectOrEnquiryId)
+    {
+        $project = null;
+        $enquiry = null;
+
+        if (str_contains($request->route()->getName(), 'enquiries.')) {
+            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+        } else {
+            $project = Project::findOrFail($projectOrEnquiryId);
+        }
+
+        if ($enquiry) {
+            return view('projects.budget.create-from-excel', compact('enquiry'));
+        } else {
+            return view('projects.budget.create-from-excel', compact('project'));
+        }
+    }
+
+    /**
+     * Import budget from Excel file
+     */
+    public function importFromExcel(Request $request, $projectOrEnquiryId)
+    {
+        $project = null;
+        $enquiry = null;
+
+        if (str_contains($request->route()->getName(), 'enquiries.')) {
+            $enquiry = Enquiry::findOrFail($projectOrEnquiryId);
+        } else {
+            $project = Project::findOrFail($projectOrEnquiryId);
+        }
+
+        // Validate the uploaded file
+        $request->validate([
+            'excel_file' => 'required|file|mimes:xlsx,xls|max:10240', // 10MB max
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'approved_by' => 'required|string|max:255',
+            'approved_departments' => 'required|string|max:255',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            // Create the budget first
+            $budgetData = [
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'budget_total' => 0, // Will be calculated after import
+                'invoice' => 0,
+                'profit' => 0,
+                'approved_by' => $request->approved_by,
+                'approved_departments' => $request->approved_departments,
+                'status' => 'draft',
+            ];
+
+            if ($enquiry) {
+                $budgetData['enquiry_id'] = $enquiry->id;
+            } else {
+                $budgetData['project_id'] = $project->id;
+            }
+
+            $budget = ProjectBudget::create($budgetData);
+
+            // Import the Excel file
+            $import = new BudgetImport($budget);
+            Excel::import($import, $request->file('excel_file'));
+
+            // Calculate totals after import
+            $totalCost = $budget->items()->sum('budgeted_cost');
+            $invoice = round($totalCost * 1.16, 2); // Add 16% VAT
+            $profit = $invoice - $totalCost;
+
+            // Update budget with calculated totals
+            $budget->update([
+                'budget_total' => $totalCost,
+                'invoice' => $invoice,
+                'profit' => $profit,
+            ]);
+
+            // Check for import errors
+            $errors = $import->getErrors();
+            $failures = $import->failures();
+
+            if (!empty($failures)) {
+                $errorMessages = [];
+                foreach ($failures as $failure) {
+                    $errorMessages[] = "Row {$failure->row()}: " . implode(', ', $failure->errors());
+                }
+                
+                // Log errors but don't fail the import
+                Log::warning('Excel import had validation errors', [
+                    'budget_id' => $budget->id,
+                    'errors' => $errorMessages
+                ]);
+            }
+
+            DB::commit();
+
+            // Update phase status
+            if ($project) {
+                $this->updateProjectPhaseStatus($project);
+            } elseif ($enquiry) {
+                $this->updateEnquiryPhaseStatus($enquiry);
+            }
+
+            $successMessage = 'Budget imported successfully from Excel!';
+            if (!empty($failures)) {
+                $successMessage .= ' Note: Some rows had validation errors and were skipped.';
+            }
+
+            if ($enquiry) {
+                return redirect()->route('enquiries.budget.show', [$enquiry, $budget])
+                    ->with('success', $successMessage);
+            } else {
+                return redirect()->route('budget.show', [$project, $budget])
+                    ->with('success', $successMessage);
+            }
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Excel import failed: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return back()->with('error', 'Failed to import Excel file: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    /**
+     * Download Excel template for budget import
+     */
+    public function downloadTemplate()
+    {
+        return Excel::download(new BudgetTemplateExport(), 'budget-import-template.xlsx');
     }
 
     private function updateProjectPhaseStatus(Project $project)

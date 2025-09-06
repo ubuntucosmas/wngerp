@@ -153,8 +153,8 @@
                                                 </div>
                                                 <div class="col-md-1">
                                                     <label class="form-label">Margin %</label>
-                                                    <input type="number" class="form-control profit-margin" name="items[{{ $index }}][profit_margin]" 
-                                                           value="{{ $item['profit_margin_percentage'] }}" min="0" max="100" step="0.1">
+                                                    <input type="number" class="form-control profit-margin" name="items[{{ $index }}][profit_margin]"
+                                                           value="" min="0" max="100" step="0.1" placeholder="Enter margin %">
                                                 </div>
                                                 <div class="col-md-1">
                                                     <label class="form-label">&nbsp;</label>
@@ -303,8 +303,8 @@ function addCustomItem() {
                 </div>
                 <div class="col-md-1">
                     <label class="form-label">Margin %</label>
-                    <input type="number" class="form-control profit-margin" name="items[${itemIndex}][profit_margin]" 
-                           value="25" min="0" max="100" step="0.1">
+                    <input type="number" class="form-control profit-margin" name="items[${itemIndex}][profit_margin]"
+                           value="" min="0" max="100" step="0.1" placeholder="Enter margin %">
                 </div>
                 <div class="col-md-1">
                     <label class="form-label">&nbsp;</label>

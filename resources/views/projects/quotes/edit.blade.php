@@ -125,7 +125,7 @@
                                         </div>
                                         <div class="col-md-1">
                                             <label class="form-label small">Profit %</label>
-                                            <input type="number" min="0" max="100" step="0.01" class="form-control form-control-sm profit-margin" name="items[{{ $index }}][profit_margin]" value="{{ $item->profit_margin ?? 0 }}">
+                                            <input type="number" min="0" max="100" step="0.01" class="form-control form-control-sm profit-margin" name="items[{{ $index }}][profit_margin]" value="{{ $item->profit_margin ?? '' }}" placeholder="Enter margin %">
                                         </div>
                                         <div class="col-md-2">
                                             <label class="form-label small">Quote Price</label>
@@ -175,7 +175,7 @@
                                         </div>
                                         <div class="col-md-1">
                                             <label class="form-label small">Profit %</label>
-                                            <input type="number" min="0" max="100" step="0.01" class="form-control form-control-sm profit-margin" name="items[0][profit_margin]" value="0">
+                                            <input type="number" min="0" max="100" step="0.01" class="form-control form-control-sm profit-margin" name="items[0][profit_margin]" value="" placeholder="Enter margin %">
                                         </div>
                                         <div class="col-md-2">
                                             <label class="form-label small">Quote Price</label>
@@ -234,7 +234,7 @@
                                         </div>
                                         <div class="col-md-1">
                                             <label class="form-label small">Profit %</label>
-                                            <input type="number" min="0" max="100" step="0.01" class="form-control form-control-sm profit-margin" name="hire_items[{{ $hireIndex }}][profit_margin]" value="{{ $hireItem->profit_margin ?? 0 }}">
+                                            <input type="number" min="0" max="100" step="0.01" class="form-control form-control-sm profit-margin" name="hire_items[{{ $hireIndex }}][profit_margin]" value="{{ $hireItem->profit_margin ?? '' }}" placeholder="Enter margin %">
                                         </div>
                                         <div class="col-md-2">
                                             <label class="form-label small">Quote Price</label>
@@ -343,7 +343,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="col-md-1">
                     <label class="form-label small">Profit %</label>
-                    <input type="number" min="0" max="100" step="0.01" class="form-control form-control-sm profit-margin" name="items[${itemCount}][profit_margin]" value="0">
+                    <input type="number" min="0" max="100" step="0.01" class="form-control form-control-sm profit-margin" name="items[${itemCount}][profit_margin]" value="" placeholder="Enter margin %">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label small">Quote Price</label>

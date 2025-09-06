@@ -245,39 +245,25 @@ class QuoteCustomizationService
     }
     
     /**
-     * Calculate suggested pricing with profit margins
+     * Calculate suggested pricing without automatic profit margins
+     * Users will manually set profit margins in the form
      */
     private function calculateSuggestedPrice(Collection $items): float
     {
         $totalCost = $items->sum('budgeted_cost');
-        $baseMargin = 0.25; // 25% base margin
-        
-        // Adjust margin based on category complexity
-        $categoryMultipliers = [
-            'Event Production & Setup' => 1.3,
-            'Professional Services' => 1.4,
-            'Specialized Services' => 1.5,
-            'Equipment & Materials' => 1.2,
-            'Transportation & Logistics' => 1.1
-        ];
-        
-        $category = $this->determineQuoteCategory($items->first()->category, $items->first()->particular);
-        $multiplier = $categoryMultipliers[$category] ?? 1.25;
-        
-        return round($totalCost * $multiplier, 2);
+
+        // Return just the cost - no automatic profit margin applied
+        // Users will add their own profit margins manually
+        return round($totalCost, 2);
     }
     
     /**
-     * Calculate profit margin percentage
+     * Calculate profit margin percentage - returns 0 for manual entry
      */
     private function calculateProfitMargin(Collection $items): float
     {
-        $totalCost = $items->sum('budgeted_cost');
-        $suggestedPrice = $this->calculateSuggestedPrice($items);
-        
-        if ($totalCost == 0) return 0;
-        
-        return round((($suggestedPrice - $totalCost) / $totalCost) * 100, 2);
+        // Return 0 since profit margins will be set manually by users
+        return 0.0;
     }
     
     /**
@@ -366,30 +352,12 @@ class QuoteCustomizationService
     }
     
     /**
-     * Calculate category-specific profit margins
+     * Calculate category-specific profit margins - returns 0 for manual entry
      */
     private function calculateCategoryMargin(string $itemName): float
     {
-        $marginMappings = [
-            'booth' => 30.0,
-            'stage' => 35.0,
-            'sound' => 25.0,
-            'lighting' => 28.0,
-            'decoration' => 40.0,
-            'furniture' => 22.0,
-            'catering' => 15.0,
-            'transport' => 20.0
-        ];
-        
-        $itemLower = strtolower($itemName);
-        
-        foreach ($marginMappings as $keyword => $margin) {
-            if (str_contains($itemLower, $keyword)) {
-                return $margin;
-            }
-        }
-        
-        return 25.0; // Default margin
+        // Return 0 since profit margins will be set manually by users
+        return 0.0;
     }
     
     /**

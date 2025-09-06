@@ -3,49 +3,88 @@
 @section('title', 'Create Hybrid Quote')
 
 @section('content')
-<div class="container-fluid py-4">
+<div class="container-fluid py-3">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb bg-transparent p-0 small">
+            @if(isset($enquiry))
+                <li class="breadcrumb-item"><a href="{{ route('enquiries.index') }}">Enquiries</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('enquiries.files', $enquiry) }}">{{ $enquiry->project_name }}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('enquiries.files.quotation', $enquiry) }}">Budget & Quotation</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('enquiries.quotes.index', $enquiry) }}">Quotes</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Create Hybrid Quote</li>
+            @else
+                <li class="breadcrumb-item"><a href="{{ route('projects.index') }}">Projects</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('projects.files.index', $project) }}">{{ $project->name }}</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('projects.quotation.index', $project) }}">Budget & Quotation</a></li>
+                <li class="breadcrumb-item"><a href="{{ route('quotes.index', $project) }}">Quotes</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Create Hybrid Quote</li>
+            @endif
+        </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0 text-dark fw-semibold">Create Hybrid Quote</h4>
+        <a href="{{ isset($enquiry) ? route('enquiries.quotes.index', $enquiry) : route('quotes.index', $project) }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Back
+        </a>
+    </div>
+
     <div class="row">
         <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-file-invoice-dollar me-2"></i>
-                        Quote for- {{ isset($enquiry) ? $enquiry->project_name : $project->name }}
-                    </h4>
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light border-0 py-2">
+                    <h5 class="mb-0 fw-semibold text-dark small">
+                        <i class="fas fa-file-invoice-dollar me-1 text-primary"></i>
+                        Quote for {{ isset($enquiry) ? $enquiry->project_name : $project->name }}
+                    </h5>
                 </div>
                 
-                <div class="card-body">
+                <div class="card-body p-3">
                     <!-- Cost Summary Dashboard -->
-                    <div class="row mb-4">
-                        <div class="col-md-3">
-                            <div class="card bg-info text-white">
-                                <div class="card-body text-center">
-                                    <h5>Internal Cost</h5>
-                                    <h3>${{ number_format($hybridData['total_internal_cost'], 2) }}</h3>
+                    <div class="mb-3">
+                        <h6 class="card-title mb-2 text-muted fw-semibold small">Cost Summary</h6>
+                        <div class="row g-2">
+                            <div class="col-md-3">
+                                <div class="card border-0 shadow-sm bg-light">
+                                    <div class="card-body text-center p-2">
+                                        <div class="text-primary mb-1">
+                                            <i class="fas fa-dollar-sign"></i>
+                                        </div>
+                                        <small class="text-muted d-block">Internal Cost</small>
+                                        <div class="fw-bold">KES{{ number_format($hybridData['total_internal_cost'], 2) }}</div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card bg-success text-white">
-                                <div class="card-body text-center">
-                                    <h5>Suggested Price</h5>
-                                    <h3>${{ number_format($hybridData['suggested_total_price'], 2) }}</h3>
+                            <div class="col-md-3">
+                                <div class="card border-0 shadow-sm bg-light">
+                                    <div class="card-body text-center p-2">
+                                        <div class="text-success mb-1">
+                                            <i class="fas fa-tags"></i>
+                                        </div>
+                                        <small class="text-muted d-block">Suggested Price</small>
+                                        <div class="fw-bold">KES{{ number_format($hybridData['suggested_total_price'], 2) }}</div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card bg-warning text-white">
-                                <div class="card-body text-center">
-                                    <h5>Profit Margin</h5>
-                                    <h3>{{ $hybridData['total_internal_cost'] > 0 ? number_format((($hybridData['suggested_total_price'] - $hybridData['total_internal_cost']) / $hybridData['total_internal_cost']) * 100, 1) : 0 }}%</h3>
+                            <div class="col-md-3">
+                                <div class="card border-0 shadow-sm bg-light">
+                                    <div class="card-body text-center p-2">
+                                        <div class="text-warning mb-1">
+                                            <i class="fas fa-chart-line"></i>
+                                        </div>
+                                        <small class="text-muted d-block">Profit Margin</small>
+                                        <div class="fw-bold">{{ $hybridData['total_internal_cost'] > 0 ? number_format((($hybridData['suggested_total_price'] - $hybridData['total_internal_cost']) / $hybridData['total_internal_cost']) * 100, 1) : 0 }}%</div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="card bg-secondary text-white">
-                                <div class="card-body text-center">
-                                    <h5>Total Items</h5>
-                                    <h3>{{ $hybridData['cost_summary']['item_count'] }}</h3>
+                            <div class="col-md-3">
+                                <div class="card border-0 shadow-sm bg-light">
+                                    <div class="card-body text-center p-2">
+                                        <div class="text-info mb-1">
+                                            <i class="fas fa-list"></i>
+                                        </div>
+                                        <small class="text-muted d-block">Total Items</small>
+                                        <div class="fw-bold">{{ $hybridData['cost_summary']['item_count'] }}</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -54,60 +93,70 @@
                     <form action="{{ isset($enquiry) ? route('enquiries.quotes.store', $enquiry) : route('quotes.store', $project) }}" method="POST" id="hybridQuoteForm">
                         @csrf
                         <input type="hidden" name="project_budget_id" value="{{ $hybridData['budget']->id }}">
-                        
-                        <!-- Basic Quote Information -->
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <label for="customer_name" class="form-label">Customer Name *</label>
-                                <input type="text" class="form-control" name="customer_name" required 
-                                       value="{{ old('customer_name', isset($enquiry) ? $enquiry->client_name ?? '' : $project->client_name ?? '') }}">
+
+                        <!-- Customer Information Section -->
+                        <div class="mb-3">
+                            <h6 class="card-title mb-2 text-muted fw-semibold small">Customer Information</h6>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <label for="customer_name" class="form-label fw-medium small">Customer Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-sm" name="customer_name" required
+                                           value="{{ old('customer_name', isset($enquiry) ? $enquiry->client_name ?? '' : $project->client_name ?? '') }}">
+                                    @error('customer_name')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
                             </div>
                         </div>
 
-                        <div class="row mb-4">
-                            <div class="col-md-4">
-                                <label for="quote_date" class="form-label">Quote Date</label>
-                                <input type="date" class="form-control" name="quote_date" 
-                                       value="{{ old('quote_date', date('Y-m-d')) }}">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="project_start_date" class="form-label">Project Start Date</label>
-                                <input type="date" class="form-control" name="project_start_date" 
-                                       value="{{ old('project_start_date') }}">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="reference" class="form-label">Reference</label>
-                                <input type="text" class="form-control" name="reference" 
-                                       value="{{ old('reference') }}">
+                        <!-- Project Details Section -->
+                        <div class="mb-3">
+                            <h6 class="card-title mb-2 text-muted fw-semibold small">Project Details</h6>
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label for="quote_date" class="form-label fw-medium small">Quote Date</label>
+                                    <input type="date" class="form-control form-control-sm" name="quote_date"
+                                           value="{{ old('quote_date', date('Y-m-d')) }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="project_start_date" class="form-label fw-medium small">Project Start Date</label>
+                                    <input type="date" class="form-control form-control-sm" name="project_start_date"
+                                           value="{{ old('project_start_date') }}">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="reference" class="form-label fw-medium small">Reference</label>
+                                    <input type="text" class="form-control form-control-sm" name="reference"
+                                           value="{{ old('reference') }}">
+                                </div>
                             </div>
                         </div>
 
                         <!-- Customization Options -->
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h5><i class="fas fa-cogs me-2"></i>Quote Customization Options</h5>
+                        <div class="card border-0 shadow-sm mb-3">
+                            <div class="card-header bg-light border-0 py-2">
+                                <h6 class="mb-0 fw-semibold text-dark small"><i class="fas fa-cogs me-1 text-primary"></i>Quote Customization Options</h6>
                             </div>
-                            <div class="card-body">
-                                <div class="row">
+                            <div class="card-body p-3">
+                                <div class="row g-2">
                                     <div class="col-md-4">
-                                        <label for="consolidation_level" class="form-label">Detail Level</label>
-                                        <select class="form-select" name="consolidation_level" id="consolidationLevel">
+                                        <label for="consolidation_level" class="form-label fw-medium small">Detail Level</label>
+                                        <select class="form-select form-select-sm" name="consolidation_level" id="consolidationLevel">
                                             @foreach($hybridData['customization_options']['consolidation_levels'] as $key => $label)
                                                 <option value="{{ $key }}">{{ $label }}</option>
                                             @endforeach
                                         </select>
                                     </div>
                                     <div class="col-md-4">
-                                        <label for="pricing_strategy" class="form-label">Pricing Strategy</label>
-                                        <select class="form-select" name="pricing_strategy" id="pricingStrategy">
+                                        <label for="pricing_strategy" class="form-label fw-medium small">Pricing Strategy</label>
+                                        <select class="form-select form-select-sm" name="pricing_strategy" id="pricingStrategy">
                                             @foreach($hybridData['customization_options']['pricing_strategies'] as $key => $label)
                                                 <option value="{{ $key }}">{{ $label }}</option>
                                             @endforeach
                                         </select>
                                     </div>
                                     <div class="col-md-4">
-                                        <label for="description_style" class="form-label">Description Style</label>
-                                        <select class="form-select" name="description_style" id="descriptionStyle">
+                                        <label for="description_style" class="form-label fw-medium small">Description Style</label>
+                                        <select class="form-select form-select-sm" name="description_style" id="descriptionStyle">
                                             @foreach($hybridData['customization_options']['description_styles'] as $key => $label)
                                                 <option value="{{ $key }}">{{ $label }}</option>
                                             @endforeach
@@ -118,47 +167,47 @@
                         </div>
 
                         <!-- Hybrid Quote Items -->
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5><i class="fas fa-list me-2"></i>Quote Items (Customizable)</h5>
-                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="addCustomItem()">
-                                    <i class="fas fa-plus me-1"></i>Add Custom Item
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-light border-0 d-flex justify-content-between align-items-center py-2 px-3">
+                                <h6 class="mb-0 fw-semibold text-dark small"><i class="fas fa-list me-1 text-primary"></i>Quote Items (Customizable)</h6>
+                                <button type="button" class="btn btn-primary btn-sm d-flex align-items-center gap-1" onclick="addCustomItem()">
+                                    <i class="fas fa-plus"></i>Add Item
                                 </button>
                             </div>
                             <div class="card-body">
                                 <div id="quoteItemsContainer">
                                     @foreach($hybridData['suggested_items'] as $index => $item)
-                                        <div class="quote-item-row border rounded p-3 mb-3" data-index="{{ $index }}">
-                                            <div class="row align-items-center">
+                                        <div class="quote-item-row border rounded p-2 mb-2" data-index="{{ $index }}">
+                                            <div class="row align-items-center g-2">
                                                 <div class="col-md-4">
-                                                    <label class="form-label">Description</label>
-                                                    <textarea class="form-control" name="items[{{ $index }}][description]" rows="2" 
+                                                    <label class="form-label small">Description</label>
+                                                    <textarea class="form-control form-control-sm" name="items[{{ $index }}][description]" rows="1"
                                                               placeholder="Enter client-friendly description">{{ $item['suggested_description'] }}</textarea>
-                                                    <small class="text-muted">Internal cost: ${{ number_format($item['total_internal_cost'], 2) }}</small>
+                                                    <small class="text-muted d-block">Cost: ${{ number_format($item['total_internal_cost'], 2) }}</small>
                                                 </div>
                                                 <div class="col-md-2">
-                                                    <label class="form-label">Quantity</label>
-                                                    <input type="number" class="form-control item-quantity" name="items[{{ $index }}][quantity]" 
+                                                    <label class="form-label small">Quantity</label>
+                                                    <input type="number" class="form-control form-control-sm item-quantity" name="items[{{ $index }}][quantity]"
                                                            value="1" min="0.01" step="0.01">
                                                 </div>
                                                 <div class="col-md-2">
-                                                    <label class="form-label">Unit Price</label>
-                                                    <input type="number" class="form-control item-unit-price" name="items[{{ $index }}][unit_price]" 
+                                                    <label class="form-label small">Unit Price</label>
+                                                    <input type="number" class="form-control form-control-sm item-unit-price" name="items[{{ $index }}][unit_price]"
                                                            value="{{ $item['suggested_quote_price'] }}" min="0" step="0.01">
                                                 </div>
                                                 <div class="col-md-2">
-                                                    <label class="form-label">Total</label>
-                                                    <input type="number" class="form-control item-total" name="items[{{ $index }}][total_cost]" 
+                                                    <label class="form-label small">Total</label>
+                                                    <input type="number" class="form-control form-control-sm item-total" name="items[{{ $index }}][total_cost]"
                                                            value="{{ $item['suggested_quote_price'] }}" readonly>
                                                 </div>
                                                 <div class="col-md-1">
-                                                    <label class="form-label">Margin %</label>
-                                                    <input type="number" class="form-control profit-margin" name="items[{{ $index }}][profit_margin]"
-                                                           value="" min="0" max="100" step="0.1" placeholder="Enter margin %">
+                                                    <label class="form-label small">Margin %</label>
+                                                    <input type="number" class="form-control form-control-sm profit-margin" name="items[{{ $index }}][profit_margin]"
+                                                           value="" min="0" max="100" step="0.1" placeholder="%">
                                                 </div>
                                                 <div class="col-md-1">
-                                                    <label class="form-label">&nbsp;</label>
-                                                    <button type="button" class="btn btn-outline-danger btn-sm d-block" onclick="removeQuoteItem({{ $index }})">
+                                                    <label class="form-label small">&nbsp;</label>
+                                                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeQuoteItem({{ $index }})">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </div>
@@ -220,14 +269,13 @@
                         </div>
 
                         <!-- Action Buttons -->
-                        <div class="row mt-4">
-                            <div class="col-12 text-end">
-                                <a href="{{ isset($enquiry) ? route('enquiries.quotes.index', $enquiry) : route('quotes.index', $project) }}" 
-                                   class="btn btn-secondary me-2">Cancel</a>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save me-1"></i>Create Quote
-                                </button>
-                            </div>
+                        <div class="d-flex justify-content-between mt-3">
+                            <a href="{{ isset($enquiry) ? route('enquiries.quotes.index', $enquiry) : route('quotes.index', $project) }}" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+                                <i class="fas fa-save"></i> Create Quote
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -256,10 +304,17 @@ function attachCalculationListeners() {
 
 function calculateItemTotal(row) {
     const quantity = parseFloat(row.querySelector('.item-quantity').value) || 0;
-    const unitPrice = parseFloat(row.querySelector('.item-unit-price').value) || 0;
-    const total = quantity * unitPrice;
-    
-    row.querySelector('.item-total').value = total.toFixed(2);
+    const unitPriceInput = row.querySelector('.item-unit-price');
+    const profitMarginInput = row.querySelector('.profit-margin');
+    const totalInput = row.querySelector('.item-total');
+
+    const unitPrice = parseFloat(unitPriceInput.value) || 0;
+    const profitMargin = parseFloat(profitMarginInput.value) || 0;
+
+    // Calculate total as quantity × unit_price × (1 + profit_margin/100)
+    // Unit price remains unchanged, profit margin is applied to get the final selling price
+    const total = quantity * unitPrice * (1 + profitMargin / 100);
+    totalInput.value = total.toFixed(2);
 }
 
 function calculateQuoteTotals() {
@@ -279,36 +334,37 @@ function calculateQuoteTotals() {
 function addCustomItem() {
     const container = document.getElementById('quoteItemsContainer');
     const newItem = `
-        <div class="quote-item-row border rounded p-3 mb-3" data-index="${itemIndex}">
-            <div class="row align-items-center">
+        <div class="quote-item-row border rounded p-2 mb-2" data-index="${itemIndex}">
+            <div class="row align-items-center g-2">
                 <div class="col-md-4">
-                    <label class="form-label">Description</label>
-                    <textarea class="form-control" name="items[${itemIndex}][description]" rows="2" 
+                    <label class="form-label small">Description</label>
+                    <textarea class="form-control form-control-sm" name="items[${itemIndex}][description]" rows="1"
                               placeholder="Enter custom item description"></textarea>
+                    <small class="text-muted d-block">Cost: $0.00</small>
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label">Quantity</label>
-                    <input type="number" class="form-control item-quantity" name="items[${itemIndex}][quantity]" 
+                    <label class="form-label small">Quantity</label>
+                    <input type="number" class="form-control form-control-sm item-quantity" name="items[${itemIndex}][quantity]"
                            value="1" min="0.01" step="0.01">
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label">Unit Price</label>
-                    <input type="number" class="form-control item-unit-price" name="items[${itemIndex}][unit_price]" 
+                    <label class="form-label small">Unit Price</label>
+                    <input type="number" class="form-control form-control-sm item-unit-price" name="items[${itemIndex}][unit_price]"
                            value="0" min="0" step="0.01">
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label">Total</label>
-                    <input type="number" class="form-control item-total" name="items[${itemIndex}][total_cost]" 
+                    <label class="form-label small">Total</label>
+                    <input type="number" class="form-control form-control-sm item-total" name="items[${itemIndex}][total_cost]"
                            value="0" readonly>
                 </div>
                 <div class="col-md-1">
-                    <label class="form-label">Margin %</label>
-                    <input type="number" class="form-control profit-margin" name="items[${itemIndex}][profit_margin]"
-                           value="" min="0" max="100" step="0.1" placeholder="Enter margin %">
+                    <label class="form-label small">Margin %</label>
+                    <input type="number" class="form-control form-control-sm profit-margin" name="items[${itemIndex}][profit_margin]"
+                           value="" min="0" max="100" step="0.1" placeholder="%">
                 </div>
                 <div class="col-md-1">
-                    <label class="form-label">&nbsp;</label>
-                    <button type="button" class="btn btn-outline-danger btn-sm d-block" onclick="removeQuoteItem(${itemIndex})">
+                    <label class="form-label small">&nbsp;</label>
+                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeQuoteItem(${itemIndex})">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -316,7 +372,7 @@ function addCustomItem() {
             <input type="hidden" name="items[${itemIndex}][category_type]" value="Custom">
         </div>
     `;
-    
+
     container.insertAdjacentHTML('beforeend', newItem);
     attachCalculationListeners();
     itemIndex++;
@@ -342,4 +398,71 @@ document.getElementById('pricingStrategy').addEventListener('change', function()
     console.log('Pricing strategy changed to:', this.value);
 });
 </script>
+
+<style>
+/* Compact Design Styles */
+.container-fluid {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.card-body {
+    padding: 1rem !important;
+}
+
+.quote-item-row {
+    transition: all 0.15s ease-in-out;
+    border: 1px solid #e9ecef;
+    margin-bottom: 0.5rem !important;
+    padding: 0.75rem !important;
+}
+
+.quote-item-row:hover {
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.quote-item-row:focus-within {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.15rem rgba(0,123,255,0.25);
+}
+
+.form-label {
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.form-control-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.card {
+    border-radius: 0.375rem;
+    margin-bottom: 1rem;
+}
+
+.card-header {
+    padding: 0.75rem 1rem !important;
+}
+
+.btn {
+    border-radius: 0.25rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+/* Reduce spacing for compact layout */
+.mb-3 { margin-bottom: 0.75rem !important; }
+.mb-4 { margin-bottom: 1rem !important; }
+.mt-3 { margin-top: 0.75rem !important; }
+.mt-4 { margin-top: 1rem !important; }
+.p-3 { padding: 0.75rem !important; }
+.p-4 { padding: 1rem !important; }
+</style>
 @endsection
